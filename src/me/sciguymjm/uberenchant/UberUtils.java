@@ -61,6 +61,8 @@ public class UberUtils {
 			return 3;
 		if (args[0].equalsIgnoreCase("insert"))
 			return 4;
+		if (args[0].equalsIgnoreCase("give"))
+			return 5;
 		return -2;
 	}
 	
@@ -71,6 +73,8 @@ public class UberUtils {
 			return 2;
 		if (args[1].equalsIgnoreCase("lore"))
 			return 3;
+		if (args[1].equalsIgnoreCase("item"))
+			return 4;
 		return 0;
 	}
 }

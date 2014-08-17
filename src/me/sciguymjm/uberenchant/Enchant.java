@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -122,7 +123,7 @@ public class Enchant implements CommandExecutor {
 								int size = lore2.size();
 								if (size == 1) {
 									meta.setLore(null);
-									player.sendMessage(ChatColor.GREEN + "Successfully Remove Some Lore!");
+									player.sendMessage(ChatColor.GREEN + "Successfully Removed Some Lore!");
 									break;
 								}
 								Integer line = -1;
@@ -136,10 +137,7 @@ public class Enchant implements CommandExecutor {
 									player.sendMessage(ChatColor.RED + "Line Does Not Exist!");
 									break;
 								}
-								if (line.toString().contains(".")) {
-									player.sendMessage(ChatColor.RED + "Line Must Be A Whole Number!");
-									break;
-								}
+
 								lore2.remove(line);
 								meta.setLore(lore2);
 								item.setItemMeta(meta);
@@ -324,6 +322,25 @@ public class Enchant implements CommandExecutor {
 								break;
 							}
 							break;
+						case 5:
+							switch (type){
+							case 0:
+								player.sendMessage("Insufficient Arguments!");
+							case 4:
+								if (args.length < 3) {
+									
+									player.sendMessage("Insufficient Arguments!");
+									
+								} else {
+									ItemStack i = player.getItemInHand();
+									Player p = Bukkit.getPlayer(args[2]);
+									p.getInventory().addItem(i);
+									player.sendMessage("Gave item to player "+args[2]);
+									
+									
+								}
+							}
+						
 						}
 						return true;
 					}
