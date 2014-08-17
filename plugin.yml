@@ -1,0 +1,28 @@
+name: UberEnchant
+authors: [Sciguymjm, coltonj96]
+main: me.sciguymjm.uberenchant.UberEnchant
+version: 1.9
+softdepend: [Vault]
+
+commands:
+  uber:
+    description: The main command
+    usage: |
+      /<command> <list>
+      /<command> <add> <enchant> <enchantment> <level>
+      /<command> <add> <lore> <string...>
+      /<command> <add> <name> <string...>
+      /<command> <set> <name> <string...>
+      /<command> <set> <lore> <line#> <string...>
+      /<command> <del> <enchant> <enchantment>
+      /<command> <del> <name>
+      /<command> <del> <lore> <line#>
+      /<command> <insert> <lore> <line#> <string...>
+      /<command> <clear>
+permissions:
+  uber.enchant:
+    description: Allows Enchanting Of Items
+  uber.sign.create:
+    description: Allows Creation Of Uber Signs
+  uber.sign.destroy:
+    description: Allows Destruction Of Others Uber Signs

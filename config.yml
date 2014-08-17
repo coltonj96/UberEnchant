@@ -1,0 +1,6 @@
+settings:
+  price:
+    min: 10
+    max: 10000
+  level:
+    max: 10
