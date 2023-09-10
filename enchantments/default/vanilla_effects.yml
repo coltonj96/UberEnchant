@@ -1,0 +1,346 @@
+# Example Configuration
+#
+# absorption:				Enchantment name from enum constant (used in code)
+#    min_level: 1				Minimum level the user is allowed for this enchantment
+#    max_level: 10				Maximum level the user is allowed for this enchantment
+#    cost: 1000.0				Base cost to get this enchantment
+#    cost_multiplier: 0.02		Cost added to base cost using the following formula: cost + (multiplier * cost * (level - 1))
+#    cost_for_level:			Optional exact cost for a specific enchantment level, no multiplier. Can add more the the default levels Format: "<level>: Cost"
+#        1: 1000.0				
+#        5: 6000.0
+#        10: 17000.0
+#    removal_cost: 100.0		Cost to remove this enchantment from an item
+#    extraction_cost: 1000.0	Cost to extract this enchantment into a book
+#    use_on_anything: false		If this enchantment can be put on any item or not
+#    aliases: ["absorp"]		Alias or other names for this enchantmet
+
+absorption:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+bad_omen:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+blindness:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+conduit_power:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+nausea:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: ["confusion"]
+resistance:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: ["damage_resistance"]
+darkness:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+dolphins_grace:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+haste:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: ["fast_digging"]
+fire_resistance:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+glowing:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+instant_damage:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: ["harm"]
+instant_health:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: ["heal"]
+health_boost:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+hero_of_the_village:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+hunger:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+strength:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: ["increase_damage"]
+invisibility:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+jump_boost:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: ["jump"]
+levitation:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+luck:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+night_vision:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+poison:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+regeneration:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+saturation:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+slowness:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: ["slow"]
+mining_fatigue:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: ["slow_digging"]
+slow_falling:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+speed:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+unluck:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+water_breathing:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+weakness:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []
+wither:
+  min_level: 1
+  max_level: 10
+  cost: 1000.0
+  cost_multiplier: 0.02
+  cost_for_level: {}
+  removal_cost: 100.0
+  extraction_cost: 100.0
+  use_on_anything: false
+  aliases: []

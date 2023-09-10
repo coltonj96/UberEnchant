@@ -1,6 +1,15 @@
-settings:
-  price:
-    min: 10
-    max: 10000
-  level:
-    max: 10
+# Set the locale
+locale: en_us
+
+# Cost for certain commands
+cost:
+  name:
+    add: 500.0
+    set: 500.0
+    remove: 100.0
+  lore:
+    add: 500.0
+    clear: 100.0
+    remove: 100.0
+    set: 500.0
+    insert: 500.0

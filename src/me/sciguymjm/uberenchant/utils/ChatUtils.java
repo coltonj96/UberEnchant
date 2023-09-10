@@ -1,0 +1,81 @@
+package me.sciguymjm.uberenchant.utils;
+
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+
+import java.lang.reflect.Method;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * A chat-related utility class
+ */
+public class ChatUtils {
+
+    /**
+     * Sends the specified player a formated message.<br>
+     * Usage:
+     *
+     * <pre>{@code
+     * Playe p = new Player("john_doe"); // Psuedo code
+     * ChatUtils.response(p, "This is a message for %1$s", p.getName());
+     * // outputs "[UberEnchant] This is a message for john_doe"
+     * }</pre>
+     *
+     * @param player  - The player
+     * @param message - The message
+     * @param args    - The arguments for the message
+     */
+    public static void response(Player player, String message, Object... args) {
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8&l[&5UberEnchant&8&l] %1$s".formatted(message).formatted(args)));
+    }
+
+    /**
+     * Sends the specified player an array of messages.
+     *
+     * @param player   - The player
+     * @param messages - The array of messages
+     */
+    public static void response(Player player, String[] messages) {
+        for (int i = 0; i < messages.length; i++) {
+            messages[i] = ChatColor.translateAlternateColorCodes('&', messages[i]);
+        }
+        player.sendMessage(messages);
+    }
+
+    /**
+     * Adds color to a string for messages.<br>
+     * (If using the spigot api or a for of it, hex codes can be used using a
+     * #rrggbb ie #ff0000 = red)<br>
+     * Example formatting:
+     *
+     * <pre>{@code
+     * // For bukkit style color codes
+     * ChatUtils.color("&6&lThis bold gold color");
+     *
+     * // For any hex color using rgb
+     * ChatUtils.color("#ff7700&lThis is bold orange");
+     * }</pre>
+     *
+     * @param string - The string to color format
+     * @return A color-formatted string
+     */
+    public static String color(String string) {
+        try {
+            Class<?> chatColor = null;
+            Class.forName("net.md_5.bungee.api.ChatColor");
+            chatColor = Class.forName("net.md_5.bungee.api.ChatColor");
+            Method of = chatColor.getMethod("of", String.class);
+            Pattern p = Pattern.compile("(#[0-9a-fA-F]{6})");
+            Matcher m = p.matcher(string);
+            while (m.find()) {
+                String a = m.group();
+                string = string.replace(a, of.invoke(null, a).toString());
+            }
+            return ChatColor.translateAlternateColorCodes('&', string);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+}

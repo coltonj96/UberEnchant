@@ -1,28 +1,213 @@
 name: UberEnchant
-authors: [Sciguymjm, coltonj96]
+author: Sciguymjm
+authors: [coltonj96]
 main: me.sciguymjm.uberenchant.UberEnchant
-version: 1.9
-softdepend: [Vault]
+version: 8.10.2
+api-version: 1.19
+soft-depend: [Vault]
 
 commands:
-  uber:
-    description: The main command
-    usage: |
-      /<command> <list>
-      /<command> <add> <enchant> <enchantment> <level>
-      /<command> <add> <lore> <string...>
-      /<command> <add> <name> <string...>
-      /<command> <set> <name> <string...>
-      /<command> <set> <lore> <line#> <string...>
-      /<command> <del> <enchant> <enchantment>
-      /<command> <del> <name>
-      /<command> <del> <lore> <line#>
-      /<command> <insert> <lore> <line#> <string...>
-      /<command> <clear>
+  uadd:
+    description: Uber Add Command
+    permission: uber.add
+    usage: /uhelp uadd
+  uclear:
+    description: Uber Clear Command
+    permission: uber.clear
+    usage: /uhelp uclear
+  ucost:
+    description: Uber Cost Command
+    permission: uber.cost
+    usage: /uhelp ucost
+  udel:
+    description: Uber Delete Command
+    permission: uber.del
+    usage: /uhelp udel
+  uextract:
+    description: Uber Extract Command
+    permission: uber.extract
+    usage: /uhelp uextract
+  uhelp:
+    description: Uber Help Command
+    permission: uber.help
+    usage: /uhelp <command>
+  ureload:
+    description: Uber Reload Command
+    permission: uber.reload
+    usage: /uhelp ureload
+  uinsert:
+    description: Uber Insert Command
+    permission: uber.insert
+    usage: /uhelp uinsert
+  ulist:
+    description: Uber List Command
+    permission: uber.list
+    usage: /uhelp ulist
+  uset:
+    description: Uber Set Command
+    permission: uber.set
+    usage: /uhelp uset
+
 permissions:
-  uber.enchant:
-    description: Allows Enchanting Of Items
-  uber.sign.create:
-    description: Allows Creation Of Uber Signs
-  uber.sign.destroy:
-    description: Allows Destruction Of Others Uber Signs
+  uber.*:
+    description: All permissions
+    default: op
+    children:
+      uber.add.*: true
+      uber.add.enchant.all: true
+      uber.clear.*: true
+      uber.cost.*: true
+      uber.del.*: true
+      uber.extract.*: true
+      uber.help: true
+      uber.reload: true
+      uber.effect.*: true
+      uber.insert.*: true
+      uber.set.*: true
+      uber.list.*: true
+      uber.enchant.bypass.any: true
+      uber.enchant.bypass.level: true
+      uber.enchant.all: true
+  uber.add.*:
+    description: Full access to '/uadd'
+    default: op
+    children:
+      uber.add.enchant: true
+      uber.add.effect: true
+      uber.add.lore: true
+      uber.add.name: true
+  uber.add.enchant:
+    description: Access to '/uadd enchant'
+    default: false
+  uber.add.enchant.all:
+    description: Access to all enchants for '/uadd enchant'
+    default: false
+  uber.add.effect:
+    description: Access to '/uadd effect'
+    default: false
+  uber.add.lore:
+    description: Access to '/uadd lore'
+    default: false
+  uber.add.name:
+    description: Access to '/uadd name'
+    default: false
+  uber.clear.*:
+    description: Full access to '/uclear'
+    default: op
+    children:
+      uber.clear.enchant: true
+      uber.clear.effect: true
+      uber.clear.lore: true
+  uber.clear.enchant:
+    description: Access to '/uclear enchant'
+    default: false
+  uber.clear.effect:
+    description: Access to '/uclear effect'
+    default: false
+  uber.clear.lore:
+    description: Access to '/uclear lore'
+    default: false
+  uber.cost.*:
+    description: Full access to '/ucost'
+    default: op
+    children:
+      uber.cost.add.enchant: true
+      uber.cost.del.enchant: true
+      uber.cost.extract.enchant: true
+  uber.cost.add.enchant:
+    description: Access to '/ucost add enchant'
+    default: false
+  uber.cost.del.enchant:
+    description: Access to '/ucost del enchant'
+    default: false
+  uber.cost.extract.enchant:
+    description: Access to '/ucost extract enchant'
+    default: false
+  uber.del.*:
+    description: Full access to '/udel'
+    default: op
+    children:
+      uber.del.enchant: true
+      uber.del.enchant.free: true
+      uber.del.effect: true
+      uber.del.lore: true
+      uber.del.name: true
+  uber.del.enchant:
+    description: Access to '/udel enchant'
+    default: false
+  uber.del.enchant.free:
+    description: Free access to '/udel enchant'
+    default: false
+  uber.del.effect:
+    description: Access to '/udel effect'
+    default: false
+  uber.del.lore:
+    description: Access to '/udel lore'
+    default: false
+  uber.del.name:
+    description: Access to '/udel name'
+    default: false
+  uber.extract.*:
+    description: Full access to '/uextract'
+    default: op
+    children:
+      uber.extract.enchant: true
+      uber.extract.enchant.free: true
+  uber.extract.enchant.free:
+    description: Extract enchantments for free
+    default: false
+  uber.help:
+    description: Access to '/uhelp'
+    default: false
+  uber.reload:
+    description: Access to '/ureload'
+    default: false
+  uber.insert.*:
+    description: Fulle access to '/uinsert'
+    default: op
+    children:
+      uber.insert.lore: true
+  uber.insert.lore:
+    description: Access to '/uinsert lore'
+    default: false
+  uber.list.*:
+    description: Full access to '/ulist'
+    default: op
+    children:
+      uber.list.enchants: true
+      uber.list.effects: true
+  uber.list.enchants:
+    description: Access to '/ulist enchants'
+    default: false
+  uber.list.effects:
+    description: Access to '/ulist effects'
+    default: false
+  uber.set.*:
+    description: Full access to '/uset'
+    default: op
+    children:
+      uber.set.effect: true
+      uber.set.hidden: true
+      uber.set.lore: true
+      uber.set.name: true
+  uber.set.effect:
+    description: Access to '/uset effect'
+    default: false
+  uber.set.hidden:
+    description: Access to '/uset hidden'
+    default: false
+  uber.set.lore:
+    description: Access to '/uset lore'
+    default: false
+  uber.set.name:
+    description: Access to '/uset name'
+    default: false
+  uber.enchant.all:
+    description: N/A
+    default: op
+  uber.enchant.bypass.level:
+    description: Allow any level
+    default: op
+  uber.enchant.bypass.any:
+    description: Allow enchants on any item
+    default: op
