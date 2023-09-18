@@ -63,7 +63,7 @@ public class CostCommand extends UberTabCommand {
 
     @Override
     public List<String> onTab() {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         switch (args.length) {
             case 1 -> {
                 if (hasPermission("uber.add.enchant"))

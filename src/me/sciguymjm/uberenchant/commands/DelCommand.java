@@ -57,7 +57,7 @@ public class DelCommand extends UberTabCommand {
 
     @Override
     public List<String> onTab() {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         if (args.length == 1) {
             if (hasPermission("uber.del.enchant"))
                 list.add("enchant");
@@ -75,9 +75,7 @@ public class DelCommand extends UberTabCommand {
                         item.getEnchantments().keySet().forEach(enchant -> list.add(enchant.getKey().getKey().toLowerCase()));
                     }
                 }
-                case "effect" -> {
-                    player.getActivePotionEffects().forEach(effect -> list.add(effect.getType().getName().toLowerCase()));
-                }
+                case "effect" -> player.getActivePotionEffects().forEach(effect -> list.add(effect.getType().getName().toLowerCase()));
             }
         }
         return list;

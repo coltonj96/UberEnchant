@@ -29,7 +29,7 @@ public class EnchantmentUtils {
      * @hidden
      */
     public static String[] listEnchants() {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         list.add("&6Enchantments:");
         list.addAll(UberRecord.values().stream().filter(value -> value.getEnchant() != null).map(value -> String.format("        &6&l%1$s", value.getName())).toList());
         return list.toArray(String[]::new);
@@ -57,7 +57,7 @@ public class EnchantmentUtils {
      * @hidden
      */
     public static List<String> matchEnchants(String name) {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         if (name.isEmpty()) {
             UberRecord.values().forEach(value -> {
                 if (!list.contains(value.getName().toLowerCase()))
@@ -176,7 +176,7 @@ public class EnchantmentUtils {
                 "    &6&l/uinsert &7lore <line#> <string...>",
                 "    &6&l/uclear &8enchant | effect | lore",
                 "    &6&l/ureload");
-        Map<String, List<String>> map = new HashMap<String, List<String>>();
+        Map<String, List<String>> map = new HashMap<>();
         map.put("all", list);
         map.put("ulist", list.subList(0, 0));
         map.put("uadd", list.subList(1, 5));
@@ -202,7 +202,7 @@ public class EnchantmentUtils {
      * @hidden
      */
     public static String setHideEnchants(ItemStack item, boolean hide) {
-        String msg = "";
+        String msg;
 
         if (!item.hasItemMeta())
             return "";

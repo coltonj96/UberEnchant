@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 /**
  * Custom enchantment related utility class
@@ -82,11 +81,10 @@ public class UberUtils {
      */
     public static void addEnchantmentLore(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        List<String> lore = new ArrayList<String>();
+        List<String> lore = new ArrayList<>();
         if (meta.hasLore())
             lore = meta.getLore();
         Map<UberEnchantment, Integer> enchantments = UberEnchantment.getEnchantments(item);
-        ;
         if (item.getItemMeta() instanceof EnchantmentStorageMeta)
             enchantments = UberEnchantment.getStoredEnchantments(item);
         List<String> effects = enchantments.entrySet().stream().map(data -> displayName(data.getKey(), data.getValue())).toList();
@@ -153,7 +151,7 @@ public class UberUtils {
     public static String toRomanNumeral(int number) {
         if (number < 1)
             return "";
-        TreeMap<Integer, String> map = new TreeMap<Integer, String>();
+        TreeMap<Integer, String> map = new TreeMap<>();
         map.put(1000000, "(M)");
         map.put(900000, "(C)(M)");
         map.put(500000, "(D)");

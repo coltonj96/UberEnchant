@@ -55,7 +55,7 @@ public class SetCommand extends UberTabCommand {
 
     @Override
     public List<String> onTab() {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         if (args.length == 1) {
             if (hasPermission("uber.set.effect"))
                 list.add("effect");
@@ -123,7 +123,7 @@ public class SetCommand extends UberTabCommand {
             return;
         }
         int index = UberUtils.offset(item);
-        ItemMeta meta = (ItemMeta) item.getItemMeta();
+        ItemMeta meta = item.getItemMeta();
         if (!meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index == 0)) {
             response("&c" + UberLocale.get("actions.lore.set.no_lore"));
             return;

@@ -49,7 +49,7 @@ public class ClearCommand extends UberTabCommand {
 
     @Override
     public List<String> onTab() {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         if (args.length == 1) {
             if (hasPermission("uber.clear.enchant"))
                 list.add("enchant");
@@ -63,9 +63,7 @@ public class ClearCommand extends UberTabCommand {
 
     private void enchant(ItemStack item) {
         if (item.hasItemMeta() && item.getItemMeta().hasEnchants()) {
-            item.getEnchantments().keySet().forEach(enchant -> {
-                EnchantmentUtils.removeEnchantment(enchant, item);
-            });
+            item.getEnchantments().keySet().forEach(enchant -> EnchantmentUtils.removeEnchantment(enchant, item));
             response("&a" + UberLocale.get("actions.enchant.clear.success"));
             return;
         }

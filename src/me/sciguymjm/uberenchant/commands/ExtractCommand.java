@@ -35,7 +35,7 @@ public class ExtractCommand extends UberTabCommand {
 
     @Override
     public List<String> onTab() {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         if (args.length == 1)
             list = EnchantmentUtils.find(player, args[0]);
         return list;

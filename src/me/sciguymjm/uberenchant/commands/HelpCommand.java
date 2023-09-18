@@ -1,11 +1,8 @@
 package me.sciguymjm.uberenchant.commands;
 
-import me.sciguymjm.uberenchant.commands.abstraction.UberCommand;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.utils.EnchantmentUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +27,7 @@ public class HelpCommand extends UberTabCommand {
 
     @Override
     public List<String> onTab() {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         if (args.length == 1) {
             list.add("ulist");
             list.add("uadd");

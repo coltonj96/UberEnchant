@@ -11,16 +11,15 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Utility class to handle saving and loading UberRecords from config files.
  */
 public class UberConfiguration {
 
-    private static List<UberRecord> values = new ArrayList<UberRecord>();
+    private static List<UberRecord> values = new ArrayList<>();
 
-    private static final Set<File> files = new HashSet<File>();
+    private static final Set<File> files = new HashSet<>();
 
     /**
      * Loads UberRecords found in specified Yaml file. Usage:
@@ -39,7 +38,7 @@ public class UberConfiguration {
         files.add(file);
         for (Enchantment enchant : Enchantment.values()) {
             if (data.contains(enchant.getKey().getKey(), true)) {
-                Map<Integer, Double> list = new HashMap<Integer, Double>();
+                Map<Integer, Double> list = new HashMap<>();
                 ConfigurationSection section = data.getConfigurationSection(enchant.getKey().getKey().toLowerCase());
                 if (!section.contains("cost_for_level")) {
                     ConfigurationSection cost = section.createSection("cost_for_level");
@@ -192,7 +191,7 @@ public class UberConfiguration {
     }
 
     public static void reloadAll() {
-        values = new ArrayList<UberRecord>();
+        values = new ArrayList<>();
         files.forEach(f -> {
             if (f.exists())
                 loadFromFile(f);

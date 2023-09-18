@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  */
 public abstract class UberEnchantment extends Enchantment implements Listener {
 
-    private static final List<UberEnchantment> enchantments = new ArrayList<UberEnchantment>();
+    private static final List<UberEnchantment> enchantments = new ArrayList<>();
 
     // private boolean registered = false;
 

@@ -1,7 +1,6 @@
 package me.sciguymjm.uberenchant.commands.abstraction;
 
 import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Player;
 
 import java.util.List;
 

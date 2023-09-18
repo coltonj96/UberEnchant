@@ -4,7 +4,6 @@ import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.commands.abstraction.UberCommand;
 import me.sciguymjm.uberenchant.utils.Reply;
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.entity.Player;
 
 /**
  * For internal use.

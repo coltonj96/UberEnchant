@@ -22,7 +22,7 @@ public class EffectUtils {
      * @hidden
      */
     public static String[] listEffects() {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         list.add("&6Effect (ID)");
         for (UberEffects effect : UberEffects.values()) {
             if (effect.getEffect() != null) {
@@ -61,7 +61,7 @@ public class EffectUtils {
      * @hidden
      */
     public static List<String> matchEffects(String name) {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         if (name.isEmpty()) {
             for (UberEffects value : UberEffects.values()) {
                 if (!list.contains(value.getName().toLowerCase()))

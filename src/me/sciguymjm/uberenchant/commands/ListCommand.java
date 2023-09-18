@@ -1,7 +1,6 @@
 package me.sciguymjm.uberenchant.commands;
 
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
-import me.sciguymjm.uberenchant.utils.ChatUtils;
 import me.sciguymjm.uberenchant.utils.EffectUtils;
 import me.sciguymjm.uberenchant.utils.EnchantmentUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
@@ -40,7 +39,7 @@ public class ListCommand extends UberTabCommand {
 
     @Override
     public List<String> onTab() {
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         if (args.length == 1) {
             if (hasPermission("uber.list.enchants"))
                 list.add("enchants");

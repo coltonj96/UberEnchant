@@ -6,7 +6,6 @@ import me.sciguymjm.uberenchant.utils.ChatUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
 import me.sciguymjm.uberenchant.utils.UberLocale;
 import org.bukkit.Material;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -45,7 +44,7 @@ public class InsertCommand extends UberCommand {
             return;
         }
         int index = UberUtils.offset(item);
-        ItemMeta meta = (ItemMeta) item.getItemMeta();
+        ItemMeta meta = item.getItemMeta();
         if (!meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index == 0)) {
             response("&c" + UberLocale.get("actions.lore.insert.no_lore"));
             return;

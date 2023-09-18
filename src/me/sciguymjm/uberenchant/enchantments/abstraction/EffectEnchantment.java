@@ -76,9 +76,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
      * @hidden
      */
     public static void init() {
-        List.of(UberEffects.values()).forEach(a -> {
-            new EffectEnchantmentWrapper(a).register();
-        });
+        List.of(UberEffects.values()).forEach(a -> new EffectEnchantmentWrapper(a).register());
     }
 
     /**
