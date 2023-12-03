@@ -3,6 +3,7 @@ package me.sciguymjm.uberenchant.api.utils;
 import me.sciguymjm.uberenchant.UberEnchant;
 import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.utils.UberLocale;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
@@ -11,6 +12,7 @@ import org.bukkit.plugin.Plugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Utility class to handle saving and loading UberRecords from config files.
@@ -19,7 +21,23 @@ public class UberConfiguration {
 
     private static List<UberRecord> values = new ArrayList<>();
 
+    public static List<UberRecord> getRecords() {
+        return values;
+    }
+
+    public static List<UberRecord> getRecords(Predicate<UberRecord> filter) {
+        return values.stream().filter(filter).toList();
+    }
+
     private static final Set<File> files = new HashSet<>();
+
+    private <T> void print(T t) {
+        System.out.println(t);
+    }
+
+    private static void print(String text, Object... args) {
+        System.out.printf(text + "\r\n", args);
+    }
 
     /**
      * Loads UberRecords found in specified Yaml file. Usage:
@@ -37,6 +55,8 @@ public class UberConfiguration {
         YamlConfiguration data = YamlConfiguration.loadConfiguration(file);
         files.add(file);
         for (Enchantment enchant : Enchantment.values()) {
+            if (!(enchant instanceof UberEnchantment) && !enchant.getKey().getNamespace().equalsIgnoreCase(NamespacedKey.MINECRAFT))
+                continue;
             if (data.contains(enchant.getKey().getKey(), true)) {
                 Map<Integer, Double> list = new HashMap<>();
                 ConfigurationSection section = data.getConfigurationSection(enchant.getKey().getKey().toLowerCase());

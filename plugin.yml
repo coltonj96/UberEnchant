@@ -2,9 +2,10 @@ name: UberEnchant
 author: Sciguymjm
 authors: [coltonj96]
 main: me.sciguymjm.uberenchant.UberEnchant
-version: 8.10.3
-api-version: 1.19
+version: 8.11.2
+api-version: 1.17
 soft-depend: [Vault]
+website: https://dev.bukkit.org/projects/uberenchant
 
 commands:
   uadd:

@@ -1,6 +1,7 @@
 package me.sciguymjm.uberenchant.api;
 
 import me.sciguymjm.uberenchant.UberEnchant;
+import me.sciguymjm.uberenchant.api.utils.Rarity;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.Listener;
@@ -65,6 +66,8 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
      * @return The display name of this enchantment
      */
     public abstract String getDisplayName();
+
+    public abstract Rarity getRarity();
 
     /**
      * Gets the permission for this enchantment.<br>
@@ -177,7 +180,7 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
     }
 
     /**
-     * Gets all custom enchantments regsitered to the specified plugin.<br>
+     * Gets all custom enchantments registered to the specified plugin.<br>
      *
      * @param plugin - The plugin
      * @return List of custom enchantments
@@ -259,4 +262,6 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
     public static UberEnchantment[] values() {
         return enchantments.toArray(UberEnchantment[]::new);
     }
+
+
 }

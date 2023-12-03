@@ -1,8 +1,10 @@
-package me.sciguymjm.uberenchant.utils;
+package me.sciguymjm.uberenchant.utils.enchanting;
 
 import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration.UberRecord;
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
+import me.sciguymjm.uberenchant.utils.ChatUtils;
+import me.sciguymjm.uberenchant.utils.UberLocale;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -97,6 +99,36 @@ public class EnchantmentUtils {
             UberUtils.addEnchantment(enchantment, item, level);
         else
             item.addUnsafeEnchantment(enchant, level);
+    }
+
+    /**
+     * Utility method for internal use.<br>
+     *
+     * @param enchants Enchantments
+     * @param item    ItemStack
+     * @hidden
+     */
+    public static void setEnchantments(Map<? extends Enchantment, Integer> enchants, ItemStack item) {
+        for (Map.Entry<? extends Enchantment, Integer> entry : enchants.entrySet()) {
+            item.addUnsafeEnchantment(entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * Utility method for internal use.<br>
+     *
+     * @param enchants Enchantments
+     * @param item    ItemStack
+     * @hidden
+     */
+    public static void setStoredEnchantments(Map<? extends Enchantment, Integer> enchants, ItemStack item) {
+        if (!item.getType().equals(Material.ENCHANTED_BOOK))
+            return;
+        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
+        for (Map.Entry<? extends Enchantment, Integer> entry : enchants.entrySet()) {
+            meta.addStoredEnchant(entry.getKey(), entry.getValue(), true);
+        }
+        item.setItemMeta(meta);
     }
 
     /**
@@ -240,19 +272,77 @@ public class EnchantmentUtils {
      * @hidden
      */
     public static List<String> find(Player player, String name) {
-        List<String> temp = new ArrayList<String>();
+        List<String> temp = new ArrayList<>();
         UberRecord.values().forEach((a) -> {
             if (name.isBlank() || a.getName().toLowerCase().contains(name.toLowerCase())) {
                 if (player.hasPermission(String.format("uber.add.enchant.%1$s", a.getName().toLowerCase())))
                     temp.add(a.getName().toLowerCase());
             }
-            a.getAliases().forEach((b) -> {
-                if (b.contains(name.toLowerCase())) {
+            a.getAliases().forEach(b-> {
+                if (b.toLowerCase().contains(name.toLowerCase())) {
                     if (player.hasPermission(String.format("uber.add.enchant.%1$s", a.getName().toLowerCase())))
                         temp.add(b.toLowerCase());
                 }
             });
         });
         return temp;
+    }
+
+    public static double getRarity(Enchantment enchantment) {
+        switch (enchantment.getKey().getKey()) {
+            case "protection",
+                    "sharpness",
+                    "efficiency",
+                    "power",
+                    "piercing" -> {
+                return 10.0;
+            }
+            case "fire_protection",
+                    "feather_falling",
+                    "projectile_protection",
+                    "smite",
+                    "bane_of_arthropods",
+                    "knockback",
+                    "unbreaking",
+                    "loyalty",
+                    "quick_charge" -> {
+                return 5.0;
+            }
+            case "blast_protection",
+                    "respiration",
+                    "aqua_affinity",
+                    "depth_strider",
+                    "frost_walker",
+                    "fire_aspect",
+                    "looting",
+                    "sweeping",
+                    "fortune",
+                    "punch",
+                    "flame",
+                    "lure",
+                    "impaling",
+                    "riptide",
+                    "multishot",
+                    "mending" -> {
+                return 2.0;
+            }
+            case "thorns",
+                    "binding_curse",
+                    "soul_speed",
+                    "swift_sneak",
+                    "silk_touch",
+                    "infinity",
+                    "channeling",
+                    "vanishing_curse" -> {
+                return 1.0;
+            }
+            default -> {
+                if (enchantment instanceof UberEnchantment uber) {
+                    return uber.getRarity().getWeight();
+                } else {
+                    return 0.0;
+                }
+            }
+        }
     }
 }

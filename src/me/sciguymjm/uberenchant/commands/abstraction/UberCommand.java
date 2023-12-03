@@ -77,9 +77,9 @@ public abstract class UberCommand implements IUberCommand {
      * @param args    The formatting arguments
      * @hidden
      */
-    public final void response(String message, Object... args) {
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8&l[&5UberEnchant&8&l] %1$s".formatted(message.formatted(args))));
-    }
+     public final void response(String message, Object... args) {
+         player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8&l[&5UberEnchant&8&l] %1$s".formatted(message.formatted(args))));
+     }
 
     /**
      * Sends the player running the command a formatted message
@@ -89,7 +89,7 @@ public abstract class UberCommand implements IUberCommand {
      * @hidden
      */
     public final void response(String message, String[] args) {
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8&l[&5UberEnchant&8&l] %1$s".formatted(message.formatted((Object) args))));
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8&l[&5UberEnchant&8&l] %1$s".formatted(message.formatted((Object[]) args))));
     }
 
     /**

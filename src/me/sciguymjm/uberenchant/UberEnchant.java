@@ -1,17 +1,23 @@
 package me.sciguymjm.uberenchant;
 
 import me.sciguymjm.uberenchant.api.UberEnchantment;
+import me.sciguymjm.uberenchant.api.events.UberEvent;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration.UberRecord;
 import me.sciguymjm.uberenchant.commands.*;
 import me.sciguymjm.uberenchant.commands.abstraction.UberCommand;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
+import me.sciguymjm.uberenchant.utils.FileUtils;
 import me.sciguymjm.uberenchant.utils.UberLocale;
+import me.sciguymjm.uberenchant.utils.enchanting.AnvilEvents;
+import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentTableEvents;
 import net.milkbowl.vault.economy.Economy;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
@@ -24,7 +30,12 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 /**
  * The Main class of UberEnchant
@@ -37,14 +48,21 @@ public class UberEnchant extends JavaPlugin {
     public void onEnable() {
         plugin = this;
         File enchantments = new File(getDataFolder() + "/enchantments/default/vanilla_enchantments.yml");
-        File effects = new File(getDataFolder() + "/enchantments/default/vanilla_effects.yml");
         File old = new File(getDataFolder(), "enchantments.yml");
         saveDefaultConfig();
 
-        if (!(new File(getDataFolder() + "/locale/", "en_us.properties")).exists())
-            saveResource("locale/en_us.properties", false);
+        initResources();
 
-        UberLocale.load(new File(getDataFolder() + "/locale/" + getConfig().getString("locale") + ".properties"));
+        /*FileConfiguration config = getConfig();
+        if (!config.isSet("mechanics")) {
+            config.set("mechanics.enchantment_table", true);
+            config.set("mechanics.anvil", true);
+            config.setComments("mechanics", List.of("Enable/Disable custom enchantment table and anvil mechanics"));
+            saveConfig();
+        }*/
+
+
+        UberLocale.load(FileUtils.getFile("/locale/" + getConfig().getString("locale") + ".properties"));
 
         if (old.exists()) {
             try {
@@ -54,12 +72,6 @@ public class UberEnchant extends JavaPlugin {
                 e.printStackTrace();
             }
         }
-
-        if (!enchantments.exists())
-            saveResource("enchantments/default/vanilla_enchantments.yml", false);
-
-        if (!effects.exists())
-            saveResource("enchantments/default/vanilla_effects.yml", false);
 
         new Metrics(this, 1952);
 
@@ -80,20 +92,42 @@ public class UberEnchant extends JavaPlugin {
         EffectEnchantment.init();
         UberConfiguration.loadFromEnchantmentsFolder();
 
+        final boolean enchants = FileUtils.getBoolean("/mechanics/enchantment_table.yml", "enabled");
+        final boolean anvil = FileUtils.getBoolean("/mechanics/anvil.yml", "enabled");
+
+        if (enchants) {
+            registerEvents(new EnchantmentTableEvents());
+        }
+
+        if (anvil) {
+            registerEvents(new AnvilEvents());
+        }
 
         registerEvents(new Listener() {
             @EventHandler
             public void OnLoad(ServerLoadEvent event) {
                 long found = UberEnchantment.getRegisteredEnchantments().stream().filter(a -> !a.getKey().getNamespace().equalsIgnoreCase(getName())).count();
                 long loaded = UberRecord.values().stream().filter(a -> a.enchantment() instanceof UberEnchantment && !a.enchantment().getKey().getNamespace().equalsIgnoreCase(getName())).count();
-                getLogger().log(Level.INFO, "Found: " + found + " Registered UberEnchantments.");
+                getLogger().log(Level.INFO,  "Found: " + found + " Registered UberEnchantments.");
                 getLogger().log(Level.INFO, "Loaded: " + loaded + " UberEnchantments.");
+                if (enchants)
+                    getLogger().log(Level.INFO, "Custom enchantment table mechanics enabled!");
+                if (anvil)
+                    getLogger().log(Level.INFO, "Custom anvil mechanics enabled!");
             }
         });
     }
 
     public void onDisable() {
         unloadEnchantments();
+    }
+
+    private void initResources() {
+        FileUtils.initResource("locale/en_us.properties");
+        FileUtils.initResource("enchantments/default/vanilla_enchantments.yml");
+        FileUtils.initResource("enchantments/default/vanilla_effects.yml");
+        FileUtils.initResource("mechanics/anvil.yml");
+        FileUtils.initResource("mechanics/enchantment_table.yml");
     }
 
     private boolean economyLoaded() {
@@ -125,8 +159,10 @@ public class UberEnchant extends JavaPlugin {
             HashMap<NamespacedKey, Enchantment> byKey = (HashMap<NamespacedKey, Enchantment>) fieldByKey.get(null);
             HashMap<String, Enchantment> byName = (HashMap<String, Enchantment>) fieldByName.get(null);
             for (Enchantment enchantment : UberEnchantment.values()) {
+                if (enchantment instanceof UberEnchantment) {
                     byKey.remove(enchantment.getKey());
                     byName.remove(enchantment.getName());
+                }
             }
         } catch (Exception ignored) {}
     }

@@ -3,7 +3,7 @@ package me.sciguymjm.uberenchant.commands;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.utils.EconomyUtils;
-import me.sciguymjm.uberenchant.utils.EnchantmentUtils;
+import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
 import me.sciguymjm.uberenchant.utils.UberLocale;
 import org.bukkit.enchantments.Enchantment;

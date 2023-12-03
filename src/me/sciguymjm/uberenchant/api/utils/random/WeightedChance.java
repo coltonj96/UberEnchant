@@ -24,20 +24,20 @@ import java.util.function.Predicate;
 public class WeightedChance<E> {
 
     private NavigableMap<Double, Weighted<E>> map = new TreeMap<>();
-    private Random random;
+    private UberRandom random;
     private double total = 0;
 
     /**
      * Constructor for a WeightedChance
      */
     public WeightedChance() {
-        random = ThreadLocalRandom.current();
+        random = new UberRandom();
     }
 
     /**
      * Constructor for a WeightedChance
      */
-    public WeightedChance(Random random) {
+    public WeightedChance(UberRandom random) {
         this.random = random;
     }
 
@@ -52,7 +52,7 @@ public class WeightedChance<E> {
 
     /**
      * Returns a new instance of a WeightedChance using specified collection<br>
-     * Same as using {@link #WeightedChance(Collection)
+     * Same as using {@link #WeightedChance(Collection)}
      *
      * @param collection A collection of items that implement the {@link me.sciguymjm.uberenchant.api.utils.random.Weighted} interface
      * @return A new WeightedChance using data from the specified collection
@@ -70,7 +70,7 @@ public class WeightedChance<E> {
      * @return A randomly selected entry based on weight
      */
     public static <E> E select(Collection<? extends Weighted<E>> collection) {
-        return select(ThreadLocalRandom.current(), collection);
+        return select(new UberRandom(), collection);
     }
 
     /**
@@ -81,7 +81,7 @@ public class WeightedChance<E> {
      * @param collection The collection
      * @return A randomly selected entry based on weight
      */
-    public static <E> E select(Random random, Collection<? extends Weighted<E>> collection) {
+    public static <E> E select(UberRandom random, Collection<? extends Weighted<E>> collection) {
         return WeightedChance.fromCollection(collection).select(random);
     }
 
@@ -175,7 +175,7 @@ public class WeightedChance<E> {
      * @param random The Random to use
      * @return The next value
      */
-    public E select(Random random) {
+    public E select(UberRandom random) {
         double next = random.nextDouble() * total;
         return map.ceilingEntry(next).getValue().value();
     }

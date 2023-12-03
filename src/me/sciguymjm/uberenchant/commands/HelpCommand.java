@@ -1,7 +1,7 @@
 package me.sciguymjm.uberenchant.commands;
 
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
-import me.sciguymjm.uberenchant.utils.EnchantmentUtils;
+import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
 
 import java.util.ArrayList;

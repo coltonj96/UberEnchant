@@ -1,7 +1,9 @@
 package me.sciguymjm.uberenchant.enchantments.abstraction;
 
 import me.sciguymjm.uberenchant.api.UberEnchantment;
+import me.sciguymjm.uberenchant.api.utils.Rarity;
 import me.sciguymjm.uberenchant.utils.UberEffects;
+import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -41,6 +43,18 @@ public abstract class EffectEnchantment extends UberEnchantment {
     @Override
     public final String getDisplayName() {
         return getEffect().getDisplayName();
+    }
+
+    @Override
+    public Rarity getRarity() {
+        int value = getEffect().getValue();
+        if (value == -1)
+            return Rarity.COMMON;
+        if (value == 0)
+            return Rarity.UNCOMMON;
+        if (value == 1)
+            return Rarity.RARE;
+        return Rarity.COMMON;
     }
 
     @Override
@@ -89,9 +103,9 @@ public abstract class EffectEnchantment extends UberEnchantment {
     public void OnHit(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player player && event.getEntity() instanceof LivingEntity entity) {
             ItemStack item = player.getInventory().getItemInMainHand();
-            if (item != null && containsEnchantment(item)) {
-                apply(item, entity);
-            }
+            if (item != null && containsEnchantment(item))
+                if (!EnchantmentTarget.ARMOR.includes(item))
+                    apply(item, entity);
         }
         if (event.getDamager() instanceof LivingEntity entity && event.getEntity() instanceof Player player) {
             Stream.of(player.getInventory().getArmorContents()).forEach(item -> {

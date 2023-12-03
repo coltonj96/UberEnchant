@@ -2,7 +2,9 @@ package me.sciguymjm.uberenchant.api.utils;
 
 import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.utils.ChatUtils;
+import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -32,6 +34,55 @@ public class UberUtils {
     }
 
     /**
+     * Adds the map of Enchantments to the item with specified level. Also
+     * adds the lore for displaying the enchantment on the item.
+     *
+     * @param enchants - The enchantments to add
+     * @param item    - The item
+     */
+    public static void addEnchantments(Map<? extends Enchantment, Integer> enchants, ItemStack item) {
+        UberUtils.removeEnchantmentLore(item);
+        EnchantmentUtils.setEnchantments(enchants, item);
+        UberUtils.addEnchantmentLore(item);
+    }
+
+    /**
+     * Adds the specified UberEnchantment to the Enchanted Book with specified level. Also
+     * adds the lore for displaying the enchantment on the book.
+     *
+     * @param enchant - The enchantment to add
+     * @param book    - The Enchanted Book
+     * @param level   - The level
+     */
+    public static void addStoredEnchantment(UberEnchantment enchant, ItemStack book, int level) {
+        if (!book.getType().equals(Material.ENCHANTED_BOOK))
+            return;
+        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
+
+        UberUtils.removeEnchantmentLore(book);
+        meta.addStoredEnchant(enchant, level, true);
+        book.setItemMeta(meta);
+        UberUtils.addEnchantmentLore(book);
+    }
+
+    /**
+     * Adds the map of Enchantments to the book. Also
+     * adds the lore for displaying the enchantment on the book.
+     *
+     * @param enchants - The enchantments to add
+     * @param item    - The item
+     */
+    public static void addStoredEnchantments(Map<? extends Enchantment, Integer> enchants, ItemStack item) {
+        if (!item.getType().equals(Material.ENCHANTED_BOOK))
+            return;
+        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
+
+        UberUtils.removeEnchantmentLore(item);
+        EnchantmentUtils.setStoredEnchantments(enchants, item);
+        UberUtils.addEnchantmentLore(item);
+    }
+
+    /**
      * Removes the specified UberEnchantment from the item, returning the level
      * of the enchantment or 0.
      *
@@ -47,6 +98,25 @@ public class UberUtils {
             return level;
         }
         return 0;
+    }
+
+    /**
+     * Removes the specified UberEnchantment from the Enchanted Book
+     *
+     * @param enchantment - The enchantment to remove
+     * @param book        - The book
+     */
+    public static void removeStoredEnchantment(UberEnchantment enchantment, ItemStack book) {
+        if (!book.getType().equals(Material.ENCHANTED_BOOK))
+            return;
+        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
+
+        if (book.hasItemMeta() && meta.hasEnchant(enchantment)) {
+            UberUtils.removeEnchantmentLore(book);
+            meta.removeStoredEnchant(enchantment);
+            book.setItemMeta(meta);
+            UberUtils.addEnchantmentLore(book);
+        }
     }
 
     /**
@@ -149,8 +219,9 @@ public class UberUtils {
      * @return the converted number as a String or an empty String if number is less than 1
      */
     public static String toRomanNumeral(int number) {
-        if (number < 1)
+        if (number < 1) {
             return "";
+        }
         TreeMap<Integer, String> map = new TreeMap<>();
         map.put(1000000, "(M)");
         map.put(900000, "(C)(M)");
