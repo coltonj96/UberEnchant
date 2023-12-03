@@ -118,11 +118,11 @@ public class AddCommand extends UberTabCommand {
             return;
         }
         UberConfiguration.UberRecord e = UberConfiguration.getByEnchant(enchant);
-        if (!hasPermission("uber.add.enchant.all") || !hasPermission(String.format("uber.add.enchant.%1$s", e.getName().toLowerCase()))) {
+        if (!hasPermission("uber.add.enchant.all") && !hasPermission("uber.add.enchant.%1$s", e.getName().toLowerCase())) {
             response(Reply.PERMISSIONS);
             return;
         }
-        if (hasPermission(String.format("uber.enchant.%1$s.free", e.getName().toLowerCase()))) {
+        if (hasPermission("uber.enchant.%1$s.free", e.getName().toLowerCase())) {
             if (level >= e.getMinLevel() && level <= e.getMaxLevel() || hasPermission("uber.enchant.bypass.level")) {
                 if (level > 255) {
                     response("&c" + UberLocale.get("actions.enchant.add.max_level"));

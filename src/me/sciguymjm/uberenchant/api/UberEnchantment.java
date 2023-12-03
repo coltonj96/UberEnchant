@@ -262,6 +262,4 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
     public static UberEnchantment[] values() {
         return enchantments.toArray(UberEnchantment[]::new);
     }
-
-
 }

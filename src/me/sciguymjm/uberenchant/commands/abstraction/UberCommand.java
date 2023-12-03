@@ -50,6 +50,30 @@ public abstract class UberCommand implements IUberCommand {
     }
 
     /**
+     * Checks if the player running the command has the specified permission (Formatted)
+     *
+     * @param node The permission node
+     * @param args Arguments
+     * @return True if the player has permission or not
+     * @hidden
+     */
+    public final boolean hasPermission(String node, Object... args) {
+        return player.hasPermission(node.formatted(args));
+    }
+
+    /**
+     * Checks if the player running the command has the specified permission (Formatted)
+     *
+     * @param node The permission node
+     * @param args Arguments
+     * @return True if the player has permission or not
+     * @hidden
+     */
+    public final boolean hasPermission(String node, String[] args) {
+        return player.hasPermission(node.formatted((Object[]) args));
+    }
+
+    /**
      * Checks if the player running the command has the permission of the
      * command
      *

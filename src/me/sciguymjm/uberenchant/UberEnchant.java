@@ -25,6 +25,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,31 +48,9 @@ public class UberEnchant extends JavaPlugin {
 
     public void onEnable() {
         plugin = this;
-        File enchantments = new File(getDataFolder() + "/enchantments/default/vanilla_enchantments.yml");
-        File old = new File(getDataFolder(), "enchantments.yml");
-        saveDefaultConfig();
 
         initResources();
-
-        /*FileConfiguration config = getConfig();
-        if (!config.isSet("mechanics")) {
-            config.set("mechanics.enchantment_table", true);
-            config.set("mechanics.anvil", true);
-            config.setComments("mechanics", List.of("Enable/Disable custom enchantment table and anvil mechanics"));
-            saveConfig();
-        }*/
-
-
-        UberLocale.load(FileUtils.getFile("/locale/" + getConfig().getString("locale") + ".properties"));
-
-        if (old.exists()) {
-            try {
-                YamlConfiguration.loadConfiguration(old).save(enchantments);
-                old.delete();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        update();
 
         new Metrics(this, 1952);
 
@@ -92,28 +71,28 @@ public class UberEnchant extends JavaPlugin {
         EffectEnchantment.init();
         UberConfiguration.loadFromEnchantmentsFolder();
 
-        final boolean enchants = FileUtils.getBoolean("/mechanics/enchantment_table.yml", "enabled");
-        final boolean anvil = FileUtils.getBoolean("/mechanics/anvil.yml", "enabled");
+        final boolean enchants = (boolean) FileUtils.get("/mechanics/enchantment_table.yml", "enabled", false);
+        final boolean anvil = (boolean) FileUtils.get("/mechanics/anvil.yml", "enabled", false);
 
-        if (enchants) {
+        if (enchants)
             registerEvents(new EnchantmentTableEvents());
-        }
-
-        if (anvil) {
+        if (anvil)
             registerEvents(new AnvilEvents());
-        }
 
         registerEvents(new Listener() {
             @EventHandler
             public void OnLoad(ServerLoadEvent event) {
-                long found = UberEnchantment.getRegisteredEnchantments().stream().filter(a -> !a.getKey().getNamespace().equalsIgnoreCase(getName())).count();
-                long loaded = UberRecord.values().stream().filter(a -> a.enchantment() instanceof UberEnchantment && !a.enchantment().getKey().getNamespace().equalsIgnoreCase(getName())).count();
-                getLogger().log(Level.INFO,  "Found: " + found + " Registered UberEnchantments.");
-                getLogger().log(Level.INFO, "Loaded: " + loaded + " UberEnchantments.");
-                if (enchants)
-                    getLogger().log(Level.INFO, "Custom enchantment table mechanics enabled!");
-                if (anvil)
-                    getLogger().log(Level.INFO, "Custom anvil mechanics enabled!");
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        long found = UberEnchantment.getRegisteredEnchantments().stream().filter(a -> !a.getKey().getNamespace().equalsIgnoreCase(getName())).count();
+                        long loaded = UberRecord.values().stream().filter(a -> a.enchantment() instanceof UberEnchantment && !a.enchantment().getKey().getNamespace().equalsIgnoreCase(getName())).count();
+                        getLogger().log(Level.INFO,  "Found: " + found + " Registered UberEnchantments.");
+                        getLogger().log(Level.INFO, "Loaded: " + loaded + " UberEnchantments.");
+                        getLogger().log(Level.INFO, "Custom enchantment table mechanics are %1$s!".formatted(enchants ? "enabled" : "disabled"));
+                        getLogger().log(Level.INFO, "Custom anvil mechanics are %1$s!".formatted(anvil ? "enabled" : "disabled"));
+                    }
+                }.runTaskLater(plugin, 100);
             }
         });
     }
@@ -123,11 +102,45 @@ public class UberEnchant extends JavaPlugin {
     }
 
     private void initResources() {
+        saveDefaultConfig();
+
         FileUtils.initResource("locale/en_us.properties");
         FileUtils.initResource("enchantments/default/vanilla_enchantments.yml");
         FileUtils.initResource("enchantments/default/vanilla_effects.yml");
         FileUtils.initResource("mechanics/anvil.yml");
         FileUtils.initResource("mechanics/enchantment_table.yml");
+
+        UberLocale.load(FileUtils.getFile("/locale/" + getConfig().getString("locale") + ".properties"));
+    }
+
+    private void update() {
+        File enchantments = new File(getDataFolder() + "/enchantments/default/vanilla_enchantments.yml");
+        File old = new File(getDataFolder(), "enchantments.yml");
+
+        FileConfiguration config = getConfig();
+        if (config.isSet("mechanics")) {
+
+            boolean anvil = config.getBoolean("mechanics.anvil", false);
+            boolean table = config.getBoolean("mechanics.enchantment_table", false);
+
+            FileUtils.set("/mechanics/enchantment_table.yml", "enabled", table);
+            FileUtils.set("/mechanics/anvil.yml", "enabled", anvil);
+
+            config.set("mechanics.enchantment_table", null);
+            config.set("mechanics.anvil", null);
+            config.set("mechanics", null);
+            config.setComments("mechanics", null);
+            saveConfig();
+        }
+
+        if (old.exists()) {
+            try {
+                YamlConfiguration.loadConfiguration(old).save(enchantments);
+                old.delete();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private boolean economyLoaded() {

@@ -53,7 +53,7 @@ public class ExtractCommand extends UberTabCommand {
                 return;
             }
             UberConfiguration.UberRecord enchant = UberConfiguration.getByEnchant(enchantment);
-            if (!hasPermission(String.format("uber.extract.enchant.%1$s", enchant.getName().toLowerCase()))) {
+            if (!hasPermission("uber.extract.enchant.%1$s", enchant.getName().toLowerCase())) {
                 response(Reply.PERMISSIONS);
                 return;
             }
@@ -73,7 +73,7 @@ public class ExtractCommand extends UberTabCommand {
                 return;
             }
             if (EconomyUtils.hasEconomy()) {
-                if (!hasPermission(String.format("uber.extract.enchant.%1$s", enchant.getName().toLowerCase()))) {
+                if (!hasPermission("uber.extract.enchant.%1$s", enchant.getName().toLowerCase())) {
                     response(Reply.PERMISSIONS);
                     return;
                 }

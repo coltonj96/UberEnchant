@@ -72,7 +72,7 @@ public class DelCommand extends UberTabCommand {
             ItemStack item = player.getInventory().getItemInMainHand();
             switch (args[0].toLowerCase()) {
                 case "enchant" -> {
-                    if (!item.getType().equals(Material.AIR) && item.getEnchantments().size() > 0) {
+                    if (!item.getType().equals(Material.AIR) && !item.getEnchantments().isEmpty()) {
                         item.getEnchantments().keySet().forEach(enchant -> list.add(enchant.getKey().getKey().toLowerCase()));
                     }
                 }
@@ -95,7 +95,7 @@ public class DelCommand extends UberTabCommand {
         Enchantment enchantment = EnchantmentUtils.getEnchantment(args[1]);
         if (enchantment != null) {
             UberConfiguration.UberRecord enchant = UberConfiguration.getByEnchant(enchantment);
-            if (!hasPermission(String.format("uber.del.enchant.%1$s", enchant.getName().toLowerCase()))) {
+            if (!hasPermission("uber.del.enchant.%1$s", enchant.getName().toLowerCase())) {
                 response(Reply.PERMISSIONS);
                 return;
             }

@@ -45,13 +45,13 @@
             <version>3.0.0</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>com.aim.coltonjgriswold.sga</groupId>
             <artifactId>SimpleGuiApi</artifactId>
             <version>0.1.1</version>
             <scope>system</scope>
-            <systemPath>C:/Users/Colton/Desktop/Test Server/plugins/SimpleGuiApi.jar</systemPath>
-        </dependency>
+            <systemPath>${user.home}/Desktop/Test Server/plugins/SimpleGuiApi.jar</systemPath>
+        </dependency>-->
     </dependencies>
 
     <build>
@@ -149,7 +149,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.3.0</version>
                 <configuration>
-                    <outputDirectory>C:/Users/Colton/Desktop/Test Server/plugins</outputDirectory>
+                    <outputDirectory>${user.home}/Desktop/Test Server/plugins</outputDirectory>
                     <archive>
                         <addMavenDescriptor>false</addMavenDescriptor>
                     </archive>

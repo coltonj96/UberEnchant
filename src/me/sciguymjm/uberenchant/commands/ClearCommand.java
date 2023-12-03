@@ -71,7 +71,7 @@ public class ClearCommand extends UberTabCommand {
     }
 
     private void effect() {
-        if (player.getActivePotionEffects().size() > 0) {
+        if (!player.getActivePotionEffects().isEmpty()) {
             player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
             response("&a" + UberLocale.get("actions.effect.clear.success"));
             return;
