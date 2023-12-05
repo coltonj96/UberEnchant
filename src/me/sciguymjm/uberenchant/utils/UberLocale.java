@@ -43,4 +43,17 @@ public class UberLocale {
         }
         return value;
     }
+
+    /**
+     * Utility method for internal use.
+     *
+     * @param color String
+     * @param key  String
+     * @param args Object...
+     * @return String
+     * @hidden
+     */
+    public static String get(String color, String key, Object... args) {
+        return color + get(key, args);
+    }
 }

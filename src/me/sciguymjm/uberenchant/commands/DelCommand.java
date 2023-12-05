@@ -101,26 +101,26 @@ public class DelCommand extends UberTabCommand {
             }
             if (hasPermission("uber.del.enchant.free")) {
                 EnchantmentUtils.removeEnchantment(enchantment, item);
-                response("&a" + UberLocale.get("actions.enchant.remove.success", enchant.getDisplayName()));
+                localized("&a", "actions.enchant.remove.success", enchant.getDisplayName());
                 return;
             }
             if (EconomyUtils.hasEconomy()) {
                 if (EconomyUtils.has(player, enchant.getRemovalCost())) {
                     if (EnchantmentUtils.removeEnchantment(enchantment, item)) {
                         EconomyUtils.withdraw(player, enchant.getRemovalCost());
-                        response("&a" + UberLocale.get("actions.enchant.remove.pay_success", enchant.getDisplayName(), enchant.getRemovalCost()));
+                        localized("&a", "actions.enchant.remove.pay_success", enchant.getDisplayName(), enchant.getRemovalCost());
                     } else {
-                        response("&c" + UberLocale.get("actions.enchant.remove.no_enchant", enchant.getDisplayName()));
+                        localized("&c", "actions.enchant.remove.no_enchant", enchant.getDisplayName());
                     }
                 } else {
-                    response("&c" + UberLocale.get("actions.enchant.remove.pay_more", enchant.getRemovalCost() - EconomyUtils.getBalance(player)));
+                    localized("&c", "actions.enchant.remove.pay_more", enchant.getRemovalCost() - EconomyUtils.getBalance(player));
                 }
             } else {
                 response(Reply.NO_ECONOMY);
             }
             return;
         }
-        response("&c" + UberLocale.get("actions.enchant.not_exist"));
+        response("&c", "actions.enchant.not_exist");
     }
 
     private void effect() {
@@ -132,10 +132,10 @@ public class DelCommand extends UberTabCommand {
         PotionEffectType effect = EffectUtils.getEffect(args[1]);
         if (effect != null && player.hasPotionEffect(effect)) {
             EffectUtils.removeEffect(player, effect);
-            response("&a" + UberLocale.get("actions.effect.remove.success"));
+            localized("&a", "actions.effect.remove.success");
             return;
         }
-        response("&c" + UberLocale.get("actions.effect.remove.not_exist"));
+        localized("&c", "actions.effect.remove.not_exist");
     }
 
     private void lore(ItemStack item) {
@@ -151,7 +151,7 @@ public class DelCommand extends UberTabCommand {
         int index = UberUtils.offset(item);
         ItemMeta meta = item.getItemMeta();
         if (!meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index == 0)) {
-            response("&c" + UberLocale.get("actions.lore.remove.no_lore"));
+            localized("&c", "actions.lore.remove.no_lore");
             return;
         }
         List<String> lore = meta.getLore();
@@ -160,7 +160,7 @@ public class DelCommand extends UberTabCommand {
             lore.remove(index);
             meta.setLore(null);
             item.setItemMeta(meta);
-            response("&a" + UberLocale.get("actions.lore.remove.success"));
+            localized("&a", "actions.lore.remove.success");
             return;
         }
         int line = -1;
@@ -168,12 +168,12 @@ public class DelCommand extends UberTabCommand {
             line = Integer.parseInt(args[1]);
         } catch (NumberFormatException err) {
             response("&a/udel %1$s &c%2$s", args);
-            response("&c" + UberLocale.get("actions.lore.remove.line_number"));
+            localized("&c", "actions.lore.remove.line_number");
             return;
         }
         if (line > (size - 1) || line < 0) {
             response("&a/udel %1$s &c%2$s", args);
-            response("&c" + UberLocale.get("actions.lore.remove.no_line"));
+            localized("&c", "actions.lore.remove.no_line");
             return;
         }
         if (Integer.toString(line).contains(".")) {
@@ -184,7 +184,7 @@ public class DelCommand extends UberTabCommand {
         lore.remove(index + line);
         meta.setLore(lore);
         item.setItemMeta(meta);
-        response("&a" + UberLocale.get("actions.lore.remove.success"));
+        localized("&a", "actions.lore.remove.success");
     }
 
     private void name(ItemStack item) {
@@ -193,12 +193,12 @@ public class DelCommand extends UberTabCommand {
             return;
         }
         if (!item.hasItemMeta()) {
-            response("&c" + UberLocale.get("actions.name.no_name"));
+            localized("&c", "actions.name.no_name");
             return;
         }
         ItemMeta meta = item.getItemMeta();
         if (!meta.hasDisplayName()) {
-            response("&c" + UberLocale.get("actions.name.no_name"));
+            localized("&c", "actions.name.no_name");
             return;
         }
         if (EconomyUtils.hasEconomy()) {
@@ -207,14 +207,14 @@ public class DelCommand extends UberTabCommand {
                 EconomyUtils.withdraw(player, cost);
                 meta.setDisplayName(null);
                 item.setItemMeta(meta);
-                response("&a" + UberLocale.get("actions.name.remove.pay_success", cost));
+                localized("&a", "actions.name.remove.pay_success", cost);
             } else {
-                response("&c" + UberLocale.get("actions.name.remove.pay_fail", (cost - EconomyUtils.getBalance(player))));
+                localized("&c", "actions.name.remove.pay_fail", (cost - EconomyUtils.getBalance(player)));
             }
         } else {
             meta.setDisplayName(null);
             item.setItemMeta(meta);
-            response("&a" + UberLocale.get("actions.name.remove.success"));
+            localized("&a", "actions.name.remove.success");
         }
     }
 }

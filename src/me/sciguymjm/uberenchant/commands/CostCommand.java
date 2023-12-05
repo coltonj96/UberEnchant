@@ -3,9 +3,8 @@ package me.sciguymjm.uberenchant.commands;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.utils.EconomyUtils;
-import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
-import me.sciguymjm.uberenchant.utils.UberLocale;
+import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import org.bukkit.enchantments.Enchantment;
 
 import java.util.ArrayList;
@@ -106,7 +105,7 @@ public class CostCommand extends UberTabCommand {
         }
         Enchantment enchantment = EnchantmentUtils.getEnchantment(args[2]);
         if (enchantment == null) {
-            response("&c" + UberLocale.get("actions.enchant.invalid"));
+            localized("&c", "actions.enchant.invalid");
             response("&a/ulist enchants");
             return;
         }
@@ -114,9 +113,9 @@ public class CostCommand extends UberTabCommand {
         if (EconomyUtils.hasEconomy()) {
             if (level >= e.getMinLevel() && level <= e.getMaxLevel()) {
                 double cost = e.getCostForLevel().containsKey(level) ? e.getCostForLevel().get(level) : e.getCost() + (e.getCostMultiplier() * e.getCost() * (level - 1));
-                response("&a" + UberLocale.get("actions.cost.add.display", e.getName(), level, cost));
+                localized("&a", "actions.cost.add.display", e.getName(), level, cost);
             } else {
-                response("&c" + UberLocale.get("actions.enchant.range", e.getMinLevel(), e.getMaxLevel()));
+                localized("&c", "actions.enchant.range", e.getMinLevel(), e.getMaxLevel());
             }
             return;
         }
@@ -140,12 +139,12 @@ public class CostCommand extends UberTabCommand {
             }
             Enchantment enchantment = EnchantmentUtils.getEnchantment(args[2]);
             if (enchantment == null) {
-                response("&c" + UberLocale.get("actions.enchant.invalid"));
+                localized("&c", "actions.enchant.invalid");
                 response("&a/ulist enchants");
                 return;
             }
             UberConfiguration.UberRecord e = UberConfiguration.getByEnchant(enchantment);
-            response("&a" + UberLocale.get("actions.cost.extract.display", e.getName(), level, e.getExtractionCost() + (e.getCostMultiplier() * e.getExtractionCost() * (level - 1))));
+            localized("&a", "actions.cost.extract.display", e.getName(), level, e.getExtractionCost() + (e.getCostMultiplier() * e.getExtractionCost() * (level - 1)));
             return;
         }
         response(Reply.NO_ECONOMY);
@@ -162,10 +161,10 @@ public class CostCommand extends UberTabCommand {
             if (enchantment != null) {
                 UberConfiguration.UberRecord enchant = UberConfiguration.getByEnchant(enchantment);
 
-                response("&a" + UberLocale.get("actions.cost.remove.display", enchant.getName(), enchant.getRemovalCost()));
+                localized("&a", "actions.cost.remove.display", enchant.getName(), enchant.getRemovalCost());
                 return;
             }
-            response("&c" + UberLocale.get("actions.enchant.not_exist"));
+            localized("&c", "actions.enchant.not_exist");
         }
         response(Reply.NO_ECONOMY);
     }

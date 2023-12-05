@@ -13,7 +13,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class for internal use.
@@ -84,8 +86,11 @@ public class AddCommand extends UberTabCommand {
 
     private void enchant(ItemStack item) {
         if (item.getType().equals(Material.AIR)) {
-            response(Reply.HOLD_ITEM);
-            return;
+            if (!hasPermission("uber.add.enchant.book")) {
+                response(Reply.HOLD_ITEM);
+                return;
+            }
+            item = new ItemStack(Material.ENCHANTED_BOOK);
         }
         if (args.length < 3) {
             response("&a/uadd enchant &c<enchantment | id> <level>");
@@ -102,18 +107,25 @@ public class AddCommand extends UberTabCommand {
         }
         if (args[1].equalsIgnoreCase("all") && hasPermission("uber.enchant.add.all")) {
             if (level > 255) {
-                response("&c" + UberLocale.get("actions.enchant.add.max_level"));
+                localized("&c", "actions.enchant.add.max_level");
                 level = 255;
             }
-            for (Enchantment enchantment : Enchantment.values()) {
-                EnchantmentUtils.setEnchantment(enchantment, item, level);
-            }
-            response("&a" + UberLocale.get("actions.enchant.add.success_all"));
+            Map<Enchantment, Integer> map = new HashMap<>();
+            final Integer lev = level;
+            UberConfiguration.getRecords().forEach(r -> map.put(r.getEnchant(), lev));
+            //for (Enchantment enchantment : Enchantment.values()) {
+            if (item.getType().equals(Material.ENCHANTED_BOOK))
+                UberUtils.addStoredEnchantments(map, item);
+            else
+                UberUtils.addEnchantments(map, item);
+            //}
+            player.getInventory().setItemInMainHand(item);
+            localized("&a", "actions.enchant.add.success_all");
             return;
         }
         Enchantment enchant = EnchantmentUtils.getEnchantment(args[1]);
         if (enchant == null) {
-            response("&c" + UberLocale.get("actions.enchant.invalid"));
+            localized("&c", "actions.enchant.invalid");
             response("&a/ulist enchants");
             return;
         }
@@ -125,20 +137,24 @@ public class AddCommand extends UberTabCommand {
         if (hasPermission("uber.enchant.%1$s.free", e.getName().toLowerCase())) {
             if (level >= e.getMinLevel() && level <= e.getMaxLevel() || hasPermission("uber.enchant.bypass.level")) {
                 if (level > 255) {
-                    response("&c" + UberLocale.get("actions.enchant.add.max_level"));
+                    localized("&c", "actions.enchant.add.max_level");
                     level = 255;
                 }
-                EnchantmentUtils.setEnchantment(enchant, item, level);
-                response("&a" + UberLocale.get("actions.enchant.add.success", e.getDisplayName(), level));
+                if (item.getType().equals(Material.ENCHANTED_BOOK))
+                    EnchantmentUtils.setStoredEnchantment(enchant, item, level);
+                else
+                    EnchantmentUtils.setEnchantment(enchant, item, level);
+                player.getInventory().setItemInMainHand(item);
+                localized("&a", "actions.enchant.add.success", e.getDisplayName(), level);
             } else {
-                response("&c" + UberLocale.get("actions.enchant.add.range", e.getMinLevel(), e.getMaxLevel()));
+                localized("&c", "actions.enchant.add.range", e.getMinLevel(), e.getMaxLevel());
             }
             return;
         }
         if (EconomyUtils.hasEconomy()) {
             if (!e.getEnchant().canEnchantItem(item)) {
                 if (!e.getCanUseOnAnything() || !hasPermission("uber.enchant.bypass.any")) {
-                    response("&c" + UberLocale.get("actions.enchant.add.incompatible"));
+                    localized("&c", "actions.enchant.add.incompatible");
                     return;
                 }
             }
@@ -146,17 +162,21 @@ public class AddCommand extends UberTabCommand {
                 double cost = e.getCostForLevel().containsKey(level) ? e.getCostForLevel().get(level) : e.getCost() + (e.getCostMultiplier() * e.getCost() * (level - 1));
                 if (EconomyUtils.has(player, cost)) {
                     if (level > 255) {
-                        response("&c" + UberLocale.get("actions.enchant.add.max_level"));
+                        localized("&c", "actions.enchant.add.max_level");
                         level = 255;
                     }
-                    EnchantmentUtils.setEnchantment(enchant, item, level);
+                    if (item.getType().equals(Material.ENCHANTED_BOOK))
+                        EnchantmentUtils.setStoredEnchantment(enchant, item, level);
+                    else
+                        EnchantmentUtils.setEnchantment(enchant, item, level);
                     EconomyResponse n = EconomyUtils.withdraw(player, cost);
-                    response("&a" + UberLocale.get("actions.enchant.add.pay_success", e.getDisplayName(), level, n.amount));
+                    player.getInventory().setItemInMainHand(item);
+                    localized("&a", "actions.enchant.add.pay_success", e.getDisplayName(), level, n.amount);
                 } else {
-                    response("&c" + UberLocale.get("actions.enchant.add.pay_more", cost - EconomyUtils.getBalance(player)));
+                    localized("&c", "actions.enchant.add.pay_more", cost - EconomyUtils.getBalance(player));
                 }
             } else {
-                response("&c" + UberLocale.get("actions.enchant.add.range", e.getMinLevel(), e.getMaxLevel()));
+                localized("&c", "actions.enchant.add.range", e.getMinLevel(), e.getMaxLevel());
             }
         } else {
             response(Reply.NO_ECONOMY);
@@ -188,7 +208,7 @@ public class AddCommand extends UberTabCommand {
         }
         PotionEffectType type = EffectUtils.getEffect(args[1]);
         if (type == null) {
-            response("&c" + UberLocale.get("actions.effect.invalid"));
+            localized("&c", "actions.effect.invalid");
             response("&a/ulist effects");
             return;
         }
@@ -196,7 +216,7 @@ public class AddCommand extends UberTabCommand {
             EffectUtils.removeEffect(player, type);
         }
         EffectUtils.setEffect(player, type, duration, level);
-        response("&a" + UberLocale.get("actions.effect.add.success"));
+        localized("&a", "actions.effect.add.success");
     }
 
     private void lore(ItemStack item) {
@@ -225,7 +245,7 @@ public class AddCommand extends UberTabCommand {
         lore.add(name.replace("%null", ""));
         meta.setLore(lore);
         item.setItemMeta(meta);
-        response("&a" + UberLocale.get("actions.lore.add.success"));
+        localized("&a", "actions.lore.add.success");
     }
 
     private void name(ItemStack item) {
@@ -246,7 +266,7 @@ public class AddCommand extends UberTabCommand {
         ItemMeta meta = item.getItemMeta();
         String prev = meta.getDisplayName();
         if (!meta.hasDisplayName()) {
-            response("&c" + UberLocale.get("actions.name.no_name"));
+            localized("&c", "actions.name.no_name");
             return;
         }
         if (EconomyUtils.hasEconomy()) {
@@ -255,14 +275,14 @@ public class AddCommand extends UberTabCommand {
                 EconomyUtils.withdraw(player, cost);
                 meta.setDisplayName(prev + name);
                 item.setItemMeta(meta);
-                response("&a" + UberLocale.get("actions.name.add.pay_success", cost));
+                localized("&a", "actions.name.add.pay_success", cost);
             } else {
-                response("&c" + UberLocale.get("actions.name.add.pay_fail", cost - EconomyUtils.getBalance(player)));
+                localized("&c", "actions.name.add.pay_fail", cost - EconomyUtils.getBalance(player));
             }
         } else {
             meta.setDisplayName(prev + name);
             item.setItemMeta(meta);
-            response("&a" + UberLocale.get("actions.name.add.success"));
+            localized("&a", "actions.name.add.success");
         }
     }
 }

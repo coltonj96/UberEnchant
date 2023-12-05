@@ -1,6 +1,8 @@
 package me.sciguymjm.uberenchant.commands.abstraction;
 
+import me.sciguymjm.uberenchant.utils.ChatUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
+import me.sciguymjm.uberenchant.utils.UberLocale;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -91,7 +93,19 @@ public abstract class UberCommand implements IUberCommand {
      * @hidden
      */
     public final void response(String message) {
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8&l[&5UberEnchant&8&l] %1$s".formatted(message)));
+        ChatUtils.response(player, message);
+    }
+
+    public final void response(Reply reply) {
+        ChatUtils.response(player, reply.get());
+    }
+
+    public final void localized(String color, String key) {
+        ChatUtils.localized(player, color, key);
+    }
+
+    public final void localized(String color, String key, Object... args) {
+        ChatUtils.localized(player, color, key, args);
     }
 
     /**
@@ -102,7 +116,7 @@ public abstract class UberCommand implements IUberCommand {
      * @hidden
      */
      public final void response(String message, Object... args) {
-         player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8&l[&5UberEnchant&8&l] %1$s".formatted(message.formatted(args))));
+         ChatUtils.response(player, message, args);
      }
 
     /**
@@ -113,7 +127,7 @@ public abstract class UberCommand implements IUberCommand {
      * @hidden
      */
     public final void response(String message, String[] args) {
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8&l[&5UberEnchant&8&l] %1$s".formatted(message.formatted((Object[]) args))));
+        ChatUtils.response(player, message, args);
     }
 
     /**
@@ -123,10 +137,6 @@ public abstract class UberCommand implements IUberCommand {
      * @hidden
      */
     public final void response(String[] messages) {
-        messages[0] = ChatColor.translateAlternateColorCodes('&', "&8&l[&5UberEnchant&8&l] %1$s".formatted(messages[0]));
-        for (int i = 1; i < messages.length; i++) {
-            messages[i] = ChatColor.translateAlternateColorCodes('&', messages[i]);
-        }
-        player.sendMessage(messages);
+        ChatUtils.response(player, messages);
     }
 }

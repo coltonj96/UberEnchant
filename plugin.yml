@@ -56,6 +56,7 @@ permissions:
     children:
       uber.add.*: true
       uber.add.enchant.all: true
+      uber.add.enchant.book: true
       uber.clear.*: true
       uber.cost.*: true
       uber.del.*: true
@@ -82,6 +83,9 @@ permissions:
     default: false
   uber.add.enchant.all:
     description: Access to all enchants for '/uadd enchant'
+    default: false
+  uber.add.enchant.book:
+    description: Access to create enchanted books with an empty hand using '/uadd enchant'
     default: false
   uber.add.effect:
     description: Access to '/uadd effect'

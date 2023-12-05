@@ -2,9 +2,8 @@ package me.sciguymjm.uberenchant.commands;
 
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
-import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
-import me.sciguymjm.uberenchant.utils.UberLocale;
+import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -64,25 +63,25 @@ public class ClearCommand extends UberTabCommand {
     private void enchant(ItemStack item) {
         if (item.hasItemMeta() && item.getItemMeta().hasEnchants()) {
             item.getEnchantments().keySet().forEach(enchant -> EnchantmentUtils.removeEnchantment(enchant, item));
-            response("&a" + UberLocale.get("actions.enchant.clear.success"));
+            localized("&a", "actions.enchant.clear.success");
             return;
         }
-        response("&c" + UberLocale.get("actions.enchant.clear.fail"));
+        localized("&c", "actions.enchant.clear.fail");
     }
 
     private void effect() {
         if (!player.getActivePotionEffects().isEmpty()) {
             player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
-            response("&a" + UberLocale.get("actions.effect.clear.success"));
+            localized("&a", "actions.effect.clear.success");
             return;
         }
-        response("&c" + UberLocale.get("actions.effect.clear.no_effects"));
+        localized("&c", "actions.effect.clear.no_effects");
     }
     private void lore(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         meta.setLore(null);
         item.setItemMeta(meta);
         UberUtils.addEnchantmentLore(item);
-        response("&a" + UberLocale.get("actions.lore.clear.success"));
+        localized("&a", "actions.lore.clear.success");
     }
 }

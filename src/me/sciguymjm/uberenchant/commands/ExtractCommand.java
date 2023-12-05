@@ -3,9 +3,8 @@ package me.sciguymjm.uberenchant.commands;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.utils.EconomyUtils;
-import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
-import me.sciguymjm.uberenchant.utils.UberLocale;
+import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -49,7 +48,7 @@ public class ExtractCommand extends UberTabCommand {
         Enchantment enchantment = EnchantmentUtils.getEnchantment(args[0]);
         if (enchantment != null) {
             if (item.getType().equals(Material.ENCHANTED_BOOK)) {
-                response("&c" + UberLocale.get("actions.enchant.extract.book"));
+                localized("&c", "actions.enchant.extract.book");
                 return;
             }
             UberConfiguration.UberRecord enchant = UberConfiguration.getByEnchant(enchantment);
@@ -59,16 +58,16 @@ public class ExtractCommand extends UberTabCommand {
             }
             ItemStack book = EnchantmentUtils.extractEnchantment(enchantment, item);
             if (book == null) {
-                response("&c" + UberLocale.get("actions.enchant.extract.not_found", enchant.getDisplayName()));
+                localized("&c", "actions.enchant.extract.not_found", enchant.getDisplayName());
                 return;
             }
             int level = item.getEnchantmentLevel(enchantment);
             if (hasPermission("uber.extract.enchant.free")) {
                 if (player.getInventory().addItem(book).isEmpty()) {
                     EnchantmentUtils.removeEnchantment(enchantment, item);
-                    response("&a" + UberLocale.get("actions.enchant.extract.free_success", enchant.getDisplayName()));
+                    localized("&a", "actions.enchant.extract.free_success", enchant.getDisplayName());
                 } else {
-                    response("&c" + UberLocale.get("actions.enchant.extract.no_room"));
+                    localized("&c", "actions.enchant.extract.no_room");
                 }
                 return;
             }
@@ -82,19 +81,19 @@ public class ExtractCommand extends UberTabCommand {
                     if (player.getInventory().addItem(book).isEmpty()) {
                         EnchantmentUtils.removeEnchantment(enchantment, item);
                         EconomyResponse n = EconomyUtils.withdraw(player, cost);
-                        response("&a" + UberLocale.get("actions.enchant.extract.pay_success", enchant.getDisplayName(), n.amount));
+                        localized("&a", "actions.enchant.extract.pay_success", enchant.getDisplayName(), n.amount);
                     } else {
-                        response("&c" + UberLocale.get("actions.enchant.extract.no_room"));
+                        localized("&c", "actions.enchant.extract.no_room");
                     }
                     return;
                 } else {
-                    response("&c" + UberLocale.get("actions.enchant.extract.pay_more", cost - EconomyUtils.getBalance(player)));
+                    localized("&c", "actions.enchant.extract.pay_more", cost - EconomyUtils.getBalance(player));
                 }
             } else {
                 response(Reply.NO_ECONOMY);
             }
             return;
         }
-        response("&c" + UberLocale.get("actions.enchant.not_exist"));
+        localized("&c", "actions.enchant.not_exist");
     }
 }

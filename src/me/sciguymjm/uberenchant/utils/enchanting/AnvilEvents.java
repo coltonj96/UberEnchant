@@ -4,6 +4,7 @@ import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.utils.ChatUtils;
+import me.sciguymjm.uberenchant.utils.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -23,6 +24,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AnvilEvents implements Listener {
+
+    private static boolean colors;
+
+    static {
+        colors = (boolean) FileUtils.get("/mechanics/anvil.yml", "colors_enabled", false);
+    }
 
     private short getDamage(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
@@ -92,11 +99,11 @@ public class AnvilEvents implements Listener {
 
                     anvil.setRepairCost(i1);
                 } else {
-                if (!flag && (!itemstack1.getType().equals(itemstack2.getType()) || !isDamageable(itemstack1))) {
-                    event.setResult(EMPTY);
-                    anvil.setRepairCost(0);
-                    return;
-                }
+                    if (!flag && (!itemstack1.getType().equals(itemstack2.getType()) || !isDamageable(itemstack1))) {
+                        event.setResult(EMPTY);
+                        anvil.setRepairCost(0);
+                        return;
+                    }
 
                     if (isDamageable(itemstack1) && !flag) {
                         k = getMaxDamage(item) - getDamage(item);
@@ -124,69 +131,68 @@ public class AnvilEvents implements Listener {
                     boolean flag1 = false;
                     boolean flag2 = false;
 
-                for (Enchantment enchantment : map1.keySet()) {
-                    if (enchantment != null) {
+                    for (Enchantment enchantment : map1.keySet()) {
+                        if (enchantment != null) {
 
-                        int l1 = map.getOrDefault(enchantment, 0);
-                        int i2 = map1.get(enchantment);
+                            int l1 = map.getOrDefault(enchantment, 0);
+                            int i2 = map1.get(enchantment);
 
-                        i2 = l1 == i2 ? i2 + 1 : Math.max(i2, l1);
+                            i2 = l1 == i2 ? i2 + 1 : Math.max(i2, l1);
 
-                        boolean flag3 = enchantment.canEnchantItem(item);
+                            boolean flag3 = enchantment.canEnchantItem(item);
 
-                        if (enchantment instanceof UberEnchantment uber)
-                            flag3 = uber.canEnchantItem(item);
+                            if (enchantment instanceof UberEnchantment uber)
+                                flag3 = uber.canEnchantItem(item);
 
-                        if (item.getType().equals(Material.ENCHANTED_BOOK)) {
-                            flag3 = true;
-                        }
+                            if (item.getType().equals(Material.ENCHANTED_BOOK))
+                                flag3 = true;
 
-                        for (Enchantment enchantment1 : map.keySet()) {
-                            if (enchantment1 != enchantment && enchantment.conflictsWith(enchantment1)) {
-                                flag3 = false;
-                                ++i;
-                            }
-                        }
-
-                        if (!flag3) {
-                            flag2 = true;
-                        } else {
-                            flag1 = true;
-                            int max = UberConfiguration.getByEnchant(enchantment).getMaxLevel();
-                            if (i2 > max) {
-                                i2 = max;
+                            for (Enchantment enchantment1 : map.keySet()) {
+                                if (enchantment1 != enchantment && enchantment.conflictsWith(enchantment1)) {
+                                    flag3 = false;
+                                    ++i;
+                                }
                             }
 
-                            map.put(enchantment, i2);
-                            int j2 = 0;
+                            if (!flag3) {
+                                flag2 = true;
+                            } else {
+                                flag1 = true;
+                                int max = UberConfiguration.getByEnchant(enchantment).getMaxLevel();
+                                if (i2 > max) {
+                                    i2 = max;
+                                }
 
-                            switch ((int) EnchantmentUtils.getRarity(enchantment)) {
-                                case 10:
-                                    j2 = 1;
-                                    break;
-                                case 5:
-                                    j2 = 2;
-                                    break;
-                                case 2:
-                                    j2 = 4;
-                                    break;
-                                case 1:
-                                    j2 = 8;
-                                default:
-                                    break;
-                            }
+                                map.put(enchantment, i2);
+                                int j2 = 0;
 
-                            if (flag) {
-                                j2 = Math.max(1, j2 / 2);
-                            }
+                                switch ((int) EnchantmentUtils.getRarity(enchantment)) {
+                                    case 10:
+                                        j2 = 1;
+                                        break;
+                                    case 5:
+                                        j2 = 2;
+                                        break;
+                                    case 2:
+                                        j2 = 4;
+                                        break;
+                                    case 1:
+                                        j2 = 8;
+                                    default:
+                                        break;
+                                }
 
-                            i += j2 * i2;
-                            if (item.getAmount() > 1) {
-                                i = 40;
+                                if (flag) {
+                                    j2 = Math.max(1, j2 / 2);
+                                }
+
+                                i += j2 * i2;
+                                if (item.getAmount() > 1) {
+                                    i = 40;
+                                }
                             }
                         }
                     }
-                }
 
                     if (flag2 && !flag1) {
                         event.setResult(EMPTY);
@@ -198,7 +204,10 @@ public class AnvilEvents implements Listener {
 
             ItemMeta meta = itemstack1.getItemMeta();
             if (!anvil.getRenameText().equals(meta.getDisplayName())) {
-                meta.setDisplayName(ChatUtils.color(anvil.getRenameText()));
+                String name = anvil.getRenameText();
+                if (colors)
+                    name = ChatUtils.color(name);
+                meta.setDisplayName(name);
                 itemstack1.setItemMeta(meta);
                 i++;
             }
@@ -275,11 +284,11 @@ public class AnvilEvents implements Listener {
                     STONE_SWORD -> {
                 switch (m2) {
                     case COBBLED_DEEPSLATE,
-                          COBBLESTONE,
-                          BLACKSTONE -> {
-                       return true;
-                   }
-                   default -> {
+                            COBBLESTONE,
+                            BLACKSTONE -> {
+                        return true;
+                    }
+                    default -> {
                         return false;
                     }
                 }

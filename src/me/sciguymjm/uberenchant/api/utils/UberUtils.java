@@ -58,7 +58,6 @@ public class UberUtils {
         if (!book.getType().equals(Material.ENCHANTED_BOOK))
             return;
         EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
-
         UberUtils.removeEnchantmentLore(book);
         meta.addStoredEnchant(enchant, level, true);
         book.setItemMeta(meta);

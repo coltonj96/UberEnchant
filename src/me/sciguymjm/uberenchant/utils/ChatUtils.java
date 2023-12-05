@@ -12,6 +12,28 @@ import java.util.regex.Pattern;
  */
 public class ChatUtils {
 
+    public static void response(Player player, Reply reply) {
+        response(player, reply.get());
+    }
+
+    /**
+     * Sends the specified player a message
+     *
+     * @param message The message
+     * @hidden
+     */
+    public static void response(Player player, String message) {
+        response(player, message, "");
+    }
+
+    public static void localized(Player player, String color, String key) {
+        response(player, UberLocale.get(color, key));
+    }
+
+    public static void localized(Player player, String color, String key, Object... args) {
+        response(player,  UberLocale.get(color, key, args));
+    }
+
     /**
      * Sends the specified player a formated message.<br>
      * Usage:
@@ -27,8 +49,20 @@ public class ChatUtils {
      * @param args    - The arguments for the message
      */
     public static void response(Player player, String message, Object... args) {
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&8&l[&5UberEnchant&8&l] %1$s".formatted(message).formatted(args)));
+        player.sendMessage(color("&8&l[&5UberEnchant&8&l] %1$s".formatted(message).formatted(args)));
     }
+
+    /**
+     * Sends the specified player a formatted message
+     *
+     * @param message The message
+     * @param args    The formatting arguments
+     * @hidden
+     */
+    public static void response(Player player, String message, String[] args) {
+        response(player, message, (Object[]) args);
+    }
+
 
     /**
      * Sends the specified player an array of messages.
@@ -37,8 +71,9 @@ public class ChatUtils {
      * @param messages - The array of messages
      */
     public static void response(Player player, String[] messages) {
-        for (int i = 0; i < messages.length; i++) {
-            messages[i] = ChatColor.translateAlternateColorCodes('&', messages[i]);
+        messages[0] = color("&8&l[&5UberEnchant&8&l] %1$s".formatted(messages[0]));
+        for (int i = 1; i < messages.length; i++) {
+            messages[i] = color(messages[i]);
         }
         player.sendMessage(messages);
     }

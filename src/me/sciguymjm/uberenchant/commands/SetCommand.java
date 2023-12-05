@@ -103,14 +103,14 @@ public class SetCommand extends UberTabCommand {
         }
         PotionEffectType type = EffectUtils.getEffect(args[1]);
         if (type == null) {
-            response("&c" + UberLocale.get("actions.effect.invalid"));
+            localized("&c", "actions.effect.invalid");
             response("&a/ulist effects");
             return;
         }
         if (player.hasPotionEffect(type))
             EffectUtils.removeEffect(player, type);
         EffectUtils.setEffect(player, type, duration, level);
-        response("&a" + UberLocale.get("actions.effect.set.success"));
+        localized("&a", "actions.effect.set.success");
     }
 
     private void lore(ItemStack item) {
@@ -126,7 +126,7 @@ public class SetCommand extends UberTabCommand {
         int index = UberUtils.offset(item);
         ItemMeta meta = item.getItemMeta();
         if (!meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index == 0)) {
-            response("&c" + UberLocale.get("actions.lore.set.no_lore"));
+            localized("&c", "actions.lore.set.no_lore");
             return;
         }
         List<String> lore = meta.getLore();
@@ -153,7 +153,7 @@ public class SetCommand extends UberTabCommand {
                 }
             }
             response(message.toString().trim(), args[1], args[2]);
-            response("&c" + UberLocale.get("actions.lore.set.no_line"));
+            localized("&c", "actions.lore.set.no_line");
             return;
         }
         StringBuilder message = new StringBuilder(args[2]);
@@ -166,7 +166,7 @@ public class SetCommand extends UberTabCommand {
         lore.set(index + line, name.replace("%null", ""));
         meta.setLore(lore);
         item.setItemMeta(meta);
-        response("&a" + UberLocale.get("actions.lore.set.success"));
+        localized("&a", "actions.lore.set.success");
     }
 
     private void name(ItemStack item) {
@@ -188,7 +188,7 @@ public class SetCommand extends UberTabCommand {
         if (hasPermission("uber.set.name.free")) {
             meta.setDisplayName(name);
             item.setItemMeta(meta);
-            response("&a" + UberLocale.get("actions.name.set.success"));
+            localized("&a", "actions.name.set.success");
             return;
         }
         if (EconomyUtils.hasEconomy()) {
@@ -197,14 +197,14 @@ public class SetCommand extends UberTabCommand {
                 EconomyUtils.withdraw(player, cost);
                 meta.setDisplayName(name);
                 item.setItemMeta(meta);
-                response("&a" + UberLocale.get("actions.name.set.pay_success", cost));
+                localized("&a", "actions.name.set.pay_success", cost);
             } else {
-                response("&c" + UberLocale.get("actions.name.set.pay_fail", cost - EconomyUtils.getBalance(player)));
+                localized("&c", "actions.name.set.pay_fail", cost - EconomyUtils.getBalance(player));
             }
         } else {
             meta.setDisplayName(name);
             item.setItemMeta(meta);
-            response("&a" + UberLocale.get("actions.name.set.success"));
+            localized("&a", "actions.name.set.success");
         }
     }
 

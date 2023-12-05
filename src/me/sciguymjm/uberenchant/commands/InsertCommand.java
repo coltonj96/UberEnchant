@@ -4,7 +4,6 @@ import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.commands.abstraction.UberCommand;
 import me.sciguymjm.uberenchant.utils.ChatUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
-import me.sciguymjm.uberenchant.utils.UberLocale;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -46,7 +45,7 @@ public class InsertCommand extends UberCommand {
         int index = UberUtils.offset(item);
         ItemMeta meta = item.getItemMeta();
         if (!meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index == 0)) {
-            response("&c" + UberLocale.get("actions.lore.insert.no_lore"));
+            localized("&c", "actions.lore.insert.no_lore");
             return;
         }
         List<String> lore = meta.getLore();
@@ -62,7 +61,7 @@ public class InsertCommand extends UberCommand {
                 }
             }
             response(message.toString().trim(), args[1], args[2]);
-            response("&c" + UberLocale.get("actions.lore.insert.line_number"));
+            localized("&c", "actions.lore.insert.line_number");
             return;
         }
         if (line > (size - 1) || line < 0) {
@@ -73,7 +72,7 @@ public class InsertCommand extends UberCommand {
                 }
             }
             response(message.toString().trim(), args[1], args[2]);
-            response("&c" + UberLocale.get("actions.lore.insert.no_line"));
+            localized("&c", "actions.lore.insert.no_line");
             return;
         }
         if (Integer.toString(line).contains(".")) {
@@ -97,6 +96,6 @@ public class InsertCommand extends UberCommand {
         lore.add(index + line, name.replace("%null", ""));
         meta.setLore(lore);
         item.setItemMeta(meta);
-        response("a" + UberLocale.get("actions.lore.insert.success"));
+        localized("a", "actions.lore.insert.success");
     }
 }

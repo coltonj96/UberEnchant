@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Utility class for enchantments
@@ -94,11 +95,33 @@ public class EnchantmentUtils {
      * @param level   int
      * @hidden
      */
-    public static void setEnchantment(Enchantment enchant, ItemStack item, int level) {
+    public static <T extends Enchantment> void setEnchantment(T enchant, ItemStack item, int level) {
         if (enchant instanceof UberEnchantment enchantment)
             UberUtils.addEnchantment(enchantment, item, level);
         else
             item.addUnsafeEnchantment(enchant, level);
+    }
+
+    /**
+     * Utility method for internal use.<br>
+     * Plugins should use
+     * {@link UberUtils#addStoredEnchantment(UberEnchantment, ItemStack, int)}
+     *
+     * @param enchant Enchantment
+     * @param item    ItemStack
+     * @param level   int
+     * @hidden
+     */
+    public static <T extends Enchantment> void setStoredEnchantment(T enchant, ItemStack item, int level) {
+        if (!item.getType().equals(Material.ENCHANTED_BOOK))
+            return;
+        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
+        if (enchant instanceof UberEnchantment enchantment) {
+            UberUtils.addStoredEnchantment(enchantment, item, level);
+        } else {
+            meta.addStoredEnchant(enchant, level, true);
+            item.setItemMeta(meta);
+        }
     }
 
     /**
@@ -109,9 +132,7 @@ public class EnchantmentUtils {
      * @hidden
      */
     public static void setEnchantments(Map<? extends Enchantment, Integer> enchants, ItemStack item) {
-        for (Map.Entry<? extends Enchantment, Integer> entry : enchants.entrySet()) {
-            item.addUnsafeEnchantment(entry.getKey(), entry.getValue());
-        }
+        enchants.forEach(item::addUnsafeEnchantment);
     }
 
     /**
@@ -125,9 +146,10 @@ public class EnchantmentUtils {
         if (!item.getType().equals(Material.ENCHANTED_BOOK))
             return;
         EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
-        for (Map.Entry<? extends Enchantment, Integer> entry : enchants.entrySet()) {
+        enchants.forEach((k, v) -> meta.addStoredEnchant(k, v, true));
+        /*for (Map.Entry<? extends Enchantment, Integer> entry : enchants.entrySet()) {
             meta.addStoredEnchant(entry.getKey(), entry.getValue(), true);
-        }
+        }*/
         item.setItemMeta(meta);
     }
 
@@ -188,41 +210,34 @@ public class EnchantmentUtils {
      * @hidden
      */
     public static void help(Player player, String command) {
-        List<String> list = List.of(
-                "    &6&l/ulist &7effects | enchants",
-                "    &6&l/uadd &8enchant <enchantment | id> <level>",
-                "    &6&l/uadd &7enchant all <level>",
-                "    &6&l/uadd &8effect <effect | id> <duration> <level>",
-                "    &6&l/uadd &7name <string...>",
-                "    &6&l/uadd &8lore <string...>",
-                "    &6&l/ucost &7<add | del | extract> enchant <enchantment | id> <level>",
-                "    &6&l/udel &8enchant <enchantment | id>",
-                "    &6&l/udel &7effect <effect | id>",
-                "    &6&l/udel &8lore <line#>",
-                "    &6&l/udel &7name",
-                "    &6&l/uextract &8<enchantment | id>",
-                "    &6&l/uset &7effect <effect | id> <duration> <level>",
-                "    &6&l/uset &8hidden <true | false>",
-                "    &6&l/uset &7lore <line#> <string...>",
-                "    &6&l/uset &8name <string...>",
-                "    &6&l/uinsert &7lore <line#> <string...>",
-                "    &6&l/uclear &8enchant | effect | lore",
-                "    &6&l/ureload");
-        Map<String, List<String>> map = new HashMap<>();
-        map.put("all", list);
-        map.put("ulist", list.subList(0, 0));
-        map.put("uadd", list.subList(1, 5));
-        map.put("ucost", list.subList(6, 6));
-        map.put("udel", list.subList(7, 10));
-        map.put("uextract", list.subList(11, 11));
-        map.put("uset", list.subList(12, 15));
-        map.put("uinsert", list.subList(16, 16));
-        map.put("uclear", list.subList(17, 17));
-        map.put("ureload", list.subList(18, 18));
-        ChatUtils.response(player, "&6Command Help:");
-        if (!map.containsKey(command))
-            ChatUtils.response(player, map.get("all").toArray(String[]::new));
-        ChatUtils.response(player, map.get(command).toArray(String[]::new));
+        Map<String, String> map = new HashMap<>();
+        map.put("ulist", "\n    &6&l/ulist &7effects | enchants");
+        map.put("uadd", "\n    &6&l/uadd &8enchant <enchantment | id> <level>" +
+                "\n    &6&l/uadd &7enchant all <level>" +
+                "\n    &6&l/uadd &8effect <effect | id> <duration> <level>" +
+                "\n    &6&l/uadd &7name <string...>" +
+                "\n    &6&l/uadd &8lore <string...>");
+        map.put("ucost", "\n    &6&l/ucost &7<add | del | extract> enchant <enchantment | id> <level>");
+        map.put("udel", "\n    &6&l/udel &8enchant <enchantment | id>" +
+                "\n    &6&l/udel &7effect <effect | id>" +
+                "\n    &6&l/udel &8lore <line#>" +
+                "\n    &6&l/udel &7name");
+        map.put("uextract", "\n    &6&l/uextract &8<enchantment | id>");
+        map.put("uset", "\n    &6&l/uset &7effect <effect | id> <duration> <level>" +
+                "\n    &6&l/uset &8hidden <true | false>" +
+                "\n    &6&l/uset &7lore <line#> <string...>" +
+                "\n    &6&l/uset &8name <string...>");
+        map.put("uinsert", "\n    &6&l/uinsert &7lore <line#> <string...>");
+        map.put("uclear", "\n    &6&l/uclear &8enchant | effect | lore");
+        map.put("ureload", "\n    &6&l/ureload");
+
+        if (!map.containsKey(command)) {
+            List<String> list = new ArrayList<>(map.values());
+            list.add(0, "&6Command Help:");
+            ChatUtils.response(player, list.toArray(String[]::new));
+        } else {
+            ChatUtils.response(player, "&6Command Help:" + map.get(command));
+        }
     }
 
     /**
