@@ -29,6 +29,15 @@ public class EconomyUtils {
     /**
      * For internal use.
      *
+     * @return Boolean
+     */
+    public static boolean useEconomy() {
+        return UberEnchant.instance().getConfig().getBoolean("use_economy");
+    }
+
+    /**
+     * For internal use.
+     *
      * @return Economy
      */
     public static Economy getEconomy() {

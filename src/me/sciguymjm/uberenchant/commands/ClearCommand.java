@@ -61,8 +61,8 @@ public class ClearCommand extends UberTabCommand {
     }
 
     private void enchant(ItemStack item) {
-        if (item.hasItemMeta() && item.getItemMeta().hasEnchants()) {
-            item.getEnchantments().keySet().forEach(enchant -> EnchantmentUtils.removeEnchantment(enchant, item));
+        if (item.hasItemMeta() && !UberUtils.getAllMap(item).isEmpty()) {
+            UberUtils.getAllMap(item).keySet().forEach(enchant -> EnchantmentUtils.removeEnchantment(enchant, item));
             localized("&a", "actions.enchant.clear.success");
             return;
         }

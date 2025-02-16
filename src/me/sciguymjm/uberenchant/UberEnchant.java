@@ -1,13 +1,15 @@
 package me.sciguymjm.uberenchant;
 
 import me.sciguymjm.uberenchant.api.UberEnchantment;
-import me.sciguymjm.uberenchant.api.events.UberEvent;
+import me.sciguymjm.uberenchant.api.utils.ArmorEquippedListener;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration.UberRecord;
+import me.sciguymjm.uberenchant.api.utils.UberRunnable;
 import me.sciguymjm.uberenchant.commands.*;
 import me.sciguymjm.uberenchant.commands.abstraction.UberCommand;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
+import me.sciguymjm.uberenchant.utils.Debugging;
 import me.sciguymjm.uberenchant.utils.FileUtils;
 import me.sciguymjm.uberenchant.utils.UberLocale;
 import me.sciguymjm.uberenchant.utils.enchanting.AnvilEvents;
@@ -15,11 +17,8 @@ import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentTableEvents;
 import net.milkbowl.vault.economy.Economy;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.ServerLoadEvent;
@@ -29,14 +28,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
 /**
  * The Main class of UberEnchant
@@ -47,14 +39,16 @@ public class UberEnchant extends JavaPlugin {
     private static Economy economy;
 
     public void onEnable() {
+        Debugging.enable();
         plugin = this;
 
         initResources();
         update();
+        EffectEnchantment.init();
 
         new Metrics(this, 1952);
 
-        if (!economyLoaded())
+        if (getConfig().getBoolean("use_economy") && !economyLoaded())
             getLogger().log(Level.WARNING, UberLocale.get("uberenchant.economy_not_found"));
 
         registerTabCommand("uadd", new AddCommand());
@@ -68,16 +62,17 @@ public class UberEnchant extends JavaPlugin {
         registerCommand("ureload", new ReloadCommand());
         registerTabCommand("uset", new SetCommand());
 
-        EffectEnchantment.init();
         UberConfiguration.loadFromEnchantmentsFolder();
 
-        final boolean enchants = (boolean) FileUtils.get("/mechanics/enchantment_table.yml", "enabled", false);
-        final boolean anvil = (boolean) FileUtils.get("/mechanics/anvil.yml", "enabled", false);
+        final boolean enchants = FileUtils.get("/mechanics/enchantment_table.yml", "enabled", false, Boolean.class);
+        final boolean anvil = FileUtils.get("/mechanics/anvil.yml", "enabled", false, Boolean.class);
 
         if (enchants)
             registerEvents(new EnchantmentTableEvents());
         if (anvil)
             registerEvents(new AnvilEvents());
+
+        registerEvents(new ArmorEquippedListener());
 
         registerEvents(new Listener() {
             @EventHandler
@@ -87,18 +82,21 @@ public class UberEnchant extends JavaPlugin {
                     public void run() {
                         long found = UberEnchantment.getRegisteredEnchantments().stream().filter(a -> !a.getKey().getNamespace().equalsIgnoreCase(getName())).count();
                         long loaded = UberRecord.values().stream().filter(a -> a.enchantment() instanceof UberEnchantment && !a.enchantment().getKey().getNamespace().equalsIgnoreCase(getName())).count();
-                        getLogger().log(Level.INFO,  "Found: " + found + " Registered UberEnchantments.");
-                        getLogger().log(Level.INFO, "Loaded: " + loaded + " UberEnchantments.");
-                        getLogger().log(Level.INFO, "Custom enchantment table mechanics are %1$s!".formatted(enchants ? "enabled" : "disabled"));
-                        getLogger().log(Level.INFO, "Custom anvil mechanics are %1$s!".formatted(anvil ? "enabled" : "disabled"));
+                        getLogger().log(Level.INFO, UberLocale.getF("console.found_enchantments", found));
+                        getLogger().log(Level.INFO, UberLocale.getF("console.loaded_enchantments", loaded));
+                        getLogger().log(Level.INFO, UberLocale.getF("console.enchantment_table_status", enchants ? "enabled" : "disabled"));
+                        getLogger().log(Level.INFO, UberLocale.getF("console.anvil_status", anvil ? "enabled" : "disabled"));
+                        //test();
                     }
                 }.runTaskLater(plugin, 100);
             }
         });
+
+        UberRunnable.getInstance();
     }
 
     public void onDisable() {
-        unloadEnchantments();
+        //unloadEnchantments();
     }
 
     private void initResources() {
@@ -162,7 +160,7 @@ public class UberEnchant extends JavaPlugin {
         getCommand(name).setTabCompleter(executor);
     }
 
-    @SuppressWarnings({"unchecked", "deprecation"})
+    /*@SuppressWarnings({"unchecked", "deprecation"})
     private void unloadEnchantments() {
         try {
             Field fieldByKey = Enchantment.class.getDeclaredField("byKey");
@@ -178,7 +176,7 @@ public class UberEnchant extends JavaPlugin {
                 }
             }
         } catch (Exception ignored) {}
-    }
+    }*/
 
     /**
      * Returns an instance of UberEnchant.

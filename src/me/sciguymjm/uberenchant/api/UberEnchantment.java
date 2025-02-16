@@ -1,38 +1,34 @@
 package me.sciguymjm.uberenchant.api;
 
 import me.sciguymjm.uberenchant.UberEnchant;
-import me.sciguymjm.uberenchant.api.utils.Rarity;
+import me.sciguymjm.uberenchant.api.utils.*;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * The UberEnchantment class to be extended for adding custom enchantments.
  */
-public abstract class UberEnchantment extends Enchantment implements Listener {
+public abstract class UberEnchantment extends Enchantment implements Listener/*, IEnchant*/ {
+    private static final Map<NamespacedKey, UberEnchantment> enchantments = new HashMap<>();
 
-    private static final List<UberEnchantment> enchantments = new ArrayList<>();
-
-    // private boolean registered = false;
+    private boolean registered = false;
+    private NamespacedKey key;
 
     /**
      * Constructs a new UberEnchantment using a unique custom NamespacedKey.
      *
-     * @param key - The NamespacedKey to be used
+     * @param namespacedKey - The NamespacedKey to be used
      */
-    public UberEnchantment(NamespacedKey key) {
-        super(key);
-        enchantments.add(this);
+    public UberEnchantment(NamespacedKey namespacedKey) {
+        this.key = namespacedKey;
+        enchantments.put(key, this);
         UberEnchant.registerEvents(this);
     }
 
@@ -55,8 +51,13 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
         this(UberEnchant.instance(), key);
     }
 
+    /**
+     * Gets the NameSpacedKey of this enchantment
+     *
+     * @return The key
+     */
     public final String getName() {
-        return getKey().getKey();
+        return key.getKey();
     }
 
     /**
@@ -67,6 +68,11 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
      */
     public abstract String getDisplayName();
 
+    /**
+     * Gets the Rarity of this enchantment
+     *
+     * @return The Rarity
+     */
     public abstract Rarity getRarity();
 
     /**
@@ -97,9 +103,12 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
      * @see #containsEnchantment(ItemStack)
      */
     public static boolean containsEnchantment(ItemStack item, UberEnchantment enchantment) {
+        /* Minecraft 1.20.2
         if (!item.hasItemMeta())
             return false;
         return item.getItemMeta().hasEnchant(enchantment);
+        */
+        return UberUtils.containsData(item, enchantment);
     }
 
     /**
@@ -123,7 +132,7 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
      */
     public static int getLevel(ItemStack item, UberEnchantment enchantment) {
         if (containsEnchantment(item, enchantment))
-            return getEnchantments(item).get(enchantment);
+            return UberUtils.getData(item).get(enchantment.getKey(), PersistentDataType.INTEGER);
         return 0;
     }
 
@@ -134,7 +143,9 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
      * @return True if any custom enchantments were found
      */
     public static boolean hasEnchantments(ItemStack item) {
-        return item.getEnchantments().keySet().stream().anyMatch(a -> a instanceof UberEnchantment);
+        // Minecraft 1.20.2
+        //return item.getEnchantments().keySet().stream().anyMatch(a -> a instanceof UberEnchantment);
+        return UberUtils.hasData(item);
     }
 
     /**
@@ -145,9 +156,12 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
      * @return Map of custom enchantments (Can be empty)
      */
     public static Map<UberEnchantment, Integer> getEnchantments(ItemStack item) {
+        /* Minecraft 1.20.2
         if (!hasEnchantments(item))
             return Map.of();
         return item.getEnchantments().entrySet().stream().filter(a -> a.getKey() instanceof UberEnchantment).collect(Collectors.toMap(e -> (UberEnchantment) e.getKey(), Map.Entry::getValue));
+        */
+        return UberUtils.getMap(item);
     }
 
     /**
@@ -158,12 +172,13 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
      * @return Map of stored custom enchantments (Can be empty)
      */
     public static Map<UberEnchantment, Integer> getStoredEnchantments(ItemStack item) {
-        if (item.getItemMeta() instanceof EnchantmentStorageMeta meta) {
+        /*if (item.getItemMeta() instanceof EnchantmentStorageMeta meta) {
             if (!meta.hasStoredEnchants())
                 return Map.of();
             return meta.getStoredEnchants().entrySet().stream().filter(a -> a.getKey() instanceof UberEnchantment).collect(Collectors.toMap(e -> (UberEnchantment) e.getKey(), Map.Entry::getValue));
         }
-        return Map.of();
+        return Map.of();*/
+        return UberUtils.getStoredMap(item);
     }
 
     /**
@@ -176,7 +191,7 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
      * @see #getRegisteredEnchantments(String)
      */
     public static List<UberEnchantment> getRegisteredEnchantments() {
-        return enchantments;
+        return new ArrayList<>(enchantments.values());
     }
 
     /**
@@ -198,7 +213,7 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
      * @see #getRegisteredEnchantments(String)
      */
     public static List<UberEnchantment> getRegisteredEnchantments(String plugin) {
-        return enchantments.stream().filter(enchant -> enchant.getKey().getNamespace().equals(plugin)).collect(Collectors.toList());
+        return enchantments.values().stream().filter(enchant -> enchant.getKey().getNamespace().equals(plugin)).collect(Collectors.toList());
     }
 
     /**
@@ -219,18 +234,21 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
      * @see #register()
      */
     public static boolean register(UberEnchantment enchantment) {
-        try {
+        enchantment.registered = true;
+        /*try {
+
             if (!Enchantment.isAcceptingRegistrations()) {
                 Field field = Enchantment.class.getDeclaredField("acceptingNew");
                 field.setAccessible(true);
                 field.set(null, true);
             }
             Enchantment.registerEnchantment(enchantment);
-            // enchantment.registered = true;
+            enchantment.registered = true;
             return true;
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+        } catch (SecurityException | IllegalArgumentException e) {
             return false;
-        }
+        }*/
+        return enchantment.isRegistered();
     }
 
     /**
@@ -251,7 +269,21 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
      * @see #isRegistered()
      */
     public static boolean isRegistered(UberEnchantment enchantment) {
-        return List.of(Enchantment.values()).contains(enchantment);
+        return enchantments.containsValue(enchantment) && enchantment.registered;
+    }
+
+    /**
+     * Gets the UberEnchantment by NamespacedKey
+     *
+     * @param key The NamespacedKey
+     * @return  The UberEnchantment
+     */
+    public static UberEnchantment getByKey(NamespacedKey key) {
+        return enchantments.get(key);
+    }
+
+    public static boolean containsKey(NamespacedKey key) {
+        return enchantments.containsKey(key);
     }
 
     /**
@@ -260,6 +292,36 @@ public abstract class UberEnchantment extends Enchantment implements Listener {
      * @return An array of every custom enchantment
      */
     public static UberEnchantment[] values() {
-        return enchantments.toArray(UberEnchantment[]::new);
+        return enchantments.values().toArray(UberEnchantment[]::new);
     }
+
+    @Override
+    public NamespacedKey getKey() {
+        return key;
+    }
+
+    /**
+     * Attaches an optional task to this enchantment to run
+     * Such as adding a task to run upon putting on armor or every x seconds whilst holding an item
+     *
+     * @param task The task to add
+     */
+    protected void addTask(UberTask task) {
+        UberRunnable.addTask(task);
+    }
+
+    /*@Override
+    public EquipmentSlot[] getSlots() {
+        return switch (this.getItemTarget()) {
+            case BOW, CROSSBOW, TRIDENT, FISHING_ROD, WEAPON, TOOL -> new EquipmentSlot[]{EquipmentSlot.HAND};
+            case ARMOR_HEAD -> new EquipmentSlot[]{EquipmentSlot.HEAD};
+            case ARMOR_TORSO -> new EquipmentSlot[]{EquipmentSlot.CHEST};
+            case ARMOR_LEGS -> new EquipmentSlot[]{EquipmentSlot.LEGS};
+            case ARMOR_FEET -> new EquipmentSlot[]{EquipmentSlot.FEET};
+            case ARMOR, WEARABLE -> new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+            case BREAKABLE -> new EquipmentSlot[]{EquipmentSlot.HAND, EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+            case VANISHABLE -> EquipmentSlot.values();
+            default -> throw new IllegalStateException("Unexpected value: " + this.getItemTarget());
+        };
+    }*/
 }

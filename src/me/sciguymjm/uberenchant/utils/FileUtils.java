@@ -6,6 +6,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Utility class for internal use.
+ */
 public class FileUtils {
 
     public static void initResource(String path) {
@@ -31,8 +34,12 @@ public class FileUtils {
         return YamlConfiguration.loadConfiguration(file);
     }
 
-    public static Object get(String path, String key, Object def) {
-        return loadConfig(path).get(key, def);
+    public static <T> T get(String path, String key, Object def, Class<T> type) {
+        return type.cast(loadConfig(path).get(key, def));
+    }
+
+    public static boolean contains(String path, String key) {
+        return loadConfig(path).contains(key);
     }
 
     public static void set(String path, String key, Object value) {
@@ -42,7 +49,7 @@ public class FileUtils {
         try {
             config.save(file);
         } catch (IOException e) {
-            e.printStackTrace();
+            e.getCause().printStackTrace();
         }
     }
 }

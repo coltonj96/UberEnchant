@@ -1,6 +1,9 @@
 # Set the locale
 locale: en_us
 
+# Use a supported economy plugin
+use_economy: true
+
 # Cost for certain commands
 cost:
   name:

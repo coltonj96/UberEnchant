@@ -1,10 +1,6 @@
 package me.sciguymjm.uberenchant.api.utils.random;
 
-import java.util.Collection;
-import java.util.NavigableMap;
-import java.util.Random;
-import java.util.TreeMap;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -24,15 +20,13 @@ import java.util.function.Predicate;
 public class WeightedChance<E> {
 
     private NavigableMap<Double, Weighted<E>> map = new TreeMap<>();
-    private UberRandom random;
+    private UberRandom random = new UberRandom();;
     private double total = 0;
 
     /**
      * Constructor for a WeightedChance
      */
-    public WeightedChance() {
-        random = new UberRandom();
-    }
+    public WeightedChance() {}
 
     /**
      * Constructor for a WeightedChance
@@ -51,15 +45,38 @@ public class WeightedChance<E> {
     }
 
     /**
+     * Constructs a WeightedChance using the specified collection
+     *
+     * @param array An array of items that implement the {@link me.sciguymjm.uberenchant.api.utils.random.Weighted} interface
+     */
+    @SafeVarargs
+    public WeightedChance(Weighted<E>... array) {
+        addAll(Arrays.asList(array));
+    }
+
+    /**
      * Returns a new instance of a WeightedChance using specified collection<br>
      * Same as using {@link #WeightedChance(Collection)}
      *
-     * @param collection A collection of items that implement the {@link me.sciguymjm.uberenchant.api.utils.random.Weighted} interface
+     * @param collection An array of items that implement the {@link me.sciguymjm.uberenchant.api.utils.random.Weighted} interface
      * @return A new WeightedChance using data from the specified collection
      * @param <E> The type of value (Can be anything)
      */
     public static <E> WeightedChance<E> fromCollection(Collection<? extends Weighted<E>> collection) {
         return new WeightedChance<>(collection);
+    }
+
+    /**
+     * Returns a new instance of a WeightedChance using specified array<br>
+     * Same as using {@link #WeightedChance(Weighted[])}
+     *
+     * @param array A collection of items that implement the {@link me.sciguymjm.uberenchant.api.utils.random.Weighted} interface
+     * @return A new WeightedChance using data from the specified array
+     * @param <E> The type of value (Can be anything)
+     */
+    @SafeVarargs
+    public static <E> WeightedChance<E> fromArray(Weighted<E>... array) {
+        return new WeightedChance<>(array);
     }
 
     /**

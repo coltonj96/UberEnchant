@@ -23,7 +23,7 @@ public class EffectUtils {
      */
     public static String[] listEffects() {
         List<String> list = new ArrayList<>();
-        list.add("&6Effect (ID)");
+        list.add(UberLocale.getC("&6", "utils.effects.list"));
         for (UberEffects effect : UberEffects.values()) {
             if (effect.getEffect() != null) {
                 list.add(String.format("        &6&l%1$s (&c%2$s&6&l)", effect.getName(), effect.getId()));
@@ -106,9 +106,9 @@ public class EffectUtils {
     public static void removeEffect(Player player, PotionEffectType effect) {
         if (player.hasPotionEffect(effect)) {
             player.removePotionEffect(effect);
-            ChatUtils.response(player, "&a" + UberLocale.get("utils.effects.remove_success"));
+            ChatUtils.response(player, UberLocale.getC("&a", "utils.effects.remove_success"));
         } else {
-            ChatUtils.response(player, "&c" + UberLocale.get("utils.effects.remove_fail"));
+            ChatUtils.response(player, UberLocale.getC("&c", "utils.effects.remove_fail"));
         }
     }
 

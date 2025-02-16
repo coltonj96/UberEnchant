@@ -1,16 +1,14 @@
 package me.sciguymjm.uberenchant.enchantments.abstraction;
 
+import me.sciguymjm.uberenchant.api.UberEnchantment;
+import me.sciguymjm.uberenchant.api.utils.Rarity;
 import me.sciguymjm.uberenchant.utils.UberEffects;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffectType;
 
-/**
- *
- */
-public class EffectEnchantmentWrapper extends EffectEnchantment {
+public class EffectEnchantmentWrapper extends UberEnchantment {
 
     private final UberEffects a;
 
@@ -25,7 +23,6 @@ public class EffectEnchantmentWrapper extends EffectEnchantment {
         a = effect;
     }
 
-    @Override
     public UberEffects getEffect() {
         return a;
     }
@@ -64,14 +61,31 @@ public class EffectEnchantmentWrapper extends EffectEnchantment {
 
     @Override
     public boolean canEnchantItem(ItemStack item) {
-        if (UberEffects.valuesContain(1, a.getEffect())) {
+        if (UberEffects.valuesContain(1, a.getEffect()))
             return EnchantmentTarget.ARMOR.includes(item) || item.getType().equals(Material.SHIELD);
-        } else if (UberEffects.valuesContain(-1, a.getEffect())) {
+        else if (UberEffects.valuesContain(-1, a.getEffect()))
             return EnchantmentTarget.ARMOR.includes(item) || EnchantmentTarget.WEAPON.includes(item);
-        } else if (UberEffects.valuesContain(0, a.getEffect())) {
-            return true;
-        }
-        return false;
+        else
+            return UberEffects.valuesContain(0, a.getEffect());
     }
 
+    @Override
+    public String getTranslationKey() {
+        return "";
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "";
+    }
+
+    @Override
+    public Rarity getRarity() {
+        return null;
+    }
+
+    @Override
+    public String getPermission() {
+        return "";
+    }
 }

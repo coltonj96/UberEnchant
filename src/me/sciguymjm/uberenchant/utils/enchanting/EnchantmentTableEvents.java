@@ -1,11 +1,14 @@
 package me.sciguymjm.uberenchant.utils.enchanting;
 
 import me.sciguymjm.uberenchant.api.UberEnchantment;
+import me.sciguymjm.uberenchant.api.events.UberEnchantmentsAddedEvent;
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.utils.FileUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
@@ -14,31 +17,35 @@ import org.bukkit.event.inventory.InventoryType;
 
 import java.util.*;
 
+/**
+ * Utility class for internal use.
+ */
 public class EnchantmentTableEvents implements Listener {
 
     private Map<UUID, CustomOffer> players = new HashMap<>();
     private Map<UUID, Map<UberEnchantment, Integer>> books = new HashMap<>();
-    public static List<String> enabled;
+    public static List<String> disabled;
 
     public EnchantmentTableEvents() {
-        enabled = FileUtils.loadConfig("/mechanics/enchantment_table.yml").getStringList("enabled_enchantments");
+        reloadEnabled();
     }
 
     public static void reloadEnabled() {
-        enabled = FileUtils.loadConfig("/mechanics/enchantment_table.yml").getStringList("enabled_enchantments");
+        disabled = FileUtils.loadConfig("/mechanics/enchantment_table.yml").getStringList("disabled_enchantments");
+        if (FileUtils.get("/mechanics/enchantment_table.yml", "disable_effect_enchantments", true, Boolean.class))
+            disabled.addAll(UberEnchantment.getRegisteredEnchantments().stream().map(e -> e.getKey().getKey()).toList());
     }
 
-    public static boolean isEnabled(Enchantment enchant) {
-        return enabled.contains(enchant.getKey().getKey());
+    public static boolean isDisabled(Enchantment enchant) {
+        return disabled.contains(enchant.getKey().getKey());
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPrepare(PrepareItemEnchantEvent event) {
         UUID id = event.getEnchanter().getUniqueId();
-        if (!EnchantmentTableUtils.seed.containsKey(id)) {
+        if (!EnchantmentTableUtils.seed.containsKey(id))
             EnchantmentTableUtils.seed.put(id, new Random().nextLong());
-        }
-        CustomOffer e = new CustomOffer(event.getEnchanter(), event.getItem(), event.getOffers(), event.getEnchantmentBonus(), -1);
+        CustomOffer e  = new CustomOffer(event, -1);
         players.put(id, e);
         if (event.getItem().getType().equals(Material.ENCHANTED_BOOK) && books.containsKey(id)) {
             UberUtils.addStoredEnchantments(books.get(id), event.getItem());
@@ -54,12 +61,14 @@ public class EnchantmentTableEvents implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onEnchant(EnchantItemEvent event) {
         UUID id = event.getEnchanter().getUniqueId();
         if (players.containsKey(id)) {
             Map<Enchantment, Integer> map = event.getEnchantsToAdd();
             int size = map.size() * 2;
+            if (size > 5)
+                size = 5;
             map.clear();
             CustomOffer e = players.get(event.getEnchanter().getUniqueId());
             e.setSlot(event.whichButton());
@@ -80,13 +89,20 @@ public class EnchantmentTableEvents implements Listener {
                 }
             }
             players.remove(id);
-            map.put(e.getOffer().getEnchantment(), e.getOffer().getEnchantmentLevel());
+            if (e.getOffer() != null)
+                map.put(e.getOffer().getEnchantment(), e.getOffer().getEnchantmentLevel());
+            else
+                map.put(event.getEnchantmentHint(), event.getLevelHint());
             if (event.getItem().getType().equals(Material.BOOK)) {
                 books.put(id, cMap);
             } else {
                 UberUtils.addEnchantments(cMap, event.getItem());
             }
             EnchantmentTableUtils.seed.put(id, new Random().nextLong());
+            Map<Enchantment, Integer> big = new HashMap<>(map);
+            big.putAll(cMap);
+            UberEnchantmentsAddedEvent ce = new UberEnchantmentsAddedEvent(event.getEnchanter(), event.getItem(), big);
+            Bukkit.getServer().getPluginManager().callEvent(ce);
         }
     }
 }

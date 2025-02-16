@@ -2,7 +2,10 @@ package me.sciguymjm.uberenchant.commands;
 
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
-import me.sciguymjm.uberenchant.utils.*;
+import me.sciguymjm.uberenchant.utils.ChatUtils;
+import me.sciguymjm.uberenchant.utils.EconomyUtils;
+import me.sciguymjm.uberenchant.utils.EffectUtils;
+import me.sciguymjm.uberenchant.utils.Reply;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -57,7 +60,31 @@ public class SetCommand extends UberTabCommand {
     @Override
     public List<String> onTab() {
         List<String> list = new ArrayList<>();
-        if (args.length == 1) {
+        switch (args.length) {
+            case 1 -> {
+                if (hasPermission("uber.set.effect"))
+                    list.add("effect");
+                if (hasPermission("uber.set.lore"))
+                    list.add("lore");
+                if (hasPermission("uber.set.name"))
+                    list.add("name");
+                if (hasPermission("uber.set.hidden"))
+                    list.add("hidden");
+            }
+            case 2 -> {
+                switch (args[0].toLowerCase()) {
+                    case "hidden" -> {
+                        if (hasPermission("uber.set.hidden")) {
+                            list.add("true");
+                            list.add("false");
+                        }
+                    }
+                    case "effect" -> list = EffectUtils.matchEffects(args[1]);
+                }
+            }
+        }
+        return list;
+        /*if (args.length == 1) {
             if (hasPermission("uber.set.effect"))
                 list.add("effect");
             if (hasPermission("uber.set.lore"))
@@ -75,7 +102,7 @@ public class SetCommand extends UberTabCommand {
                 }
             }
         }
-        return list;
+        return list;*/
     }
 
     private void effect() {
@@ -185,7 +212,7 @@ public class SetCommand extends UberTabCommand {
         }
         String name = ChatUtils.color(message.toString().trim());
         ItemMeta meta = item.getItemMeta();
-        if (hasPermission("uber.set.name.free")) {
+        if (hasPermission("uber.set.name.free") || !EconomyUtils.useEconomy()) {
             meta.setDisplayName(name);
             item.setItemMeta(meta);
             localized("&a", "actions.name.set.success");

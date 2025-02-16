@@ -1,6 +1,7 @@
 package me.sciguymjm.uberenchant.commands;
 
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
+import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.utils.EconomyUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
@@ -12,6 +13,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * For internal use.
@@ -35,8 +37,11 @@ public class ExtractCommand extends UberTabCommand {
     @Override
     public List<String> onTab() {
         List<String> list = new ArrayList<>();
-        if (args.length == 1)
-            list = EnchantmentUtils.find(player, args[0]);
+        if (args.length == 1) {
+            ItemStack item = player.getInventory().getItemInMainHand();
+            if (!item.getType().equals(Material.AIR) && !UberUtils.getAllMap(item).isEmpty())
+                UberUtils.getAllMap(item).keySet().forEach(enchant -> list.add(enchant.getKey().getKey().toLowerCase()));
+        }
         return list;
     }
 
@@ -45,7 +50,10 @@ public class ExtractCommand extends UberTabCommand {
             response(Reply.HOLD_ITEM);
             return;
         }
-        Enchantment enchantment = EnchantmentUtils.getEnchantment(args[0]);
+        Set<Enchantment> set = EnchantmentUtils.getMatches(args[0]);
+        if (EnchantmentUtils.multi(player, set))
+            return;
+        Enchantment enchantment = set.iterator().next();
         if (enchantment != null) {
             if (item.getType().equals(Material.ENCHANTED_BOOK)) {
                 localized("&c", "actions.enchant.extract.book");
@@ -61,8 +69,8 @@ public class ExtractCommand extends UberTabCommand {
                 localized("&c", "actions.enchant.extract.not_found", enchant.getDisplayName());
                 return;
             }
-            int level = item.getEnchantmentLevel(enchantment);
-            if (hasPermission("uber.extract.enchant.free")) {
+            int level = UberUtils.getAllMap(item).get(enchantment);
+            if (hasPermission("uber.extract.enchant.free") || !EconomyUtils.useEconomy()) {
                 if (player.getInventory().addItem(book).isEmpty()) {
                     EnchantmentUtils.removeEnchantment(enchantment, item);
                     localized("&a", "actions.enchant.extract.free_success", enchant.getDisplayName());

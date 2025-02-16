@@ -1,21 +1,21 @@
 package me.sciguymjm.uberenchant.commands;
 
+import me.sciguymjm.uberenchant.api.events.UberEnchantmentsAddedEvent;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.utils.*;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import net.milkbowl.vault.economy.EconomyResponse;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Class for internal use.
@@ -85,6 +85,9 @@ public class AddCommand extends UberTabCommand {
     }
 
     private void enchant(ItemStack item) {
+        UberEnchantmentsAddedEvent event = new UberEnchantmentsAddedEvent(player, item, null);
+        if (event.isCancelled())
+            return;
         if (item.getType().equals(Material.AIR)) {
             if (!hasPermission("uber.add.enchant.book")) {
                 response(Reply.HOLD_ITEM);
@@ -118,34 +121,36 @@ public class AddCommand extends UberTabCommand {
                 UberUtils.addStoredEnchantments(map, item);
             else
                 UberUtils.addEnchantments(map, item);
+            event = new UberEnchantmentsAddedEvent(player, item, map);
             //}
             player.getInventory().setItemInMainHand(item);
             localized("&a", "actions.enchant.add.success_all");
+            Bukkit.getServer().getPluginManager().callEvent(event);
             return;
         }
-        Enchantment enchant = EnchantmentUtils.getEnchantment(args[1]);
-        if (enchant == null) {
-            localized("&c", "actions.enchant.invalid");
-            response("&a/ulist enchants");
+        Set<Enchantment> set = EnchantmentUtils.getMatches(args[1]);
+        if (EnchantmentUtils.multi(player, set))
             return;
-        }
+        Enchantment enchant = set.iterator().next();
         UberConfiguration.UberRecord e = UberConfiguration.getByEnchant(enchant);
         if (!hasPermission("uber.add.enchant.all") && !hasPermission("uber.add.enchant.%1$s", e.getName().toLowerCase())) {
             response(Reply.PERMISSIONS);
             return;
         }
-        if (hasPermission("uber.enchant.%1$s.free", e.getName().toLowerCase())) {
+        if (hasPermission("uber.enchant.%1$s.free", e.getName().toLowerCase()) || !EconomyUtils.useEconomy()) {
             if (level >= e.getMinLevel() && level <= e.getMaxLevel() || hasPermission("uber.enchant.bypass.level")) {
                 if (level > 255) {
                     localized("&c", "actions.enchant.add.max_level");
                     level = 255;
                 }
+                event = new UberEnchantmentsAddedEvent(player, item, Map.of(enchant, level));
                 if (item.getType().equals(Material.ENCHANTED_BOOK))
                     EnchantmentUtils.setStoredEnchantment(enchant, item, level);
                 else
                     EnchantmentUtils.setEnchantment(enchant, item, level);
                 player.getInventory().setItemInMainHand(item);
                 localized("&a", "actions.enchant.add.success", e.getDisplayName(), level);
+                Bukkit.getServer().getPluginManager().callEvent(event);
             } else {
                 localized("&c", "actions.enchant.add.range", e.getMinLevel(), e.getMaxLevel());
             }
@@ -165,6 +170,7 @@ public class AddCommand extends UberTabCommand {
                         localized("&c", "actions.enchant.add.max_level");
                         level = 255;
                     }
+                    event = new UberEnchantmentsAddedEvent(player, item, Map.of(enchant, level));
                     if (item.getType().equals(Material.ENCHANTED_BOOK))
                         EnchantmentUtils.setStoredEnchantment(enchant, item, level);
                     else
@@ -172,6 +178,7 @@ public class AddCommand extends UberTabCommand {
                     EconomyResponse n = EconomyUtils.withdraw(player, cost);
                     player.getInventory().setItemInMainHand(item);
                     localized("&a", "actions.enchant.add.pay_success", e.getDisplayName(), level, n.amount);
+                    Bukkit.getServer().getPluginManager().callEvent(event);
                 } else {
                     localized("&c", "actions.enchant.add.pay_more", cost - EconomyUtils.getBalance(player));
                 }

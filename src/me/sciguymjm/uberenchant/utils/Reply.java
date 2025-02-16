@@ -43,7 +43,12 @@ public enum Reply {
         this.key = key;
     }
 
+    /**
+     * Utility method for internal use.
+     *
+     * @return String
+     */
     public String get() {
-        return color + UberLocale.get(key);
+        return color + UberLocale.getCF(color, key);
     }
 }

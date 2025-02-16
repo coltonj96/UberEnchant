@@ -1,23 +1,173 @@
 package me.sciguymjm.uberenchant.api.utils;
 
+import me.sciguymjm.uberenchant.UberEnchant;
 import me.sciguymjm.uberenchant.api.UberEnchantment;
+import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
 import me.sciguymjm.uberenchant.utils.ChatUtils;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Custom enchantment related utility class
  */
 public class UberUtils {
+
+    private static final NamespacedKey uberEnchantment = new NamespacedKey(UberEnchant.instance(), "uberenchantment");
+    private static final NamespacedKey storedUberEnchantment = new NamespacedKey(UberEnchant.instance(), "storeduberenchantment");
+
+    private static boolean hasCustom(ItemStack item, NamespacedKey namespace) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
+            return false;
+        return meta.getPersistentDataContainer().has(namespace);
+    }
+
+    public static boolean hasData(ItemStack item) {
+        return hasCustom(item, uberEnchantment);
+    }
+
+    public static boolean hasStoredData(ItemStack item) {
+        return hasCustom(item, storedUberEnchantment);
+    }
+
+    private static boolean containsCustom(ItemStack item, UberEnchantment data, NamespacedKey namespace) {
+        return hasCustom(item, namespace) && getData(item).has(data.getKey());
+    }
+
+    public static boolean containsData(ItemStack item, UberEnchantment data) {
+        return containsCustom(item, data, uberEnchantment);
+    }
+
+    public static boolean containsStoredData(ItemStack item, UberEnchantment data) {
+        return containsCustom(item, data, storedUberEnchantment);
+    }
+
+    private static PersistentDataContainer getCustom(ItemStack item, NamespacedKey namespace) {
+        if (hasCustom(item, namespace))
+            return item.getItemMeta().getPersistentDataContainer().get(namespace, PersistentDataType.TAG_CONTAINER);
+        return null;
+    }
+
+    public static PersistentDataContainer getData(ItemStack item) {
+        return getCustom(item, uberEnchantment);
+    }
+
+    public static PersistentDataContainer getStoredData(ItemStack item) {
+        return getCustom(item, storedUberEnchantment);
+    }
+
+    private static Map<UberEnchantment, Integer> getCustomMap(ItemStack item, NamespacedKey namespace) {
+        Map<UberEnchantment, Integer> map = new HashMap<>();
+        if (hasCustom(item, namespace)) {
+            PersistentDataContainer data = getCustom(item, namespace);
+            if (data != null) {
+                data.getKeys().forEach(key -> {
+                    if (UberEnchantment.containsKey(key))
+                        map.put(UberEnchantment.getByKey(key), data.get(key, PersistentDataType.INTEGER));
+                });
+            }
+        }
+        return map;
+    }
+
+    public static Map<UberEnchantment, Integer> getMap(ItemStack item) {
+        return getCustomMap(item, uberEnchantment);
+    }
+
+    public static Map<UberEnchantment, Integer> getStoredMap(ItemStack item) {
+        return getCustomMap(item, storedUberEnchantment);
+    }
+
+    public static Map<Enchantment, Integer> getAllMap(ItemStack item) {
+        Map<Enchantment, Integer> map = new HashMap<>(item.getEnchantments());
+        map.putAll(getMap(item));
+        return map;
+    }
+
+    public static Map<Enchantment, Integer> getAllStoredMap(ItemStack item) {
+        Map<Enchantment, Integer> map = new HashMap<>();
+        if (item.getItemMeta() instanceof EnchantmentStorageMeta meta) {
+            if (meta.hasStoredEnchants())
+                map.putAll(meta.getStoredEnchants());
+            map.putAll(getStoredMap(item));
+        }
+        return map;
+    }
+
+    private static void addCustom(ItemStack item, UberEnchantment enchantment, int level, NamespacedKey namespace) {
+        removeEnchantmentLore(item);
+        ItemMeta meta = item.getItemMeta();
+        PersistentDataContainer data;
+        if (!hasCustom(item, namespace)) {
+            data = meta.getPersistentDataContainer();
+            data.set(namespace, PersistentDataType.TAG_CONTAINER, data.getAdapterContext().newPersistentDataContainer());
+            item.setItemMeta(meta);
+        }
+        data = getCustom(item, namespace);
+        if (data == null) {
+            addEnchantmentLore(item);
+            return;
+        }
+        data.set(enchantment.getKey(), PersistentDataType.INTEGER, level);
+        meta.getPersistentDataContainer().set(namespace, PersistentDataType.TAG_CONTAINER, data);
+        if (!meta.hasEnchants())
+            meta.setEnchantmentGlintOverride(true);
+        item.setItemMeta(meta);
+        addEnchantmentLore(item);
+    }
+
+    public static void addData(ItemStack item, UberEnchantment enchantment, int level) {
+        addCustom(item, enchantment, level, uberEnchantment);
+    }
+
+    public static void addStoredData(ItemStack item, UberEnchantment enchantment, int level) {
+        addCustom(item, enchantment, level, storedUberEnchantment);
+    }
+
+    private static int removeCustom(ItemStack item, UberEnchantment enchantment, NamespacedKey namespace) {
+        int level = 0;
+        if (hasCustom(item, namespace)) {
+            removeEnchantmentLore(item);
+            ItemMeta meta = item.getItemMeta();
+            PersistentDataContainer data = getCustom(item, namespace);
+            if (data == null) {
+                addEnchantmentLore(item);
+                return 0;
+            }
+            if (data.has(enchantment.getKey())) {
+                level = data.get(enchantment.getKey(), PersistentDataType.INTEGER);
+                //item.getItemMeta().getPersistentDataContainer().get(namespace, PersistentDataType.TAG_CONTAINER).remove(enchantment.getKey());
+                data.remove(enchantment.getKey());
+                meta.getPersistentDataContainer().set(namespace, PersistentDataType.TAG_CONTAINER, data);
+            }
+            if (data.isEmpty())
+                meta.getPersistentDataContainer().remove(namespace);
+            item.setItemMeta(meta);
+            if (!hasCustom(item, namespace)) {
+                meta.setEnchantmentGlintOverride(null);
+                item.setItemMeta(meta);
+            }
+            addEnchantmentLore(item);
+        }
+        return level;
+    }
+
+    public static int removeData(ItemStack item, UberEnchantment enchantment) {
+        return removeCustom(item, enchantment, uberEnchantment);
+    }
+
+    public static int removeStoredData(ItemStack item, UberEnchantment enchantment) {
+        return removeCustom(item, enchantment, storedUberEnchantment);
+    }
 
     /**
      * Adds the specified UberEnchantment to the item with specified level. Also
@@ -28,9 +178,12 @@ public class UberUtils {
      * @param level   - The level
      */
     public static void addEnchantment(UberEnchantment enchant, ItemStack item, int level) {
+        /* Minecraft 1.20.2
         UberUtils.removeEnchantmentLore(item);
         item.addUnsafeEnchantment(enchant, level);
         UberUtils.addEnchantmentLore(item);
+        */
+        addData(item, enchant, level);
     }
 
     /**
@@ -41,9 +194,12 @@ public class UberUtils {
      * @param item    - The item
      */
     public static void addEnchantments(Map<? extends Enchantment, Integer> enchants, ItemStack item) {
-        UberUtils.removeEnchantmentLore(item);
+        /* Minecraft 1.20.2
+        removeEnchantmentLore(item);
         EnchantmentUtils.setEnchantments(enchants, item);
-        UberUtils.addEnchantmentLore(item);
+        addEnchantmentLore(item);
+        */
+        EnchantmentUtils.setEnchantments(enchants, item);
     }
 
     /**
@@ -57,11 +213,14 @@ public class UberUtils {
     public static void addStoredEnchantment(UberEnchantment enchant, ItemStack book, int level) {
         if (!book.getType().equals(Material.ENCHANTED_BOOK))
             return;
+        addStoredData(book, enchant, level);
+        /* Minecraft 1.20.2
         EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
         UberUtils.removeEnchantmentLore(book);
         meta.addStoredEnchant(enchant, level, true);
         book.setItemMeta(meta);
         UberUtils.addEnchantmentLore(book);
+        */
     }
 
     /**
@@ -74,11 +233,11 @@ public class UberUtils {
     public static void addStoredEnchantments(Map<? extends Enchantment, Integer> enchants, ItemStack item) {
         if (!item.getType().equals(Material.ENCHANTED_BOOK))
             return;
-        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
+        //EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
 
-        UberUtils.removeEnchantmentLore(item);
+        //UberUtils.removeEnchantmentLore(item);
         EnchantmentUtils.setStoredEnchantments(enchants, item);
-        UberUtils.addEnchantmentLore(item);
+        //UberUtils.addEnchantmentLore(item);
     }
 
     /**
@@ -90,13 +249,15 @@ public class UberUtils {
      * @return The enchantment level or 0
      */
     public static int removeEnchantment(UberEnchantment enchantment, ItemStack item) {
+        /* Minecraft 1.20.2
         if (item.hasItemMeta() && enchantment.containsEnchantment(item)) {
             UberUtils.removeEnchantmentLore(item);
             int level = item.removeEnchantment(enchantment);
             UberUtils.addEnchantmentLore(item);
             return level;
         }
-        return 0;
+        */
+        return removeData(item, enchantment);
     }
 
     /**
@@ -105,17 +266,10 @@ public class UberUtils {
      * @param enchantment - The enchantment to remove
      * @param book        - The book
      */
-    public static void removeStoredEnchantment(UberEnchantment enchantment, ItemStack book) {
+    public static int removeStoredEnchantment(UberEnchantment enchantment, ItemStack book) {
         if (!book.getType().equals(Material.ENCHANTED_BOOK))
-            return;
-        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
-
-        if (book.hasItemMeta() && meta.hasEnchant(enchantment)) {
-            UberUtils.removeEnchantmentLore(book);
-            meta.removeStoredEnchant(enchantment);
-            book.setItemMeta(meta);
-            UberUtils.addEnchantmentLore(book);
-        }
+            return 0;
+        return removeStoredData(book, enchantment);
     }
 
     /**
@@ -129,12 +283,15 @@ public class UberUtils {
     public static ItemStack extractEnchantment(UberEnchantment enchantment, ItemStack item) {
         if (item.hasItemMeta() && enchantment.containsEnchantment(item)) {
             ItemStack book = new ItemStack(Material.ENCHANTED_BOOK, 1);
+            /* Minecraft 1.20.2
             UberUtils.removeEnchantmentLore(item);
             EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
             meta.addStoredEnchant(enchantment, UberEnchantment.getLevel(item, enchantment), true);
             book.setItemMeta(meta);
             UberUtils.addEnchantmentLore(item);
             UberUtils.addEnchantmentLore(book);
+            */
+            addStoredEnchantment(enchantment, book, enchantment.getLevel(item));
             return book;
         } else {
             return null;
@@ -153,9 +310,11 @@ public class UberUtils {
         List<String> lore = new ArrayList<>();
         if (meta.hasLore())
             lore = meta.getLore();
-        Map<UberEnchantment, Integer> enchantments = UberEnchantment.getEnchantments(item);
+        Map<UberEnchantment, Integer> enchantments = item.getType() == Material.ENCHANTED_BOOK ? getStoredMap(item) : getMap(item);
+        /* Minecraft 1.20.2
         if (item.getItemMeta() instanceof EnchantmentStorageMeta)
             enchantments = UberEnchantment.getStoredEnchantments(item);
+        */
         List<String> effects = enchantments.entrySet().stream().map(data -> displayName(data.getKey(), data.getValue())).toList();
         lore.addAll(0, effects);
         meta.setLore(lore);
@@ -196,6 +355,8 @@ public class UberUtils {
      * @return A string with the formatted display name
      */
     public static String displayName(UberEnchantment enchantment, int level) {
+        if (enchantment instanceof EffectEnchantment e)
+            return ChatUtils.color(format(enchantment.getDisplayName(), level, level * 20));
         return ChatUtils.color(enchantment.getDisplayName() + " " + toRomanNumeral(level));
     }
 
@@ -206,9 +367,11 @@ public class UberUtils {
      * @return Amount of offset or 0 in case of no enchantments
      */
     public static int offset(ItemStack item) {
+        /* Minecraft 1.20.2
         if (item.getItemMeta() instanceof EnchantmentStorageMeta)
             return UberEnchantment.getStoredEnchantments(item).size();
-        return UberEnchantment.getEnchantments(item).size();
+        */
+        return item.getType() == Material.ENCHANTED_BOOK ? getStoredMap(item).size() : getMap(item).size();
     }
 
     /**
@@ -254,18 +417,20 @@ public class UberUtils {
         return map.get(l) + toRomanNumeral(number - l);
     }
 
-    /*
-     * public static String format(String name, int amplifier, int ticks) {
-     * double seconds = ticks / 20.0; int minutes = (int) (seconds / 60); int
-     * hours = minutes / 60; int days = hours / 24; String s =
-     * Double.toString(seconds % 60); String a = (seconds % 60.0 < 10 ? "0" :
-     * "") + s.substring(0, s.length() < 5 ? s.length() : 5); if (days > 0)
-     * return String.format("%1$s %2$s (%3$sd %4$sh %5$sm %6$ss)", name,
-     * amplifier, days, hours % 24, minutes % 60, a); if (hours > 0) return
-     * String.format("%1$s %2$s (%3$sh %4$sm %5$ss)", name, amplifier, hours %
-     * 24, minutes % 60, a); if (minutes > 0) return
-     * String.format("%1$s %2$s (%3$sm %4$ss)", name, amplifier, minutes % 60,
-     * a); return String.format("%1$s %2$s (%3$ss)", name,
-     * NumberUtils.toRomanNumeral(amplifier), a); }
-     */
+    public static String format(String name, int amplifier, int ticks) {
+        double seconds = ticks / 20.0;
+        int minutes = (int) (seconds / 60);
+        int hours = minutes / 60;
+        int days = hours / 24;
+        String s = Double.toString(seconds % 60);
+        String a = (seconds % 60.0 < 10 ? "0" : "") + s.substring(0, Math.min(s.length(), 5));
+        String roman = toRomanNumeral(amplifier);
+        if (days > 0)
+            return String.format("%1$s %2$s (%3$sd %4$sh %5$sm %6$ss)", name, roman, days, hours % 24, minutes % 60, a);
+        if (hours > 0)
+            return String.format("%1$s %2$s (%3$sh %4$sm %5$ss)", name, roman, hours % 24, minutes % 60, a);
+        if (minutes > 0)
+            return String.format("%1$s %2$s (%3$sm %4$ss)", name, roman, minutes % 60, a);
+        return String.format("%1$s %2$s (%3$ss)", name, roman, a);
+    }
 }

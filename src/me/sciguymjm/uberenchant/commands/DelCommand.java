@@ -3,7 +3,9 @@ package me.sciguymjm.uberenchant.commands;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
-import me.sciguymjm.uberenchant.utils.*;
+import me.sciguymjm.uberenchant.utils.EconomyUtils;
+import me.sciguymjm.uberenchant.utils.EffectUtils;
+import me.sciguymjm.uberenchant.utils.Reply;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -13,6 +15,8 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * For internal use.
@@ -72,8 +76,8 @@ public class DelCommand extends UberTabCommand {
             ItemStack item = player.getInventory().getItemInMainHand();
             switch (args[0].toLowerCase()) {
                 case "enchant" -> {
-                    if (!item.getType().equals(Material.AIR) && !item.getEnchantments().isEmpty()) {
-                        item.getEnchantments().keySet().forEach(enchant -> list.add(enchant.getKey().getKey().toLowerCase()));
+                    if (!item.getType().equals(Material.AIR) && !UberUtils.getAllMap(item).isEmpty()) {
+                        UberUtils.getAllMap(item).keySet().forEach(enchant -> list.add(enchant.getKey().getKey().toLowerCase()));
                     }
                 }
                 case "effect" -> player.getActivePotionEffects().forEach(effect -> list.add(effect.getType().getName().toLowerCase()));
@@ -92,16 +96,21 @@ public class DelCommand extends UberTabCommand {
             response(Reply.ARGUMENTS);
             return;
         }
-        Enchantment enchantment = EnchantmentUtils.getEnchantment(args[1]);
+        Set<Enchantment> set = EnchantmentUtils.getMatches(args[1]);
+        if (EnchantmentUtils.multi(player, set))
+            return;
+        Enchantment enchantment = set.iterator().next();
         if (enchantment != null) {
             UberConfiguration.UberRecord enchant = UberConfiguration.getByEnchant(enchantment);
             if (!hasPermission("uber.del.enchant.%1$s", enchant.getName().toLowerCase())) {
                 response(Reply.PERMISSIONS);
                 return;
             }
-            if (hasPermission("uber.del.enchant.free")) {
-                EnchantmentUtils.removeEnchantment(enchantment, item);
-                localized("&a", "actions.enchant.remove.success", enchant.getDisplayName());
+            if (hasPermission("uber.del.enchant.free") || !EconomyUtils.useEconomy()) {
+                if (EnchantmentUtils.removeEnchantment(enchantment, item))
+                    localized("&a", "actions.enchant.remove.success", enchant.getDisplayName());
+                else
+                    localized("&c", "actions.enchant.remove.no_enchant", enchant.getDisplayName());
                 return;
             }
             if (EconomyUtils.hasEconomy()) {
@@ -120,7 +129,7 @@ public class DelCommand extends UberTabCommand {
             }
             return;
         }
-        response("&c", "actions.enchant.not_exist");
+        localized("&c", "actions.enchant.not_exist");
     }
 
     private void effect() {
@@ -201,7 +210,7 @@ public class DelCommand extends UberTabCommand {
             localized("&c", "actions.name.no_name");
             return;
         }
-        if (EconomyUtils.hasEconomy()) {
+        if (EconomyUtils.useEconomy() && EconomyUtils.hasEconomy()) {
             double cost = EconomyUtils.getCost("cost.name.remove");
             if (EconomyUtils.has(player, cost)) {
                 EconomyUtils.withdraw(player, cost);

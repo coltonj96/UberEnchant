@@ -12,6 +12,12 @@ import java.util.regex.Pattern;
  */
 public class ChatUtils {
 
+    /**
+     * Sends the specified player a specific reply.
+     *
+     * @param player Player
+     * @param reply  Reply
+     */
     public static void response(Player player, Reply reply) {
         response(player, reply.get());
     }
@@ -27,11 +33,11 @@ public class ChatUtils {
     }
 
     public static void localized(Player player, String color, String key) {
-        response(player, UberLocale.get(color, key));
+        response(player, UberLocale.getC(color, key));
     }
 
     public static void localized(Player player, String color, String key, Object... args) {
-        response(player,  UberLocale.get(color, key, args));
+        response(player,  UberLocale.getCF(color, key, args));
     }
 
     /**

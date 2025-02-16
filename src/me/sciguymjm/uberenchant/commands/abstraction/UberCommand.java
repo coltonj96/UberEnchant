@@ -2,8 +2,6 @@ package me.sciguymjm.uberenchant.commands.abstraction;
 
 import me.sciguymjm.uberenchant.utils.ChatUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
-import me.sciguymjm.uberenchant.utils.UberLocale;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

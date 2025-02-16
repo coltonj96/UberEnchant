@@ -5,7 +5,7 @@ import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.utils.ChatUtils;
 import me.sciguymjm.uberenchant.utils.FileUtils;
-import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
@@ -14,21 +14,22 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Utility class for internal use.
+ */
 public class AnvilEvents implements Listener {
 
     private static boolean colors;
 
     static {
-        colors = (boolean) FileUtils.get("/mechanics/anvil.yml", "colors_enabled", false);
+        colors = FileUtils.get("/mechanics/anvil.yml", "colors_enabled", false, Boolean.class);
     }
 
     private short getDamage(ItemStack item) {
@@ -51,13 +52,16 @@ public class AnvilEvents implements Listener {
 
     private boolean isDamageable(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        return meta != null && meta instanceof Damageable;
+        return meta instanceof Damageable;
     }
 
+    @SuppressWarnings("removal")
     @EventHandler(priority = EventPriority.MONITOR)
     public void createResult(PrepareAnvilEvent event) {
         ItemStack EMPTY = new ItemStack(Material.AIR);
         AnvilInventory anvil = event.getInventory();
+        //AnvilView anvil = event.getView();
+
         ItemStack item = anvil.getItem(0);
 
         anvil.setRepairCost(1);
@@ -68,15 +72,16 @@ public class AnvilEvents implements Listener {
             ItemStack itemstack2 = anvil.getItem(1);
             Map<Enchantment, Integer> map;
             if (itemstack1.getType().equals(Material.ENCHANTED_BOOK))
-                map = new HashMap<>(((EnchantmentStorageMeta) itemstack1.getItemMeta()).getStoredEnchants());
+                map = new HashMap<>(UberUtils.getAllStoredMap(itemstack1));
             else
-                map = new HashMap<>(itemstack1.getEnchantments());
+                map = new HashMap<>(UberUtils.getAllMap(itemstack1));
             int j = ((Repairable) item.getItemMeta()).getRepairCost() + (itemstack2 == null ? 0 : ((Repairable) itemstack2.getItemMeta()).getRepairCost());
 
             anvil.setRepairCost(0);
 
             if (itemstack2 != null) {
-                boolean flag = itemstack2.getType().equals(Material.ENCHANTED_BOOK) && !((EnchantmentStorageMeta) itemstack2.getItemMeta()).getStoredEnchants().isEmpty();
+                boolean flag = itemstack2.getType().equals(Material.ENCHANTED_BOOK) && !UberUtils.getAllStoredMap(itemstack2).isEmpty();
+
                 int k;
                 int l;
                 int i1;
@@ -124,9 +129,9 @@ public class AnvilEvents implements Listener {
 
                     Map<Enchantment, Integer> map1;
                     if (itemstack2.getType().equals(Material.ENCHANTED_BOOK))
-                        map1 = new HashMap<>(((EnchantmentStorageMeta) itemstack2.getItemMeta()).getStoredEnchants());
+                        map1 = new HashMap<>(UberUtils.getAllStoredMap(itemstack2));
                     else
-                        map1 = new HashMap<>(itemstack2.getEnchantments());
+                        map1 = new HashMap<>(UberUtils.getAllMap(itemstack2));
 
                     boolean flag1 = false;
                     boolean flag2 = false;
@@ -144,7 +149,7 @@ public class AnvilEvents implements Listener {
                             if (enchantment instanceof UberEnchantment uber)
                                 flag3 = uber.canEnchantItem(item);
 
-                            if (item.getType().equals(Material.ENCHANTED_BOOK))
+                            if (event.getViewers().get(0).getGameMode().equals(GameMode.CREATIVE) || item.getType().equals(Material.ENCHANTED_BOOK))
                                 flag3 = true;
 
                             for (Enchantment enchantment1 : map.keySet()) {
@@ -203,7 +208,7 @@ public class AnvilEvents implements Listener {
             }
 
             ItemMeta meta = itemstack1.getItemMeta();
-            if (!anvil.getRenameText().equals(meta.getDisplayName())) {
+            if (anvil.getRenameText() != null && !anvil.getRenameText().equals(meta.getDisplayName())) {
                 String name = anvil.getRenameText();
                 if (colors)
                     name = ChatUtils.color(name);
@@ -213,7 +218,7 @@ public class AnvilEvents implements Listener {
             }
 
             anvil.setRepairCost(j + i);
-            if (i <= 0) {
+            if (i <= 0 || itemstack1.getEnchantments().size() > 10) {
                 itemstack1 = EMPTY;
             }
 
@@ -229,13 +234,13 @@ public class AnvilEvents implements Listener {
                 Repairable meta2 = ((Repairable) itemstack1.getItemMeta());
                 meta2.setRepairCost(k2);
                 itemstack1.setItemMeta(meta2);
-                UberUtils.removeEnchantmentLore(itemstack1);
+                //UberUtils.removeEnchantmentLore(itemstack1);
                 if (itemstack1.getType().equals(Material.ENCHANTED_BOOK)) {
                     EnchantmentUtils.setStoredEnchantments(map, itemstack1);
                 } else {
                     EnchantmentUtils.setEnchantments(map, itemstack1);
                 }
-                UberUtils.addEnchantmentLore(itemstack1);
+                //UberUtils.addEnchantmentLore(itemstack1);
             }
 
             event.setResult(itemstack1);
@@ -245,6 +250,7 @@ public class AnvilEvents implements Listener {
     private boolean isValid(ItemStack item1, ItemStack item2) {
         Material m1 = item1.getType();
         Material m2 = item2.getType();
+
         switch (m1) {
             case WOODEN_AXE,
                     WOODEN_HOE,
@@ -342,7 +348,7 @@ public class AnvilEvents implements Listener {
                 return m2.equals(Material.NETHERITE_INGOT);
             }
             case TURTLE_HELMET -> {
-                return m2.equals(Material.SCUTE);
+                return m2.equals(Material.getMaterial("SCUTE"));
             }
             case ELYTRA -> {
                 return m2.equals(Material.PHANTOM_MEMBRANE);

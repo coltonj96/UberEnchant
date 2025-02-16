@@ -54,7 +54,27 @@ blast_protection:
     extraction_cost: 1000.0
     use_on_anything: false
     aliases: ["protection_explosions"]
+breach:
+    min_level: 1
+    max_level: 10
+    cost: 1000.0
+    cost_multiplier: 0.02
+    cost_for_level: {}
+    removal_cost: 100.0
+    extraction_cost: 1000.0
+    use_on_anything: false
+    aliases: []
 channeling:
+    min_level: 1
+    max_level: 10
+    cost: 1000.0
+    cost_multiplier: 0.02
+    cost_for_level: {}
+    removal_cost: 100.0
+    extraction_cost: 1000.0
+    use_on_anything: false
+    aliases: []
+density:
     min_level: 1
     max_level: 10
     cost: 1000.0
@@ -334,7 +354,7 @@ silk_touch:
     extraction_cost: 1000.0
     use_on_anything: false
     aliases: []
-sweeping:
+sweeping_edge:
     min_level: 1
     max_level: 10
     cost: 1000.0
@@ -343,7 +363,7 @@ sweeping:
     removal_cost: 100.0
     extraction_cost: 1000.0
     use_on_anything: false
-    aliases: ["sweeping_edge"]
+    aliases: ["sweeping"]
 smite:
     min_level: 1
     max_level: 10
@@ -354,6 +374,16 @@ smite:
     extraction_cost: 1000.0
     use_on_anything: false
     aliases: ["damage_undead"]
+soul_speed:
+    min_level: 1
+    max_level: 10
+    cost: 1000.0
+    cost_multiplier: 0.02
+    cost_for_level: {}
+    removal_cost: 100.0
+    extraction_cost: 1000.0
+    use_on_anything: false
+    aliases: []
 thorns:
     min_level: 1
     max_level: 10
@@ -384,7 +414,7 @@ vanishing_curse:
     extraction_cost: 1000.0
     use_on_anything: false
     aliases: ["curse_of_vanishing"]
-soul_speed:
+wind_burst:
     min_level: 1
     max_level: 10
     cost: 1000.0

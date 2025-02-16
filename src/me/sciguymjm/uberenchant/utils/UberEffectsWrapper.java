@@ -2,6 +2,9 @@ package me.sciguymjm.uberenchant.utils;
 
 import org.bukkit.potion.PotionEffectType;
 
+/**
+ * Utility class for internal use.
+ */
 public class UberEffectsWrapper extends UberEffects {
     /**
      * For internal use.

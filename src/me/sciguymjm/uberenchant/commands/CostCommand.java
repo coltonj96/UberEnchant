@@ -9,6 +9,7 @@ import org.bukkit.enchantments.Enchantment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * For internal use.
@@ -103,7 +104,10 @@ public class CostCommand extends UberTabCommand {
             response(Reply.WHOLE_NUMBER);
             return;
         }
-        Enchantment enchantment = EnchantmentUtils.getEnchantment(args[2]);
+        Set<Enchantment> set = EnchantmentUtils.getMatches(args[2]);
+        if (EnchantmentUtils.multi(player, set))
+            return;
+        Enchantment enchantment = set.iterator().next();
         if (enchantment == null) {
             localized("&c", "actions.enchant.invalid");
             response("&a/ulist enchants");
@@ -137,7 +141,10 @@ public class CostCommand extends UberTabCommand {
                 response(Reply.WHOLE_NUMBER);
                 return;
             }
-            Enchantment enchantment = EnchantmentUtils.getEnchantment(args[2]);
+            Set<Enchantment> set = EnchantmentUtils.getMatches(args[2]);
+            if (EnchantmentUtils.multi(player, set))
+                return;
+            Enchantment enchantment = set.iterator().next();
             if (enchantment == null) {
                 localized("&c", "actions.enchant.invalid");
                 response("&a/ulist enchants");
@@ -157,7 +164,10 @@ public class CostCommand extends UberTabCommand {
             return;
         }
         if (EconomyUtils.hasEconomy()) {
-            Enchantment enchantment = EnchantmentUtils.getEnchantment(args[2]);
+            Set<Enchantment> set = EnchantmentUtils.getMatches(args[2]);
+            if (EnchantmentUtils.multi(player, set))
+                return;
+            Enchantment enchantment = set.iterator().next();
             if (enchantment != null) {
                 UberConfiguration.UberRecord enchant = UberConfiguration.getByEnchant(enchantment);
 
