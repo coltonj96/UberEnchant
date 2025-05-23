@@ -14,6 +14,7 @@ import me.sciguymjm.uberenchant.utils.FileUtils;
 import me.sciguymjm.uberenchant.utils.UberLocale;
 import me.sciguymjm.uberenchant.utils.enchanting.AnvilEvents;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentTableEvents;
+import me.sciguymjm.uberenchant.utils.enchanting.GrindstoneEvents;
 import net.milkbowl.vault.economy.Economy;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -73,6 +74,8 @@ public class UberEnchant extends JavaPlugin {
             registerEvents(new AnvilEvents());
 
         registerEvents(new ArmorEquippedListener());
+        registerEvents(new GrindstoneEvents());
+        getLogger().log(Level.INFO, "Successfully registered GrindstoneEvents listener.");
 
         registerEvents(new Listener() {
             @EventHandler
@@ -86,6 +89,7 @@ public class UberEnchant extends JavaPlugin {
                         getLogger().log(Level.INFO, UberLocale.getF("console.loaded_enchantments", loaded));
                         getLogger().log(Level.INFO, UberLocale.getF("console.enchantment_table_status", enchants ? "enabled" : "disabled"));
                         getLogger().log(Level.INFO, UberLocale.getF("console.anvil_status", anvil ? "enabled" : "disabled"));
+                        getLogger().log(Level.INFO, "Grindstone integration: enabled");
                         //test();
                     }
                 }.runTaskLater(plugin, 100);
