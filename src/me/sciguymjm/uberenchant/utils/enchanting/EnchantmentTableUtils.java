@@ -2,19 +2,22 @@ package me.sciguymjm.uberenchant.utils.enchanting;
 
 import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
+import me.sciguymjm.uberenchant.api.utils.UberRecord;
 import me.sciguymjm.uberenchant.api.utils.random.UberRandom;
 import me.sciguymjm.uberenchant.api.utils.random.Weighted;
 import me.sciguymjm.uberenchant.api.utils.random.WeightedChance;
 import me.sciguymjm.uberenchant.api.utils.random.WeightedEntry;
 import me.sciguymjm.uberenchant.utils.FileUtils;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Registry;
+import me.sciguymjm.uberenchant.utils.VersionUtils;
+import org.bukkit.*;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Utility class for internal use.
@@ -26,6 +29,8 @@ public class EnchantmentTableUtils {
     private static boolean floor_bonus;
     private static Map<Material, Double> bonus_map;
     private static WeightedChance<Integer> weight;
+
+    private static Map<Enchantment, OtherData> other;
 
     static {
         seed = new HashMap<>();
@@ -51,6 +56,26 @@ public class EnchantmentTableUtils {
                 new WeightedEntry<>(3, 0.22),
                 new WeightedEntry<>(4, 0.12)
         );
+        other = new HashMap<>();
+        Plugin ex = Bukkit.getPluginManager().getPlugin("ExcellentEnchants");
+        if (ex != null && ex.isEnabled()) {
+            YamlConfiguration types = FileUtils.loadConfig(ex, "item_types.yml");
+            UberConfiguration.getRecords(record -> record.getKey().getNamespace().equalsIgnoreCase("excellentenchants")).forEach(record -> {
+                String name = record.getKey().getKey();
+                YamlConfiguration config = FileUtils.loadConfig(ex, "enchants/" + name + ".yml");
+                if (config != null) {
+                    double weight = config.getInt("Definition.Weight");
+                    int minBase = config.getInt("Definition.MinCost.Base");
+                    int minPer = config.getInt("Definition.MinCost.Per_Level");
+                    int maxBase = config.getInt("Definition.MaxCost.Base");
+                    int maxPer = config.getInt("Definition.MaxCost.Per_Level");
+                    String targets = config.getString("Definition.PrimaryItems");
+                    boolean treasure = config.getBoolean("Distribution.Treasure");
+                    List<String> valid = types.getStringList("Categories." + targets + ".Items");
+                    other.put(record.getEnchant(), new OtherData(weight, minBase, minPer, maxBase, maxPer, valid, treasure));
+                }
+            });
+        }
     }
 
     /**
@@ -72,7 +97,7 @@ public class EnchantmentTableUtils {
     }
 
     private static int enchantValue(ItemStack item) {
-        return switch (item.getType().getKey().getKey().toLowerCase()) {
+        return switch (VersionUtils.getKey(item.getType()).getKey().toLowerCase()) {
             case "book",
                  "bow",
                  "crossbow",
@@ -122,6 +147,7 @@ public class EnchantmentTableUtils {
                  "mace",
                  "netherite_axe",
                  "netherite_boots",
+                 "netherite_chestplate",
                  "netherite_helmet",
                  "netherite_hoe",
                  "netherite_leggings",
@@ -221,14 +247,14 @@ public class EnchantmentTableUtils {
                 cInst.ifPresent(list.custom::add);
             }
 
-            while (random.nextInt(50) <= cost) {
-                if (!list.vanilla.isEmpty()) {
-                    filter(available, list.vanilla.get(list.vanilla.size() - 1));
-                }
+            int rand = cost;
 
-                if (!list.custom.isEmpty()) {
-                    filter(available, list.custom.get(list.custom.size() - 1));
-                }
+            while (random.nextInt(rand) <= cost) {
+                if (!list.vanilla.isEmpty())
+                    filter(available, list.vanilla.get(list.vanilla.size() - 1), item);
+
+                if (!list.custom.isEmpty())
+                    filter(available, list.custom.get(list.custom.size() - 1), item);
 
                 if (!available.vanilla.isEmpty()) {
                     vInst = getRandomItem(random, available.vanilla);
@@ -257,9 +283,11 @@ public class EnchantmentTableUtils {
      * @param list
      * @param instance
      */
-    public static void filter(CustomList list, WeightedEnchantment instance) {
-        list.vanilla.removeIf(weightedEnchantment -> instance.enchantment.conflictsWith(weightedEnchantment.enchantment));
-        list.custom.removeIf(weightedEnchantment -> instance.enchantment.conflictsWith(weightedEnchantment.enchantment));
+    public static void filter(CustomList list, WeightedEnchantment instance, ItemStack item) {
+        Predicate<WeightedEnchantment> predicate = weightedEnchantment ->
+                instance.enchantment.conflictsWith(weightedEnchantment.enchantment) || !EnchantmentUtils.canEnchant(instance.enchantment, item);
+        list.vanilla.removeIf(predicate);
+        list.custom.removeIf(predicate);
     }
 
     /**
@@ -274,39 +302,15 @@ public class EnchantmentTableUtils {
         Material type = item.getType();
         //List<WeightedEnchantment> list = new ArrayList<>();
         boolean isBook = type == Material.BOOK;
-        List<UberConfiguration.UberRecord> enchantments = UberConfiguration.getRecords();
+        Set<UberRecord> enchantments = UberConfiguration.getRecords();
 
         CustomList list = new CustomList(new ArrayList<>(), new ArrayList<>());
 
-        //enchantments.removeIf(r -> !custom && r.enchantment() instanceof UberEnchantment);
-
-        /*UberConfiguration.getRecords().stream()
-                .filter(record -> EnchantmentTableEvents.isDisabled(record.getEnchant()))
-                .filter(record -> {
-                    Enchantment enchantment = record.getEnchant();
-                    return (!enchantment.isTreasure() || flag) && (enchantment.canEnchantItem(item) || isBook);
-                })
-                .forEach(record -> {
-            Enchantment enchantment = record.getEnchant();
-            //if (!EnchantmentTableEvents.isDisabled(enchantment)) {
-                //if ((!enchantment.isTreasure() || flag) && (enchantment.canEnchantItem(item) || isBook)) {
-                    for (int j = record.getMaxLevel(); j >= record.getMinLevel(); --j) {
-                        if (cost >= minCost(j, enchantment) && cost <= maxCost(j, enchantment)) {
-                            if (!(enchantment instanceof UberEnchantment))
-                                list.vanilla.add(new WeightedEnchantment(enchantment, j));
-                            list.custom.add(new WeightedEnchantment(enchantment, j));
-                            break;
-                        }
-                    }
-                //}
-           //}
-        });*/
-
-        for (UberConfiguration.UberRecord record : enchantments) {
+        for (UberRecord record : enchantments) {
             Enchantment enchantment = record.getEnchant();
             if (EnchantmentTableEvents.isDisabled(enchantment))
                 continue;
-            if ((!enchantment.isTreasure() || flag) && (enchantment.canEnchantItem(item) || isBook)) {
+            if ((!EnchantmentUtils.isTreasure(enchantment) || flag) && (EnchantmentUtils.canEnchant(enchantment, item) || isBook || record.getCanUseOnAnything())) {
                 for (int j = record.getMaxLevel(); j >= record.getMinLevel(); --j) {
                     if (cost >= minCost(j, enchantment) && cost <= maxCost(j, enchantment)) {
                         if (enchantment instanceof UberEnchantment)
@@ -355,7 +359,7 @@ public class EnchantmentTableUtils {
         }
 
         private double rarity() {
-            return switch (enchantment.getKey().getKey().toLowerCase()) {
+            return switch (VersionUtils.getKey(enchantment).getKey().toLowerCase()) {
                 case "protection",
                      "sharpness",
                      "efficiency",
@@ -397,9 +401,16 @@ public class EnchantmentTableUtils {
                      "infinity",
                      "channeling",
                      "vanishing_curse" -> 1.0;
-                default -> (enchantment instanceof UberEnchantment uber) ? uber.getRarity().getWeight() : 0.0;
+                default -> customWeight(enchantment);
             };
         }
+    }
+
+    public static double customWeight(Enchantment enchantment) {
+        double weight = 0.0;
+        if (other.containsKey(enchantment))
+            weight = other.get(enchantment).weight;
+        return (enchantment instanceof UberEnchantment uber) ? uber.getRarity().getWeight() : weight;
     }
 
     private interface Cost {
@@ -410,7 +421,7 @@ public class EnchantmentTableUtils {
         Cost cost = (int base, int per) -> base + per * (i - 1);
         if (e == null)
             return 1 + 10 * (i - 1);
-        return switch (e.getKey().getKey().toLowerCase()) {
+        return switch (VersionUtils.getKey(e).getKey().toLowerCase()) {
             case "protection",
                  "sharpness" -> cost.calc(1, 11);
             case "fire_protection" -> cost.calc(10, 8);
@@ -452,15 +463,22 @@ public class EnchantmentTableUtils {
             case "riptide" -> cost.calc(17, 7);
             case "mending",
                  "swift_sneak" -> cost.calc(25, 25);
-            default -> 1 + 10 * (i - 1);
+            default -> customMin(i, e, cost);
         };
+    }
+
+    private static int customMin(int i, Enchantment e, Cost c) {
+        int value = 1 + 10 * (i - 1);
+        if (other.containsKey(e))
+            value = c.calc(other.get(e).minBase, other.get(e).minPer);
+        return value;
     }
 
     private static int maxCost(int i, Enchantment e) {
         Cost cost = (int base, int per) -> base + per * (i - 1);
         if (e == null)
             return minCost(i, null) + 5;
-        return switch (e.getKey().getKey().toLowerCase()) {
+        return switch (VersionUtils.getKey(e).getKey().toLowerCase()) {
             case "protection" -> cost.calc(12, 11);
             case "fire_protection" -> cost.calc(18, 8);
             case "blast_protection" -> cost.calc(13, 8);
@@ -500,8 +518,15 @@ public class EnchantmentTableUtils {
                  "bane_of_arthropods" -> cost.calc(25, 8);
             case "impaling" -> cost.calc(21, 8);
             case "punch" -> cost.calc(37, 20);
-            default -> minCost(i, e) + 5;
+            default -> customMax(i, e, cost);
         };
+    }
+
+    private static int customMax(int i, Enchantment e, Cost c) {
+        int value = minCost(i, e) + 5;
+        if (other.containsKey(e))
+            value = c.calc(other.get(e).maxBase, other.get(e).maxPer);
+        return value;
     }
 
     /**
@@ -513,12 +538,10 @@ public class EnchantmentTableUtils {
      * @return
      */
     public static Optional<WeightedEnchantment> getRandomItem(UberRandom random, List<WeightedEnchantment> list, int i) {
-        if (i <= 0) {
+        if (i <= 0)
             return Optional.empty();
-        } else {
-            int j = random.nextInt(i);
-            return getWeightedItem(list, j);
-        }
+        else
+            return getWeightedItem(list, random.nextInt(i));
     }
 
     /**
@@ -533,9 +556,8 @@ public class EnchantmentTableUtils {
 
         WeightedEnchantment entry;
         do {
-            if (!iterator.hasNext()) {
+            if (!iterator.hasNext())
                 return Optional.empty();
-            }
 
             entry = iterator.next();
             i -= (int) entry.weight();
@@ -555,9 +577,8 @@ public class EnchantmentTableUtils {
 
         WeightedEnchantment entry;
 
-        for (Iterator<WeightedEnchantment> iterator = list.iterator(); iterator.hasNext(); i += (long) entry.weight()) {
+        for (Iterator<WeightedEnchantment> iterator = list.iterator(); iterator.hasNext(); i += (long) entry.weight())
             entry = iterator.next();
-        }
 
         return (int) i;
     }
@@ -579,6 +600,7 @@ public class EnchantmentTableUtils {
      * @param vanilla
      * @param custom
      */
-    public record CustomList(List<WeightedEnchantment> vanilla, List<WeightedEnchantment> custom) {
-    }
+    public record CustomList(List<WeightedEnchantment> vanilla, List<WeightedEnchantment> custom) {}
+
+    private record OtherData(double weight, int minBase, int minPer, int maxBase, int maxPer, List<String> targets, boolean treasure) {}
 }

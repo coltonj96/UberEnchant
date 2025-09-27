@@ -1,10 +1,12 @@
 package me.sciguymjm.uberenchant.commands;
 
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
+import me.sciguymjm.uberenchant.api.utils.UberRecord;
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.utils.EconomyUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
+import me.sciguymjm.uberenchant.utils.VersionUtils;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Material;
@@ -40,7 +42,7 @@ public class ExtractCommand extends UberTabCommand {
         if (args.length == 1) {
             ItemStack item = player.getInventory().getItemInMainHand();
             if (!item.getType().equals(Material.AIR) && !UberUtils.getAllMap(item).isEmpty())
-                UberUtils.getAllMap(item).keySet().forEach(enchant -> list.add(enchant.getKey().getKey().toLowerCase()));
+                list = UberUtils.getAllMap(item).keySet().stream().map(enchant -> VersionUtils.getKey(enchant).getKey().toLowerCase()).toList();
         }
         return list;
     }
@@ -59,7 +61,7 @@ public class ExtractCommand extends UberTabCommand {
                 localized("&c", "actions.enchant.extract.book");
                 return;
             }
-            UberConfiguration.UberRecord enchant = UberConfiguration.getByEnchant(enchantment);
+            UberRecord enchant = UberConfiguration.getByEnchant(enchantment);
             if (!hasPermission("uber.extract.enchant.%1$s", enchant.getName().toLowerCase())) {
                 response(Reply.PERMISSIONS);
                 return;

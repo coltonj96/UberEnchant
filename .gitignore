@@ -5,6 +5,7 @@ pom.xml
 !**/src/test/**/target/
 
 ### IntelliJ IDEA ###
+.idea/inspectionProfiles/Project_Default.xml
 .idea/modules.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml

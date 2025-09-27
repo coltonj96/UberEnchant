@@ -33,10 +33,11 @@ public enum Reply {
     /**
      * For internal use.
      */
-    WHOLE_NUMBER("&c", "reply.whole_number");
+    WHOLE_NUMBER("&c", "reply.whole_number"),
+    DECIMAL_NUMBER("&c", "reply.decimal_number");
 
-    private String color;
-    private String key;
+    private final String color;
+    private final String key;
 
     Reply(String color, String key) {
         this.color = color;

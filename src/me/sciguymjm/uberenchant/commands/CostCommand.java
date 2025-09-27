@@ -1,6 +1,7 @@
 package me.sciguymjm.uberenchant.commands;
 
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
+import me.sciguymjm.uberenchant.api.utils.UberRecord;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.utils.EconomyUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
@@ -92,7 +93,7 @@ public class CostCommand extends UberTabCommand {
 
     private void addEnchant() {
         if (args.length < 4) {
-            response("&a/ucost add enchant &c<enchantment | id> <level>");
+            response("&a/ucost add enchant &c<enchantment> <level>");
             response(Reply.ARGUMENTS);
             return;
         }
@@ -113,10 +114,10 @@ public class CostCommand extends UberTabCommand {
             response("&a/ulist enchants");
             return;
         }
-        UberConfiguration.UberRecord e = UberConfiguration.getByEnchant(enchantment);
+        UberRecord e = UberConfiguration.getByEnchant(enchantment);
         if (EconomyUtils.hasEconomy()) {
             if (level >= e.getMinLevel() && level <= e.getMaxLevel()) {
-                double cost = e.getCostForLevel().containsKey(level) ? e.getCostForLevel().get(level) : e.getCost() + (e.getCostMultiplier() * e.getCost() * (level - 1));
+                double cost = e.getLevelCost().containsKey(level) ? e.getLevelCost().get(level) : e.getCost() + (e.getCostMultiplier() * e.getCost() * (level - 1));
                 localized("&a", "actions.cost.add.display", e.getName(), level, cost);
             } else {
                 localized("&c", "actions.enchant.range", e.getMinLevel(), e.getMaxLevel());
@@ -128,7 +129,7 @@ public class CostCommand extends UberTabCommand {
 
     private void extractEnchant() {
         if (args.length < 4) {
-            response("&a/ucost extract enchant &c<enchantment | id> <level>");
+            response("&a/ucost extract enchant &c<enchantment> <level>");
             response(Reply.ARGUMENTS);
             return;
         }
@@ -150,7 +151,7 @@ public class CostCommand extends UberTabCommand {
                 response("&a/ulist enchants");
                 return;
             }
-            UberConfiguration.UberRecord e = UberConfiguration.getByEnchant(enchantment);
+            UberRecord e = UberConfiguration.getByEnchant(enchantment);
             localized("&a", "actions.cost.extract.display", e.getName(), level, e.getExtractionCost() + (e.getCostMultiplier() * e.getExtractionCost() * (level - 1)));
             return;
         }
@@ -159,7 +160,7 @@ public class CostCommand extends UberTabCommand {
 
     private void removeEnchant() {
         if (args.length != 3) {
-            response("&a/ucost del enchant &c<enchantment | id>");
+            response("&a/ucost del enchant &c<enchantment>");
             response(Reply.ARGUMENTS);
             return;
         }
@@ -169,7 +170,7 @@ public class CostCommand extends UberTabCommand {
                 return;
             Enchantment enchantment = set.iterator().next();
             if (enchantment != null) {
-                UberConfiguration.UberRecord enchant = UberConfiguration.getByEnchant(enchantment);
+                UberRecord enchant = UberConfiguration.getByEnchant(enchantment);
 
                 localized("&a", "actions.cost.remove.display", enchant.getName(), enchant.getRemovalCost());
                 return;

@@ -17,10 +17,10 @@ import java.util.ArrayList;
 public class CustomOffer {
     private boolean enchanted = false;
     private int slot;
-    private int[] costs = new int[3];
-    private EnchantmentOffer[] offers;
-    private Player player;
-    private ItemStack item;
+    private final int[] costs = new int[3];
+    private final EnchantmentOffer[] offers;
+    private final Player player;
+    private final ItemStack item;
 
     private EnchantmentTableUtils.CustomList list;
 
@@ -33,12 +33,27 @@ public class CustomOffer {
     }
 
     public CustomOffer(PrepareItemEnchantEvent event, int button) {
-        UberRandom random = new UberRandom(EnchantmentTableUtils.seed.get(event.getEnchanter().getUniqueId())/*enchanter.getEnchantmentSeed()*/);
+        UberRandom random;
+        random = new UberRandom(EnchantmentTableUtils.seed.get(event.getEnchanter().getUniqueId()));
         player = event.getEnchanter();
         item = event.getItem();
         offers = event.getOffers();
         slot = button;
 
+        //do {
+            this.list = generate(event, random);
+        //} while (checkNull(offers));
+        //this.list = generate(event, random);
+    }
+
+    private boolean checkNull(EnchantmentOffer... objects) {
+        for (Object object : objects)
+            if (object == null)
+                return true;
+        return false;
+    }
+
+    private EnchantmentTableUtils.CustomList generate(PrepareItemEnchantEvent event, UberRandom random) {
         int bonus = event.getEnchantmentBonus();
         if (EnchantmentTableUtils.floorBonus()) {
             if (bonus >= 22)
@@ -71,7 +86,7 @@ public class CustomOffer {
             if (offers[i] != null && enchants[i] != null)
                 offers[i] = new EnchantmentOffer(enchants[i], levels[i], costs[i]);
         }
-        this.list = list;
+        return list;
     }
 
     private int getFloorBonus(Block block) {

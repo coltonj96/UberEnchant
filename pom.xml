@@ -6,7 +6,7 @@
 
     <groupId>me.sciguymjm.uberenchant</groupId>
     <artifactId>UberEnchant</artifactId>
-    <version>8.11.7</version>
+    <version>8.12.0</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -37,6 +37,10 @@
             <id>minecraft-repo</id>
             <url>https://libraries.minecraft.net/</url>
         </repository>
+        <repository>
+            <id>sk89q-repo</id>
+            <url>https://maven.enginehub.org/repo/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -49,7 +53,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.21.1-R0.1-SNAPSHOT</version>
+            <version>1.21.8-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -63,6 +67,12 @@
             <artifactId>bstats-bukkit</artifactId>
             <version>3.0.2</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.sk89q.worldguard</groupId>
+            <artifactId>worldguard-bukkit</artifactId>
+            <version>7.0.9</version>
+            <scope>provided</scope>
         </dependency>
         <!--<dependency>
             <groupId>com.aim.coltonjgriswold.sga</groupId>

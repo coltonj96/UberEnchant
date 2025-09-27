@@ -7,4 +7,5 @@ bonus_blocks:
 - diamond_block:1.0
 - netherite_block:2.0
 disable_effect_enchantments: false
+remove_to_reroll: false
 disabled_enchantments: []

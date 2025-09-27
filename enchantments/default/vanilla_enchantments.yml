@@ -364,6 +364,16 @@ sweeping_edge:
     extraction_cost: 1000.0
     use_on_anything: false
     aliases: ["sweeping"]
+swift_sneak:
+    min_level: 1
+    max_level: 10
+    cost: 1000.0
+    cost_multiplier: 0.02
+    cost_for_level: {}
+    removal_cost: 100.0
+    extraction_cost: 1000.0
+    use_on_anything: false
+    aliases: []
 smite:
     min_level: 1
     max_level: 10

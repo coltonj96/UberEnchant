@@ -1,11 +1,17 @@
 package me.sciguymjm.uberenchant.commands;
 
+import me.sciguymjm.uberenchant.api.UberEnchantment;
+import me.sciguymjm.uberenchant.api.utils.UberRunnable;
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.BoolTag;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.DoubleTag;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.IntTag;
+import me.sciguymjm.uberenchant.api.utils.persistence.UberMeta;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.MetaTag;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
-import me.sciguymjm.uberenchant.utils.ChatUtils;
-import me.sciguymjm.uberenchant.utils.EconomyUtils;
-import me.sciguymjm.uberenchant.utils.EffectUtils;
-import me.sciguymjm.uberenchant.utils.Reply;
+import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
+import me.sciguymjm.uberenchant.enchantments.tasks.HeldEffectTask;
+import me.sciguymjm.uberenchant.utils.*;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -14,6 +20,8 @@ import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * For internal use.
@@ -37,6 +45,12 @@ public class SetCommand extends UberTabCommand {
                     else
                         response(Reply.PERMISSIONS);
                 }
+                case "meta" -> {
+                    if (hasPermission("uber.set.meta"))
+                        meta(item);
+                    else
+                        response(Reply.PERMISSIONS);
+                }
                 case "name" -> {
                     if (hasPermission("uber.set.name"))
                         name(item);
@@ -49,6 +63,12 @@ public class SetCommand extends UberTabCommand {
                     else
                         response(Reply.PERMISSIONS);
                 }
+                /*case "owner" -> {
+                    if (hasPermission("uber.set.owner"))
+                        owner(item);
+                    else
+                        response(Reply.PERMISSIONS);
+                }*/
                 default -> EnchantmentUtils.help(player, "uset");
             }
         } else {
@@ -66,10 +86,14 @@ public class SetCommand extends UberTabCommand {
                     list.add("effect");
                 if (hasPermission("uber.set.lore"))
                     list.add("lore");
+                if (VersionUtils.isAtLeast("1.20.4") && hasPermission("uber.set.meta"))
+                    list.add("meta");
                 if (hasPermission("uber.set.name"))
                     list.add("name");
                 if (hasPermission("uber.set.hidden"))
                     list.add("hidden");
+                /*if (hasPermission("uber.set.owner"))
+                    list.add("owner");*/
             }
             case 2 -> {
                 switch (args[0].toLowerCase()) {
@@ -80,34 +104,147 @@ public class SetCommand extends UberTabCommand {
                         }
                     }
                     case "effect" -> list = EffectUtils.matchEffects(args[1]);
+                    case "meta" -> {
+                        if (!VersionUtils.isAtLeast("1.20.4"))
+                            return list;
+                        ItemStack item = player.getInventory().getItemInMainHand();
+                        Map<UberEnchantment, Integer> map = UberUtils.getMap(item);
+                        if (!item.getType().equals(Material.AIR) && !map.isEmpty())
+                            list = map.keySet().stream().map(key -> key.getKey().getKey().toLowerCase()).toList();
+                    }
                 }
+            }
+        }
+        if (args.length >= 3 && args[0].equalsIgnoreCase("meta")) {
+            if (args.length == 3) {
+                ItemStack item = player.getInventory().getItemInMainHand();
+                list = UberUtils.getTags(item, args[1]).stream().map(MetaTag::getName).filter(name ->
+                        hasPermission(String.format("uber.set.meta.%1$s", name))
+                ).toList();
+            }
+            if (args.length == 4 && BoolTag.matches(args[2])) {
+                list.add("true");
+                list.add("false");
             }
         }
         return list;
-        /*if (args.length == 1) {
-            if (hasPermission("uber.set.effect"))
-                list.add("effect");
-            if (hasPermission("uber.set.lore"))
-                list.add("lore");
-            if (hasPermission("uber.set.name"))
-                list.add("name");
-            if (hasPermission("uber.set.hidden"))
-                list.add("hidden");
+    }
+
+    private void meta(ItemStack item) {
+        /*UberEnchantmentsAddedEvent event = new UberEnchantmentsAddedEvent(player, item, null);
+        if (event.isCancelled())
+            return;*/
+        if (!VersionUtils.isAtLeast("1.20.4"))
+            return;
+        if (item.getType().equals(Material.AIR)) {
+            response(Reply.HOLD_ITEM);
+            return;
         }
-        if (args.length == 2) {
-            if (args[0].equalsIgnoreCase("hidden")) {
-                if (hasPermission("uber.set.hidden")) {
-                    list.add("true");
-                    list.add("false");
-                }
+        if (args.length < 4) {
+            response("&a/uset meta &c<enchantment> <tag> <value>");
+            response(Reply.ARGUMENTS);
+            return;
+        }
+
+        Set<UberEnchantment> set = EnchantmentUtils.getMatches(item, args[1]);
+        if (EnchantmentUtils.multi(player, set))
+            return;
+        UberEnchantment enchant = set.iterator().next();
+
+        if (!enchant.containsEnchantment(item)) {
+            localized("&c", "actions.meta.enchantment_not_found");
+            return;
+        }
+
+        if (!UberMeta.contains(args[2])) {
+            localized("&c", "actions.meta.invalid_tag");
+            return;
+        }
+
+        UberMeta<?> meta = UberMeta.getByName(args[2]);
+
+        if (meta == null) {
+            localized("&c", "actions.meta.invalid_tag");
+            return;
+        }
+
+        if (!UberUtils.containsMeta(item, enchant, meta)) {
+            localized("&c", "actions.meta.set.add_tag");
+            return;
+        }
+
+        boolean success = false;
+
+        if (meta.getTag() instanceof BoolTag tag)  {
+            boolean value;
+            switch (args[3].toLowerCase()) {
+                case "true", "t", "1":
+                    value = true;
+                    break;
+                case "false", "f", "0":
+                    value = false;
+                    break;
+                default:
+                    localized("&c", "actions.meta.invalid_bool_value");
+                    response("&a/uset %1$s %2$s %3$s &c%4$s", args);
+                    return;
             }
+            if (enchant instanceof EffectEnchantment effect && tag == BoolTag.ON_HELD && !BoolTag.ON_HELD.test(item, effect) && value)
+                UberRunnable.addTask(new HeldEffectTask(player, effect, (p, i, e) ->
+                        i.getType().equals(Material.AIR) ||
+                                !e.containsEnchantment(i) ||
+                                !BoolTag.ON_HELD.test(i, e)));
+            UberUtils.setMetaTag(item, enchant, tag.asMeta(), value);
+            success = true;
         }
-        return list;*/
+        if (!success && meta.getTag() instanceof IntTag tag)  {
+            int value;
+            try {
+                value = Integer.parseInt(args[3]);
+            } catch (NumberFormatException e) {
+                response("&a/uset %1$s %2$s %3$s &c%4$s", args);
+                response(Reply.WHOLE_NUMBER);
+                return;
+            }
+            UberUtils.setMetaTag(item, enchant, tag.asMeta(), value);
+            success = true;
+        }
+        if (!success && meta.getTag() instanceof DoubleTag tag)  {
+            double value;
+            try {
+                value = Double.parseDouble(args[3]);
+            } catch (NumberFormatException e) {
+                response("&a/uset %1$s %2$s %3$s &c%4$s", args);
+                response(Reply.DECIMAL_NUMBER);
+                return;
+            }
+            if (value <= 0.0 || value >= 1.0) {
+                localized("&c", "actions.meta.invalid_double_value");
+                return;
+            }
+            UberUtils.addMetaData(item, enchant, tag.asMeta(), value);
+            success = true;
+        }
+        if (success)
+            localized("&a", "actions.meta.set.success");
+        else
+            localized("&c", "actions.meta.set.fail");
+    }
+
+    private void owner(ItemStack item) {
+        if (item.getType().equals(Material.AIR)) {
+            response(Reply.HOLD_ITEM);
+            return;
+        }
+
+        UberUtils.setOwner(item, player.getUniqueId());
+
+        localized("&a", "actions.owner.set.success");
     }
 
     private void effect() {
         if (args.length < 4) {
-            response("&a/uset effect &c<effect | id> <duration> <level>");
+            response("&a/uset effect &c<effect> <duration> <level>");
             response(Reply.ARGUMENTS);
             return;
         }

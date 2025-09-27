@@ -1,6 +1,9 @@
 package me.sciguymjm.uberenchant.utils;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Keyed;
+import org.bukkit.NamespacedKey;
+import org.bukkit.registry.RegistryAware;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -10,19 +13,20 @@ import java.util.regex.Pattern;
  */
 public class VersionUtils {
 
-    private static String version;
+    private static boolean isPaper;
+    private static final boolean v1_21_4;
+
+    private static final int[] version;
 
     static {
-        version = Bukkit.getBukkitVersion();
-    }
-
-    /**
-     * Gets the current server version as an integer array
-     *
-     * @return An int array of the current server version
-     */
-    public static int[] getBukkitVersion() {
-        return parseVersion(version);
+        version = parseVersion(Bukkit.getBukkitVersion());
+        v1_21_4 = isAtLeast("1.21.4");
+        try {
+            Class.forName("io.papermc.paper.plugin.provider.classloader.PaperClassLoaderStorage");
+            isPaper = true;
+        } catch (ClassNotFoundException ignore) {
+            isPaper = false;
+        }
     }
 
     private static int[] parseVersion(String version) {
@@ -43,10 +47,19 @@ public class VersionUtils {
      * @return Whether the current version is at least the input version or not
      */
     public static boolean isAtLeast(String v) {
-        int[] v1 = getBukkitVersion();
+        int[] v1 = version;
         int[] v2 = parseVersion(v);
         return (v1[0] > v2[0]) ||
                 (v1[0] == v2[0] && v1[1] > v2[1]) ||
                 (v1[0] == v2[0] && v1[1] == v2[1] && v1[2] >= v2[2]);
+    }
+
+    public static <K extends Keyed> NamespacedKey getKey(K keyed) {
+        NamespacedKey key;
+        if (!isPaper && v1_21_4 && keyed instanceof RegistryAware k)
+            key = k.getKeyOrNull();
+        else
+            key = keyed.getKey();
+        return key;
     }
 }

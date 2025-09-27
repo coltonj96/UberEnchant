@@ -3,6 +3,8 @@ package me.sciguymjm.uberenchant.api.utils;
 import me.sciguymjm.uberenchant.UberEnchant;
 import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.utils.UberLocale;
+import me.sciguymjm.uberenchant.utils.VersionUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.configuration.ConfigurationSection;
@@ -14,21 +16,38 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 
 /**
  * Utility class to handle saving and loading UberRecords from config files.
  */
 public class UberConfiguration {
 
-    private static List<UberRecord> values = new ArrayList<>();
+    private static final Set<String> plugins = new HashSet<>();
 
-    public static List<UberRecord> getRecords() {
-        return values;
+    private static final Set<Enchantment> enchantments;
+
+    static {
+        if (VersionUtils.isAtLeast("1.20.4"))
+            enchantments = new HashSet<>(Registry.ENCHANTMENT.stream().toList());
+        else
+            enchantments = new HashSet<>(List.of(Enchantment.values()));
+        Collections.addAll(enchantments, UberEnchantment.values());
+    }
+
+    public static Set<String> getIntegrated() {
+        return plugins;
+    }
+
+    public static Set<UberRecord> getRecords() {
+        return UberRecord.getRecords();
     }
 
     public static List<UberRecord> getRecords(Predicate<UberRecord> filter) {
-        return values.stream().filter(filter).toList();
+        return UberRecord.getRecords(filter);
     }
 
     private static final Set<File> files = new HashSet<>();
@@ -48,20 +67,22 @@ public class UberConfiguration {
     public static void loadFromFile(File file) {
         YamlConfiguration data = YamlConfiguration.loadConfiguration(file);
         files.add(file);
-        List<Enchantment> temp = new ArrayList<>(Registry.ENCHANTMENT.stream().toList());
-        Collections.addAll(temp, UberEnchantment.values());
-        for (Enchantment enchant : temp) {
-            if (!(enchant instanceof UberEnchantment) && !enchant.getKey().getNamespace().equalsIgnoreCase(NamespacedKey.MINECRAFT))
+        for (Enchantment enchant : enchantments.stream().distinct().toList()) {
+            if (UberRecord.getRecords().stream().anyMatch(e -> e.getEnchant().equals(enchant)))
                 continue;
-            if (data.contains(enchant.getKey().getKey(), true)) {
+                    //displayName = FileUtils.get(ex, "enchants/" + key.getKey() + ".yml", "Definition.DisplayName", displayName, String.class);
+            NamespacedKey key = VersionUtils.getKey(enchant);
+            String name = key.getKey().toLowerCase();
+            if (data.contains(name, true)) {
                 Map<Integer, Double> list = new HashMap<>();
-                ConfigurationSection section = data.getConfigurationSection(enchant.getKey().getKey().toLowerCase());
+                ConfigurationSection section = data.getConfigurationSection(name);
+                ConfigurationSection cost;
                 if (!section.contains("cost_for_level")) {
-                    ConfigurationSection cost = section.createSection("cost_for_level");
+                    cost = section.createSection("cost_for_level");
                     cost.createSection("1");
                     cost.createSection("5");
                     cost.createSection("10");
-                    if (enchant.getKey().getKey().toLowerCase().contains("curse") || enchant.isCursed()) {
+                    if (name.contains("curse") || enchant.isCursed()) {
                         cost.set("1", 100.0);
                         cost.set("5", 600.0);
                         cost.set("10", 1700.0);
@@ -72,21 +93,34 @@ public class UberConfiguration {
                     }
                     try {
                         data.save(file);
-                        data = YamlConfiguration.loadConfiguration(file);
+                        //data = YamlConfiguration.loadConfiguration(file);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                } else {
+                    cost = section.getConfigurationSection("cost_for_level");
                 }
-                ConfigurationSection section2 = data.getConfigurationSection(enchant.getKey().getKey().toLowerCase() + ".cost_for_level");
-                section2.getKeys(false).forEach(key -> {
+                cost.getKeys(false).forEach(k -> {
                     try {
-                        Integer level = Integer.parseInt(key);
-                        Double cost = section2.getDouble(key);
-                        list.put(level, cost);
+                        list.put(Integer.parseInt(k), cost.getDouble(k));
                     } catch (NumberFormatException ignored) {}
                 });
-                UberRecord record = new UberRecord(enchant, enchant.getKey().getKey(), (enchant instanceof UberEnchantment) ? ((UberEnchantment) enchant).getDisplayName() : UberLocale.get("enchant." + enchant.getKey().getKey()), section.getInt("min_level"), section.getInt("max_level"), section.getDouble("cost"), section.getDouble("cost_multiplier"), section.getDouble("removal_cost"), section.getDouble("extraction_cost"), section.getBoolean("use_on_anything"), section.getStringList("aliases"), list);
-                addRecord(record);
+                UberRecord record = new UberRecord(enchant,
+                        key,
+                        (enchant instanceof UberEnchantment) ? ((UberEnchantment) enchant).getDisplayName() : UberLocale.get(key.toString().replace(":", ".")),
+                        section.getInt("min_level"),
+                        section.getInt("max_level"),
+                        section.getDouble("cost"),
+                        section.getDouble("cost_multiplier"),
+                        section.getDouble("removal_cost"),
+                        section.getDouble("extraction_cost"),
+                        section.getBoolean("use_on_anything"),
+                        section.getStringList("aliases"),
+                        list);
+                if (VersionUtils.getKey(enchant).getNamespace().equalsIgnoreCase("ExcellentEnchants"))
+                    UberRecord.addRecord(new ExcellentEnchantsRecord(record));
+                else
+                    UberRecord.addRecord(record);
             }
         }
     }
@@ -131,16 +165,32 @@ public class UberConfiguration {
      */
     public static void loadFromEnchantmentsFolder() {
         File folder = new File(UberEnchant.instance().getDataFolder() + "/enchantments/");
-        for (File path : folder.listFiles()) {
-            if (path.isDirectory()) {
-                for (File file : path.listFiles(f -> f.getName().endsWith(".yml"))) {
-                    loadFromFile(file);
-                }
-            } else {
-                if (path.getName().endsWith(".yml"))
+
+        for (File path : folder.listFiles())
+            if (path.isDirectory())
+                for (File file : path.listFiles(f -> f.getName().endsWith(".yml")))
+                    if (!files.contains(file))
+                        loadFromFile(file);
+            else
+                if (path.getName().endsWith(".yml") && !files.contains(path))
                     loadFromFile(path);
-            }
-        }
+    }
+
+    public static void updateConfigs() {
+        File folder = new File(UberEnchant.instance().getDataFolder() + "/enchantments/");
+
+        for (File path : folder.listFiles())
+            if (path.isDirectory())
+                for (File file : path.listFiles(f -> f.getName().endsWith(".yml")))
+                    if (!files.contains(file))
+                        loadFromFile(file);
+                    else
+                    if (path.getName().endsWith(".yml") && !files.contains(path))
+                        loadFromFile(path);
+    }
+
+    private static  <T> T find(Collection<T> collection, Predicate<T> predicate) {
+        return collection.stream().filter(predicate).findFirst().orElse(null);
     }
 
     /**
@@ -187,17 +237,17 @@ public class UberConfiguration {
      */
     public static void saveToFile(Plugin plugin, File file) {
         YamlConfiguration data = YamlConfiguration.loadConfiguration(file);
-        for (UberRecord record : values.stream().filter(a -> a.enchantment.getKey().getNamespace().equals(plugin.getName().toLowerCase(Locale.ROOT))).toList()) {
-            ConfigurationSection path = data.createSection(record.name);
-            path.set("min_level", record.min_level);
-            path.set("max_level", record.max_level);
-            path.set("cost", record.cost);
-            path.set("cost_multiplier", record.cost_multiplier);
-            path.createSection("cost_for_level", record.cost_for_level);
-            path.set("removal_cost", record.removal_cost);
-            path.set("extraction_cost", record.extraction_cost);
-            path.set("use_on_anything", record.can_use_on_anything);
-            path.set("aliases", record.aliases);
+        for (UberRecord record : UberRecord.values().stream().filter(a -> VersionUtils.getKey(a.getEnchant()).getNamespace().equals(plugin.getName().toLowerCase(Locale.ROOT))).toList()) {
+            ConfigurationSection path = data.createSection(record.getKey().getKey());
+            path.set("min_level", record.getMinLevel());
+            path.set("max_level", record.getMaxLevel());
+            path.set("cost", record.getCost());
+            path.set("cost_multiplier", record.getCostMultiplier());
+            path.createSection("cost_for_level", record.getLevelCost());
+            path.set("removal_cost", record.getRemovalCost());
+            path.set("extraction_cost", record.getExtractionCost());
+            path.set("use_on_anything", record.getCanUseOnAnything());
+            path.set("aliases", record.getAliases());
         }
         try {
             data.save(file);
@@ -207,7 +257,7 @@ public class UberConfiguration {
     }
 
     public static void reloadAll() {
-        values = new ArrayList<>();
+        UberRecord.reset();
         files.forEach(f -> {
             if (f.exists())
                 loadFromFile(f);
@@ -221,10 +271,34 @@ public class UberConfiguration {
      * @return The associated UberRecord or null
      */
     public static UberRecord getByEnchant(Enchantment enchantment) {
-        return values.stream().filter(e -> e.enchantment.equals(enchantment)).findFirst().orElse(null);
+        return UberRecord.values().stream().filter(e -> e.getEnchant().equals(enchantment)).findFirst().orElse(null);
     }
 
     /**
+     * Adds an UberRecord.
+     *
+     * @param record The record to add
+     * @return True if it was added
+     */
+    public static boolean addRecord(UberRecord record) {
+        return UberRecord.addRecord(record);
+    }
+
+    /*private static void update(File file) {
+        YamlConfiguration config = FileUtils.loadConfig(file);
+        for (String key : config.getKeys(false)) {
+            Enchantment enchantment = find(enchantments, e -> VersionUtils.getKey(e).toString().equalsIgnoreCase(key));
+            if (!config.contains(key + ".settings")) {
+                ConfigurationSection settings = config.createSection(key + ".settings");
+                int weight = Utils
+                if (enchantment instanceof UberEnchantment ue)
+                    ue.getRarity().getWeight()
+                settings.set("weight", );
+            }
+        }
+    }*/
+
+    /*
      * Convenient method to both add an UberRecord and register a specified
      * UberEnchantment.
      *
@@ -237,145 +311,54 @@ public class UberConfiguration {
      * @param aliases     List of aliases (Can be empty)
      * @param level_cost  Cost per level map (Can be empty)
      */
-    public static void registerUberRecord(UberEnchantment enchantment, double cost, double multiplier, double removal, double extract, boolean anything, List<String> aliases, Map<Integer, Double> level_cost) {
+    /*public static void registerUberRecord(UberEnchantment enchantment, double cost, double multiplier, double removal, double extract, boolean anything, List<String> aliases, Map<Integer, Double> level_cost) {
         if (!UberEnchantment.isRegistered(enchantment))
             UberEnchantment.register(enchantment);
-        addRecord(new UberRecord(enchantment, enchantment.getKey().getKey(), enchantment.getDisplayName(), enchantment.getStartLevel(), enchantment.getMaxLevel(), cost, multiplier, removal, extract, anything, aliases, level_cost));
+        UberRecord.addRecord(new UberRecord(enchantment, cost, multiplier, removal, extract, anything, aliases, level_cost));
+    }*/
+
+    public static <T> Predicate<T> distinctByKey(Function<? super T, ?> key) {
+        Map<Object, Boolean> map = new ConcurrentHashMap<>();
+        return t -> map.putIfAbsent(key.apply(t), Boolean.TRUE) == null;
     }
 
-    /**
-     * Adds an UberRecord.
-     *
-     * @param record The record to add
-     * @return True if it was added
-     */
-    public static boolean addRecord(UberRecord record) {
-        return values.add(record);
-    }
-
-    /**
-     * Utility record class for ease of adding records
-     */
-    public record UberRecord(Enchantment enchantment, String name, String display_name, int min_level, int max_level,
-                             double cost, double cost_multiplier, double removal_cost, double extraction_cost,
-                             boolean can_use_on_anything, List<String> aliases, Map<Integer, Double> cost_for_level) {
-
-        /**
-         * Gets the enchantment associated with this record.
-         *
-         * @return The enchantment
-         */
-        public Enchantment getEnchant() {
-            return enchantment;
-        }
-
-        /**
-         * Gets the name of this record.
-         *
-         * @return The name of the record (Same as
-         * enchantment.getKey().getKey())
-         */
-        public String getName() {
-            return name;
-        }
-
-        /**
-         * Gets the display name of the enchantment this record represents.
-         *
-         * @return The display name of the enchantment
-         */
-        public String getDisplayName() {
-            return display_name;
-        }
-
-        /**
-         * Gets the minimum level the enchantment can be.
-         *
-         * @return The minimum level of the enchantment
-         */
-        public int getMinLevel() {
-            return min_level;
-        }
-
-        /**
-         * Gets the maximum level the enchantment can be.
-         *
-         * @return The maximum level of the enchantment
-         */
-        public int getMaxLevel() {
-            return max_level;
-        }
-
-        /**
-         * Gets the cost of the enhchantment.
-         *
-         * @return The cost of the enchantment
-         */
-        public double getCost() {
-            return cost;
-        }
-
-        /**
-         * Gets the cost multiplier.
-         *
-         * @return The cost multiplier
-         */
-        public double getCostMultiplier() {
-            return cost_multiplier;
-        }
-
-        /**
-         * Gets the removal cost.
-         *
-         * @return The removal cost
-         */
-        public double getRemovalCost() {
-            return removal_cost;
-        }
-
-        /**
-         * Gets the extraction cost.
-         *
-         * @return the extraction cost
-         */
-        public double getExtractionCost() {
-            return extraction_cost;
-        }
-
-        /**
-         * Gets wether or not the enchantment can be used on anything.
-         *
-         * @return If the enchantment can be used on anything
-         */
-        public boolean getCanUseOnAnything() {
-            return can_use_on_anything;
-        }
-
-        /**
-         * Gets a list of aliases for the enchantment, can be empty.
-         *
-         * @return A list of aliases
-         */
-        public List<String> getAliases() {
-            return aliases;
-        }
-
-        /**
-         * Gets a map of levels and their costs, can be empty.
-         *
-         * @return A map of levels and their cost
-         */
-        public Map<Integer, Double> getCostForLevel() {
-            return cost_for_level;
-        }
-
-        /**
-         * Gets a list of all available UberRecords
-         *
-         * @return A list of UberRecords
-         */
-        public static List<UberRecord> values() {
-            return values;
+    @SuppressWarnings("deprecation")
+    public static void integrate()  {
+        List<Enchantment> temp;
+        if (VersionUtils.isAtLeast("1.20.4"))
+            temp = new ArrayList<>(Registry.ENCHANTMENT.stream().toList());
+        else
+            temp = Arrays.asList(Enchantment.values());
+        List<String> plugins = temp.stream().filter(distinctByKey(e -> VersionUtils.getKey(e).getNamespace()))
+                .filter(e -> !(e instanceof UberEnchantment) && !VersionUtils.getKey(e).getNamespace().equalsIgnoreCase(NamespacedKey.MINECRAFT))
+                .map(k -> VersionUtils.getKey(k).getNamespace()).toList();
+        for (String name : plugins) {
+            Plugin plugin = Arrays.stream(Bukkit.getPluginManager().getPlugins()).filter(p -> p.getName().toLowerCase(Locale.ROOT).equals(name)).findFirst().orElse(null);
+            if (plugin == null)
+                continue;
+            UberConfiguration.plugins.add(name);
+            File file = new File(UberEnchant.instance().getDataFolder() + "/enchantments/" + name + "/default_enchantments.yml");
+            if (file.exists())
+                return;
+            YamlConfiguration data = YamlConfiguration.loadConfiguration(file);
+            List<Enchantment> enchantments = temp.stream().filter(a -> VersionUtils.getKey(a).getNamespace().equalsIgnoreCase(name)).toList();
+            for (Enchantment enchant : enchantments) {
+                ConfigurationSection path = data.createSection(VersionUtils.getKey(enchant).getKey());
+                path.set("min_level", 1);
+                path.set("max_level", 10);
+                path.set("cost", 1000.0);
+                path.set("cost_multiplier", 0.02);
+                path.set("removal_cost", 100.0);
+                path.set("extraction_cost", 1000.0);
+                path.set("use_on_anything", false);
+                path.set("aliases", new ArrayList<String>());
+            }
+            try {
+                data.save(file);
+                UberEnchant.log(Level.INFO, UberLocale.getF("console.plugin_integrated", enchantments.size(), plugin.getName()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

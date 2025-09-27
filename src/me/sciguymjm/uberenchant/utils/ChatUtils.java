@@ -1,6 +1,7 @@
 package me.sciguymjm.uberenchant.utils;
 
 import org.bukkit.ChatColor;
+import org.bukkit.conversations.Conversable;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Method;
@@ -22,6 +23,10 @@ public class ChatUtils {
         response(player, reply.get());
     }
 
+    public static void response(Conversable person, Reply reply) {
+        response(person, reply.get());
+    }
+
     /**
      * Sends the specified player a message
      *
@@ -32,12 +37,24 @@ public class ChatUtils {
         response(player, message, "");
     }
 
+    public static void response(Conversable person, String message) {
+        response(person, message, "");
+    }
+
     public static void localized(Player player, String color, String key) {
         response(player, UberLocale.getC(color, key));
     }
 
+    public static void localized(Conversable person, String color, String key) {
+        response(person, UberLocale.getC(color, key));
+    }
+
     public static void localized(Player player, String color, String key, Object... args) {
         response(player,  UberLocale.getCF(color, key, args));
+    }
+
+    public static void localized(Conversable person, String color, String key, Object... args) {
+        response(person,  UberLocale.getCF(color, key, args));
     }
 
     /**
@@ -58,6 +75,10 @@ public class ChatUtils {
         player.sendMessage(color("&8&l[&5UberEnchant&8&l] %1$s".formatted(message).formatted(args)));
     }
 
+    public static void response(Conversable person, String message, Object... args) {
+        person.sendRawMessage(color("&8&l[&5UberEnchant&8&l] %1$s".formatted(message).formatted(args)));
+    }
+
     /**
      * Sends the specified player a formatted message
      *
@@ -67,6 +88,10 @@ public class ChatUtils {
      */
     public static void response(Player player, String message, String[] args) {
         response(player, message, (Object[]) args);
+    }
+
+    public static void response(Conversable person, String message, String[] args) {
+        response(person, message, (Object[]) args);
     }
 
 

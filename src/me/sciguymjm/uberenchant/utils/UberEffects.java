@@ -23,7 +23,7 @@ public class UberEffects {
 
     public static Map<String, UberEffects> values;
 
-    static {
+     static {
         values = new HashMap<>();
 
         values.put("SPEED", wrap(PotionEffectType.SPEED, "speed", "effects.speed", 1, 1));

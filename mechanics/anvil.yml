@@ -1,2 +1,3 @@
 enabled: true
 colors_enabled: true
+ignore_too_expensive: false

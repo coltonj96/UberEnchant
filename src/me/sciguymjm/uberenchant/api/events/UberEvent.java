@@ -10,9 +10,6 @@ import org.bukkit.event.HandlerList;
 public class UberEvent extends Event implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
-    /**
-     * Unused
-     */
     protected boolean cancelled = false;
 
     @Override

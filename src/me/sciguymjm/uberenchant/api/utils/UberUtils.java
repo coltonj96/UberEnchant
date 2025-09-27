@@ -1,9 +1,15 @@
 package me.sciguymjm.uberenchant.api.utils;
 
-import me.sciguymjm.uberenchant.UberEnchant;
 import me.sciguymjm.uberenchant.api.UberEnchantment;
+import me.sciguymjm.uberenchant.api.utils.persistence.PDCItemUtils;
+import me.sciguymjm.uberenchant.api.utils.persistence.UberMeta;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.BoolTag;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.IntTag;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.MetaTag;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.UUIDTag;
 import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
 import me.sciguymjm.uberenchant.utils.ChatUtils;
+import me.sciguymjm.uberenchant.utils.VersionUtils;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -14,73 +20,149 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
  * Custom enchantment related utility class
+ *
+ * Data structure:
+ *
+ * ItemStack:(PersistentDataContainer)
+ * -> UberEnchantment:(PersistentDataContainer)
+ * --> Tag1(Type)
+ * --> Tag2(Type)
+ * --> Tag3(Type)
+ * --> Tag...(Type)
+ *
  */
-public class UberUtils {
+public class UberUtils extends PDCItemUtils {
 
-    private static final NamespacedKey uberEnchantment = new NamespacedKey(UberEnchant.instance(), "uberenchantment");
-    private static final NamespacedKey storedUberEnchantment = new NamespacedKey(UberEnchant.instance(), "storeduberenchantment");
+    public static final NamespacedKey uberEnchantment = generateKey("uberenchantment");
+    public static final NamespacedKey storedUberEnchantment = generateKey("storeduberenchantment");
 
-    private static boolean hasCustom(ItemStack item, NamespacedKey namespace) {
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null)
-            return false;
-        return meta.getPersistentDataContainer().has(namespace);
+    public static PersistentDataContainer getData(ItemStack item) {
+        return getPDC(item, uberEnchantment);
     }
 
     public static boolean hasData(ItemStack item) {
-        return hasCustom(item, uberEnchantment);
+        return has(item, uberEnchantment);
+    }
+
+    public static boolean hasMeta(ItemStack item, UberEnchantment enchantment) {
+        return hasData(item) && has(getData(item), enchantment.getKey(), TAG);
     }
 
     public static boolean hasStoredData(ItemStack item) {
-        return hasCustom(item, storedUberEnchantment);
+        return has(item, storedUberEnchantment);
     }
 
-    private static boolean containsCustom(ItemStack item, UberEnchantment data, NamespacedKey namespace) {
-        return hasCustom(item, namespace) && getData(item).has(data.getKey());
+    public static boolean containsData(ItemStack item, UberEnchantment enchantment) {
+        return hasData(item) && has(getData(item), enchantment.getKey());
     }
 
-    public static boolean containsData(ItemStack item, UberEnchantment data) {
-        return containsCustom(item, data, uberEnchantment);
+    public static boolean containsMeta(ItemStack item, UberEnchantment enchantment, MetaTag<?> tag) {
+        return containsMeta(item, enchantment, tag.asMeta());
     }
 
-    public static boolean containsStoredData(ItemStack item, UberEnchantment data) {
-        return containsCustom(item, data, storedUberEnchantment);
+    public static boolean containsMeta(ItemStack item, UberEnchantment enchantment, UberMeta<?> meta) {
+        return hasMeta(item, enchantment) && has(getPDC(getData(item), enchantment.getKey()), meta.getKey(), meta.getType());
     }
 
-    private static PersistentDataContainer getCustom(ItemStack item, NamespacedKey namespace) {
-        if (hasCustom(item, namespace))
-            return item.getItemMeta().getPersistentDataContainer().get(namespace, PersistentDataType.TAG_CONTAINER);
+    public static boolean containsStoredData(ItemStack item, UberEnchantment enchantment) {
+        return hasStoredData(item) && has(getData(item), enchantment.getKey());
+    }
+
+    public static <T> T getTag(ItemStack item, UberEnchantment enchantment, NamespacedKey namespace, UberMeta<T> meta) {
+        PersistentDataContainer data = getPDC(item, namespace);
+        if (containsMeta(item, enchantment, meta))
+            return get(getPDC(data, enchantment.getKey()), meta.getKey(), meta.getType());
+        if (meta == UberMeta.LEVEL)
+            return get(data, enchantment.getKey(), meta.getType());
         return null;
     }
 
-    public static PersistentDataContainer getData(ItemStack item) {
-        return getCustom(item, uberEnchantment);
+    public static <T> T getTag(ItemStack item, UberEnchantment enchantment, NamespacedKey namespace, MetaTag<T> tag) {
+        return getTag(item, enchantment, namespace, tag.asMeta());
+    }
+
+    public static <T> T getMetaTag(ItemStack item, UberEnchantment enchantment, UberMeta<T> meta) {
+        return getTag(item, enchantment, uberEnchantment, meta);
+    }
+
+    public static <T> T getMetaTag(ItemStack item, UberEnchantment enchantment, MetaTag<T> tag) {
+        return getTag(item, enchantment, uberEnchantment, tag);
+    }
+
+    public static <T> T getStoredMetaTag(ItemStack item, UberEnchantment enchantment, MetaTag<T> tag) {
+        return getTag(item, enchantment, storedUberEnchantment, tag);
+    }
+
+    public static <T> T getStoredMetaTag(ItemStack item, UberEnchantment enchantment, UberMeta<T> meta) {
+        return getTag(item, enchantment, storedUberEnchantment, meta);
     }
 
     public static PersistentDataContainer getStoredData(ItemStack item) {
-        return getCustom(item, storedUberEnchantment);
+        return getPDC(item, storedUberEnchantment);
     }
 
     private static Map<UberEnchantment, Integer> getCustomMap(ItemStack item, NamespacedKey namespace) {
         Map<UberEnchantment, Integer> map = new HashMap<>();
-        if (hasCustom(item, namespace)) {
-            PersistentDataContainer data = getCustom(item, namespace);
-            if (data != null) {
+        if (has(item, namespace)) {
+            PersistentDataContainer data = getPDC(item, namespace);
+            if (notNull(data)) {
                 data.getKeys().forEach(key -> {
-                    if (UberEnchantment.containsKey(key))
-                        map.put(UberEnchantment.getByKey(key), data.get(key, PersistentDataType.INTEGER));
+                    if (UberEnchantment.containsKey(key)) {
+                        if (has(data, key, PersistentDataType.INTEGER)) {
+                            map.put(UberEnchantment.getByKey(key), get(data, key, PersistentDataType.INTEGER));
+                        } else {
+                            PersistentDataContainer meta = getPDC(data, key);
+                            UberMeta<Integer> level = UberMeta.LEVEL;
+                            if (has(meta, level.getKey()))
+                                map.put(UberEnchantment.getByKey(key), get(meta, level.getKey(), level.getType()));
+                        }
+                    }
                 });
             }
         }
         return map;
     }
 
+    private static List<MetaTag<?>> getTags(ItemStack item, NamespacedKey enchantment, NamespacedKey namespace) {
+        List<MetaTag<?>> list =  new ArrayList<>();
+        if (notNull(item, enchantment, namespace) && has(item, namespace)) {
+            PersistentDataContainer data = getPDC(item, namespace);
+            if (notNull(data) && has(data, enchantment))
+                getPDC(data, enchantment).getKeys().forEach(key -> list.add(MetaTag.byKey(key)));
+        }
+        return list;
+    }
+
+    private static List<MetaTag<?>> getTags(ItemStack item, UberEnchantment enchantment, NamespacedKey namespace) {
+        if (notNull(enchantment))
+            return getTags(item, enchantment.getKey(), namespace);
+        return new ArrayList<>();
+    }
+
+    private static List<MetaTag<?>> getTags(ItemStack item, String name, NamespacedKey namespace) {
+        return getTags(item, UberEnchantment.getByName(name), namespace);
+    }
+
+    public static List<MetaTag<?>> getTags(ItemStack item, UberEnchantment enchantment) {
+        return getTags(item, enchantment, uberEnchantment);
+    }
+
+    public static List<MetaTag<?>> getTags(ItemStack item, String name) {
+        return getTags(item, name, uberEnchantment);
+    }
+
     public static Map<UberEnchantment, Integer> getMap(ItemStack item) {
         return getCustomMap(item, uberEnchantment);
+    }
+
+    public static Set<UberEnchantment> getEnchants(ItemStack item) {
+        return getCustomMap(item, uberEnchantment).keySet();
     }
 
     public static Map<UberEnchantment, Integer> getStoredMap(ItemStack item) {
@@ -89,7 +171,8 @@ public class UberUtils {
 
     public static Map<Enchantment, Integer> getAllMap(ItemStack item) {
         Map<Enchantment, Integer> map = new HashMap<>(item.getEnchantments());
-        map.putAll(getMap(item));
+        if (VersionUtils.isAtLeast("1.20.4"))
+            map.putAll(getMap(item));
         return map;
     }
 
@@ -98,27 +181,127 @@ public class UberUtils {
         if (item.getItemMeta() instanceof EnchantmentStorageMeta meta) {
             if (meta.hasStoredEnchants())
                 map.putAll(meta.getStoredEnchants());
-            map.putAll(getStoredMap(item));
+            if (VersionUtils.isAtLeast("1.20.4"))
+                map.putAll(getStoredMap(item));
         }
         return map;
     }
 
+    private static <T> void addMeta(ItemStack item, UberEnchantment enchantment, NamespacedKey namespace, UberMeta<T> tag, T value) {
+        removeEnchantmentLore(item);
+        if (!has(item, namespace))
+            createPDC(item, namespace);
+        if (!notNull(getPDC(item, namespace))) {
+            addEnchantmentLore(item);
+            return;
+        }
+        if (!has(getPDC(item, namespace), enchantment.getKey()))
+            set(item, namespace, TAG, set(getPDC(item, namespace), enchantment.getKey(), TAG, createPDC(item)));
+        setTag(item, enchantment, namespace, tag, value);
+        ItemMeta meta = item.getItemMeta();
+        if (!meta.hasEnchants())
+            setEnchantmentGlintOverride(meta, true);
+        item.setItemMeta(meta);
+        addEnchantmentLore(item);
+    }
+
     private static void addCustom(ItemStack item, UberEnchantment enchantment, int level, NamespacedKey namespace) {
+        removeEnchantmentLore(item);
+        if (!has(item, namespace))
+            createPDC(item, namespace);
+        if (!notNull(getPDC(item, namespace))) {
+            addEnchantmentLore(item);
+            return;
+        }
+        if (!has(getPDC(item, namespace), enchantment.getKey()))
+            set(item, namespace, TAG, set(getPDC(item, namespace), enchantment.getKey(), TAG, createPDC(item)));
+        setTag(item, enchantment, namespace, UberMeta.LEVEL, level);
+        ItemMeta meta = item.getItemMeta();
+        if (!meta.hasEnchants())
+            setEnchantmentGlintOverride(meta, true);
+        item.setItemMeta(meta);
+        addEnchantmentLore(item);
+    }
+
+    private static <T> void setTag(ItemStack item, UberEnchantment enchantment, NamespacedKey namespace, UberMeta<T> tag, T value) {
+        PersistentDataContainer data = getPDC(item, namespace);
+        PersistentDataContainer meta = getPDC(data, enchantment.getKey());
+        set(meta, tag.getKey(), tag.getType(), value);
+        set(data, enchantment.getKey(), TAG, meta);
+        set(item, namespace, TAG, data);
+    }
+
+    public static UUID getOwner(ItemStack item, UUID id) {
+        PersistentDataContainer data = getPDC(item, uberEnchantment);
+        return get(data, generateKey("owner"), UUIDTag.PLAYER.getType());
+    }
+
+    public static void setOwner(ItemStack item, UUID id) {
+        PersistentDataContainer data = getPDC(item, uberEnchantment);
+        set(data, generateKey("owner"), UUIDTag.PLAYER.getType(), id);
+        set(item, uberEnchantment, TAG, data);
+    }
+
+    public static void removeOwner(ItemStack item) {
+        PersistentDataContainer data = getPDC(item, uberEnchantment);
+        remove(data, generateKey("owner"));
+    }
+
+    public static boolean hasOwner(ItemStack item) {
+        PersistentDataContainer data = getPDC(item, uberEnchantment);
+        return has(data, generateKey("owner"));
+    }
+
+    private static <T> void setMeta(ItemStack item, UberEnchantment enchantment, NamespacedKey namespace, UberMeta<T> tag, T value) {
+        removeEnchantmentLore(item);
+        PersistentDataContainer data = getPDC(item, namespace);
+        if (!has(item, namespace) || !notNull(data) || !has(data, enchantment.getKey())) {
+            addEnchantmentLore(item);
+            return;
+        }
+        setTag(item, enchantment, namespace, tag, value);
+        ItemMeta meta = item.getItemMeta();
+        if (!meta.hasEnchants())
+            setEnchantmentGlintOverride(meta, true);
+        item.setItemMeta(meta);
+        addEnchantmentLore(item);
+    }
+
+    public static <T> void setMetaTag(ItemStack item, UberEnchantment enchantment, UberMeta<T> tag, T value) {
+        setMeta(item, enchantment, uberEnchantment, tag, value);
+    }
+
+    public static <T> void setStoredMetaTag(ItemStack item, UberEnchantment enchantment, UberMeta<T> tag, T value) {
+        setMeta(item, enchantment, storedUberEnchantment, tag, value);
+    }
+
+    /*private static void addCustom(ItemStack item, UberEnchantment enchantment, int level, NamespacedKey namespace) {
         removeEnchantmentLore(item);
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer data;
-        if (!hasCustom(item, namespace)) {
+        PersistentDataContainer mdata;
+        if (!has(item, namespace)) {
             data = meta.getPersistentDataContainer();
-            data.set(namespace, PersistentDataType.TAG_CONTAINER, data.getAdapterContext().newPersistentDataContainer());
+            mdata = data.getAdapterContext().newPersistentDataContainer();
+            mdata.set(enchantment.getKey(), TAG, data.getAdapterContext().newPersistentDataContainer());
+            data.set(namespace, TAG, mdata);
             item.setItemMeta(meta);
+            meta = item.getItemMeta();
         }
-        data = getCustom(item, namespace);
+        data = meta.getPersistentDataContainer().get(namespace, TAG);
         if (data == null) {
             addEnchantmentLore(item);
             return;
         }
-        data.set(enchantment.getKey(), PersistentDataType.INTEGER, level);
-        meta.getPersistentDataContainer().set(namespace, PersistentDataType.TAG_CONTAINER, data);
+        if (!has(data, enchantment.getKey())) {
+            data.set(enchantment.getKey(), TAG, data.getAdapterContext().newPersistentDataContainer());
+            item.setItemMeta(meta);
+            meta = item.getItemMeta();
+        }
+        mdata = data.get(enchantment.getKey(), TAG);
+        mdata.set(generateKey("level"), PersistentDataType.INTEGER, level);
+        data.set(enchantment.getKey(), TAG, mdata);
+        meta.getPersistentDataContainer().set(namespace, TAG, data);
         if (!meta.hasEnchants())
             meta.setEnchantmentGlintOverride(true);
         item.setItemMeta(meta);
@@ -126,7 +309,25 @@ public class UberUtils {
     }
 
     public static void addData(ItemStack item, UberEnchantment enchantment, int level) {
+        //createContext(item, enchantment, uberEnchantment);
         addCustom(item, enchantment, level, uberEnchantment);
+    }
+
+    public static void addStoredData(ItemStack item, UberEnchantment enchantment, int level) {
+        addCustom(item, enchantment, level, storedUberEnchantment);
+    }*/
+
+    public static <T> void addMetaData(ItemStack item, UberEnchantment enchantment, UberMeta<T> tag, T value) {
+        addMeta(item, enchantment, uberEnchantment, tag, value);
+    }
+
+    public static void addData(ItemStack item, UberEnchantment enchantment, int level) {
+        addCustom(item, enchantment, level, uberEnchantment);
+        if (enchantment instanceof EffectEnchantment effect) {
+            addMeta(item, enchantment, uberEnchantment, UberMeta.DURATION, level);
+            effect.getTagDefaults(PersistentDataType.BOOLEAN).forEach((k, v) -> addMeta(item, enchantment, uberEnchantment, k.asMeta(), v));
+            effect.getTagDefaults(PersistentDataType.INTEGER).forEach((k, v) -> addMeta(item, enchantment, uberEnchantment, k.asMeta(), v));
+        }
     }
 
     public static void addStoredData(ItemStack item, UberEnchantment enchantment, int level) {
@@ -135,25 +336,24 @@ public class UberUtils {
 
     private static int removeCustom(ItemStack item, UberEnchantment enchantment, NamespacedKey namespace) {
         int level = 0;
-        if (hasCustom(item, namespace)) {
+        if (has(item, namespace)) {
             removeEnchantmentLore(item);
-            ItemMeta meta = item.getItemMeta();
-            PersistentDataContainer data = getCustom(item, namespace);
+            PersistentDataContainer data = getPDC(item, namespace);
             if (data == null) {
                 addEnchantmentLore(item);
                 return 0;
             }
-            if (data.has(enchantment.getKey())) {
-                level = data.get(enchantment.getKey(), PersistentDataType.INTEGER);
-                //item.getItemMeta().getPersistentDataContainer().get(namespace, PersistentDataType.TAG_CONTAINER).remove(enchantment.getKey());
-                data.remove(enchantment.getKey());
-                meta.getPersistentDataContainer().set(namespace, PersistentDataType.TAG_CONTAINER, data);
+            if (has(data, enchantment.getKey())) {
+                level = enchantment.getLevel(item);
+                remove(data, enchantment.getKey());
+                set(item, namespace, TAG, data);
             }
             if (data.isEmpty())
-                meta.getPersistentDataContainer().remove(namespace);
-            item.setItemMeta(meta);
-            if (!hasCustom(item, namespace)) {
-                meta.setEnchantmentGlintOverride(null);
+                remove(item, namespace);
+
+            ItemMeta meta = item.getItemMeta();
+            if (!has(item, namespace)) {
+                setEnchantmentGlintOverride(meta, null);
                 item.setItemMeta(meta);
             }
             addEnchantmentLore(item);
@@ -161,8 +361,56 @@ public class UberUtils {
         return level;
     }
 
+    private static void setEnchantmentGlintOverride(ItemMeta meta, Boolean value) {
+        try {
+            Method m = meta.getClass().getMethod("setEnchantmentGlintOverride", Boolean.class);
+            m.setAccessible(true);
+            m.invoke(meta, value);
+            m.setAccessible(false);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {}
+    }
+
+    private static <T> void delTag(ItemStack item, UberEnchantment enchantment, NamespacedKey namespace, UberMeta<T> tag) {
+        PersistentDataContainer data = getPDC(item, namespace);
+        PersistentDataContainer meta = getPDC(data, enchantment.getKey());
+        remove(meta, tag.getKey());
+        set(data, enchantment.getKey(), TAG, meta);
+        set(item, namespace, TAG, data);
+    }
+
+    private static <T> boolean removeTag(ItemStack item, UberEnchantment enchantment, NamespacedKey namespace, UberMeta<T> tag) {
+        if (tag == UberMeta.LEVEL || tag == UberMeta.DURATION)
+            return false;
+        if (has(item, namespace)) {
+            removeEnchantmentLore(item);
+            PersistentDataContainer data = getPDC(item, namespace);
+            if (data == null || !has(data, enchantment.getKey())) {
+                addEnchantmentLore(item);
+                return false;
+            }
+            PersistentDataContainer meta = getPDC(data, enchantment.getKey());
+            if (!has(meta, tag.getKey()))
+                return false;
+            remove(meta, tag.getKey());
+            set(data, enchantment.getKey(), TAG, meta);
+            set(item, namespace, TAG, data);
+
+            ItemMeta itemMeta = item.getItemMeta();
+            if (notNull(itemMeta) && !has(item, namespace)) {
+                setEnchantmentGlintOverride(itemMeta, null);
+                item.setItemMeta(itemMeta);
+            }
+            addEnchantmentLore(item);
+        }
+        return true;
+    }
+
     public static int removeData(ItemStack item, UberEnchantment enchantment) {
         return removeCustom(item, enchantment, uberEnchantment);
+    }
+
+    public static <T> boolean removeMeta(ItemStack item, UberEnchantment enchantment, UberMeta<T> tag) {
+        return removeTag(item, enchantment, uberEnchantment, tag);
     }
 
     public static int removeStoredData(ItemStack item, UberEnchantment enchantment) {
@@ -315,7 +563,20 @@ public class UberUtils {
         if (item.getItemMeta() instanceof EnchantmentStorageMeta)
             enchantments = UberEnchantment.getStoredEnchantments(item);
         */
-        List<String> effects = enchantments.entrySet().stream().map(data -> displayName(data.getKey(), data.getValue())).toList();
+        List<String> effects = enchantments.entrySet().stream()
+                .filter(data ->
+                        !(BoolTag.HIDDEN.test(item, data.getKey())))
+                .map(data -> {
+                    UberEnchantment enchantment = data.getKey();
+                    Integer level = data.getValue();
+                    Integer duration = data.getValue();
+                    if (IntTag.DURATION.has(item, enchantment))
+                        duration = UberMeta.DURATION.get(item, enchantment);
+                    if (duration == null)
+                        duration = 0;
+                    return displayName(data.getKey(), level, duration);
+                }).toList();
+        //effects.stream().sorted().toList()
         lore.addAll(0, effects);
         meta.setLore(lore);
         item.setItemMeta(meta);
@@ -327,20 +588,14 @@ public class UberUtils {
      * @param item - The item
      */
     public static void removeEnchantmentLore(ItemStack item) {
+        update(item, uberEnchantment);
+        update(item, storedUberEnchantment);
         ItemMeta meta = item.getItemMeta();
-        if (meta.hasLore() && offset(item) > 0) {
+        int n = offset(item);
+        if (meta.hasLore() && n > 0) {
             List<String> lore = meta.getLore();
-            if (offset(item) > 0) {
-                lore.subList(0, offset(item)).clear();
-            }
-            /*
-             * List<String> effects =
-             * UberEnchantment.getEnchantments(item).entrySet().stream().map(
-             * data -> displayName(data.getKey(),
-             * data.getValue())).collect(Collectors.toList());
-             * effects.forEach(effect -> { if (lore.contains(effect))
-             * lore.remove(effect); }); lore.removeAll(effects);
-             */
+            if (n <= lore.size())
+                lore.subList(0, n).clear();
             meta.setLore(lore);
             item.setItemMeta(meta);
         }
@@ -355,8 +610,12 @@ public class UberUtils {
      * @return A string with the formatted display name
      */
     public static String displayName(UberEnchantment enchantment, int level) {
+        return displayName(enchantment, level, level);
+    }
+
+    public static String displayName(UberEnchantment enchantment, int level, int duration) {
         if (enchantment instanceof EffectEnchantment e)
-            return ChatUtils.color(format(enchantment.getDisplayName(), level, level * 20));
+            return ChatUtils.color(format(enchantment.getDisplayName(), level, duration * 20));
         return ChatUtils.color(enchantment.getDisplayName() + " " + toRomanNumeral(level));
     }
 
@@ -371,7 +630,8 @@ public class UberUtils {
         if (item.getItemMeta() instanceof EnchantmentStorageMeta)
             return UberEnchantment.getStoredEnchantments(item).size();
         */
-        return item.getType() == Material.ENCHANTED_BOOK ? getStoredMap(item).size() : getMap(item).size();
+        return item.getType() == Material.ENCHANTED_BOOK ? getStoredMap(item).size() : (int) getMap(item).keySet().stream()
+                .filter(enchantment -> !BoolTag.HIDDEN.test(item, enchantment)).count();
     }
 
     /**
@@ -432,5 +692,22 @@ public class UberUtils {
         if (minutes > 0)
             return String.format("%1$s %2$s (%3$sm %4$ss)", name, roman, minutes % 60, a);
         return String.format("%1$s %2$s (%3$ss)", name, roman, a);
+    }
+
+    private static void update(ItemStack item, NamespacedKey namespaced) {
+        ItemMeta meta = item.getItemMeta();
+        PersistentDataContainer data = getPDC(item, namespaced);
+        if (data == null)
+            return;
+        getCustomMap(item, namespaced).forEach((k, v) -> {
+            if (data.has(k.getKey(), PersistentDataType.INTEGER))  {
+                data.remove(k.getKey());
+                PersistentDataContainer mdata = data.getAdapterContext().newPersistentDataContainer();
+                mdata.set(generateKey("level"), PersistentDataType.INTEGER, v);
+                data.set(k.getKey(), TAG, mdata);
+            }
+        });
+        meta.getPersistentDataContainer().set(namespaced, TAG,  data);
+        item.setItemMeta(meta);
     }
 }

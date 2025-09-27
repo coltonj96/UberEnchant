@@ -16,7 +16,9 @@ public abstract class UberTabCommand extends UberCommand implements IUberTabComp
         if (sender instanceof Player player) {
             this.player = player;
             this.args = args;
-            return onTab();
+            return onTab().stream().filter(l ->
+                    args[args.length-1].isEmpty() || l.startsWith(args[args.length-1]) || l.contains(args[args.length-1])
+            ).toList();
         }
         return null;
     }
