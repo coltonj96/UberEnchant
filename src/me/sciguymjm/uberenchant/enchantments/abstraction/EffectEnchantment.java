@@ -292,7 +292,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
             return;
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
-        if (item == null || item.getType() == Material.AIR || !containsEnchantment(item))
+        if (item.getType() == Material.AIR || !containsEnchantment(item))
             return;
         if (conditions(item))
             return;
@@ -306,7 +306,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
             return;
         LivingEntity entity = event.getEntity();
         ItemStack item = event.getItem().getItemStack();
-        if (item == null || item.getType() == Material.AIR || !containsEnchantment(item))
+        if (item.getType() == Material.AIR || !containsEnchantment(item))
             return;
         if (conditions(item))
             return;
@@ -322,7 +322,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
             return;
         if (event.getEntity() instanceof LivingEntity entity) {
             ItemStack item = event.getItemDrop().getItemStack();
-            if (item == null || item.getType() == Material.AIR || !containsEnchantment(item))
+            if (item.getType() == Material.AIR || !containsEnchantment(item))
                 return;
             if (conditions(item))
                 return;
@@ -336,7 +336,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
         if (event.isCancelled())
             return;
         ItemStack item = event.getItemDrop().getItemStack();
-        if (item == null || item.getType() == Material.AIR || !containsEnchantment(item))
+        if (item.getType() == Material.AIR || !containsEnchantment(item))
             return;
         if (conditions(item))
             return;

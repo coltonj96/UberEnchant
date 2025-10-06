@@ -41,7 +41,7 @@ public class ExcellentEnchantsRecord extends UberRecord implements EnchantmentDa
                                    List<String> aliases,
                                    Map<Integer, Double> levelCost) {
         super(enchantment, key, displayName, minLevel, maxLevel, cost, costMultiplier, removelCost, extractionCost, useOnAnything, aliases, levelCost);
-        this.displayName = FileUtils.get(Bukkit.getPluginManager().getPlugin("ExcellentEnchants"), "enchants/" + getKey().getKey() + ".yml", "Definition.DisplayName", super.displayName, String.class);
+        this.displayName = FileUtils.get(plugin, "enchants/" + getKey().getKey() + ".yml", "Definition.DisplayName", super.displayName, String.class);
         YamlConfiguration config = FileUtils.loadConfig(plugin, "enchants/" + key.getKey() + ".yml");
         if (config != null) {
             weight = config.getInt("Definition.Weight");

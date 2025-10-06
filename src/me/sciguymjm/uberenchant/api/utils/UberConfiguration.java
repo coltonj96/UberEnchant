@@ -31,7 +31,7 @@ public class UberConfiguration {
     private static final Set<Enchantment> enchantments;
 
     static {
-        if (VersionUtils.isAtLeast("1.20.4"))
+        if (VersionUtils.isV1_20_4())
             enchantments = new HashSet<>(Registry.ENCHANTMENT.stream().toList());
         else
             enchantments = new HashSet<>(List.of(Enchantment.values()));
@@ -95,7 +95,7 @@ public class UberConfiguration {
                         data.save(file);
                         //data = YamlConfiguration.loadConfiguration(file);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
                 } else {
                     cost = section.getConfigurationSection("cost_for_level");
@@ -105,9 +105,14 @@ public class UberConfiguration {
                         list.put(Integer.parseInt(k), cost.getDouble(k));
                     } catch (NumberFormatException ignored) {}
                 });
+                String display = key.toString().replace(":", ".");
+                if (enchant instanceof UberEnchantment uber)
+                    display = uber.getDisplayName();
+                if (key.getNamespace().equalsIgnoreCase("minecraft"))
+                    display = UberLocale.get(key.toString().replace("minecraft:", "enchant."));
                 UberRecord record = new UberRecord(enchant,
                         key,
-                        (enchant instanceof UberEnchantment) ? ((UberEnchantment) enchant).getDisplayName() : UberLocale.get(key.toString().replace(":", ".")),
+                        display,
                         section.getInt("min_level"),
                         section.getInt("max_level"),
                         section.getDouble("cost"),
@@ -117,7 +122,7 @@ public class UberConfiguration {
                         section.getBoolean("use_on_anything"),
                         section.getStringList("aliases"),
                         list);
-                if (VersionUtils.getKey(enchant).getNamespace().equalsIgnoreCase("ExcellentEnchants"))
+                if (key.getNamespace().equalsIgnoreCase("ExcellentEnchants"))
                     UberRecord.addRecord(new ExcellentEnchantsRecord(record));
                 else
                     UberRecord.addRecord(record);
@@ -252,7 +257,7 @@ public class UberConfiguration {
         try {
             data.save(file);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -325,7 +330,7 @@ public class UberConfiguration {
     @SuppressWarnings("deprecation")
     public static void integrate()  {
         List<Enchantment> temp;
-        if (VersionUtils.isAtLeast("1.20.4"))
+        if (VersionUtils.isV1_20_4())
             temp = new ArrayList<>(Registry.ENCHANTMENT.stream().toList());
         else
             temp = Arrays.asList(Enchantment.values());
@@ -357,7 +362,7 @@ public class UberConfiguration {
                 data.save(file);
                 UberEnchant.log(Level.INFO, UberLocale.getF("console.plugin_integrated", enchantments.size(), plugin.getName()));
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
     }

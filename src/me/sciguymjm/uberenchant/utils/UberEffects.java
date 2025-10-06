@@ -73,7 +73,7 @@ public class UberEffects {
 
     private static PotionEffectType getType(String key) {
         NamespacedKey namespacedKey = NamespacedKey.minecraft(key.toLowerCase());
-        return VersionUtils.isAtLeast("1.20.4") ? Registry.EFFECT.get(namespacedKey) : PotionEffectType.getByName(namespacedKey.getKey().toUpperCase());
+        return VersionUtils.isV1_20_4() ? Registry.EFFECT.get(namespacedKey) : PotionEffectType.getByName(namespacedKey.getKey().toUpperCase());
     }
 
     private static PotionEffectType getType(String... s) {
@@ -84,7 +84,7 @@ public class UberEffects {
         }
         Version version = Arrays.stream(v).sorted((a, b) -> b.version.compareTo(a.version)).filter(ver -> VersionUtils.isAtLeast(ver.version)).findFirst().orElse(null);
         NamespacedKey key = NamespacedKey.minecraft(version.type.toLowerCase());
-        return VersionUtils.isAtLeast("1.20.4") ? Registry.EFFECT.get(key) : PotionEffectType.getByName(key.getKey().toUpperCase());
+        return VersionUtils.isV1_20_4() ? Registry.EFFECT.get(key) : PotionEffectType.getByName(key.getKey().toUpperCase());
     }
 
     private record Version(String type, String version) {}

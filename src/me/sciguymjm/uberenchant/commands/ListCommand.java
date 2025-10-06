@@ -2,10 +2,7 @@ package me.sciguymjm.uberenchant.commands;
 
 import me.sciguymjm.uberenchant.UberEnchant;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
-import me.sciguymjm.uberenchant.utils.ChatUtils;
-import me.sciguymjm.uberenchant.utils.EffectUtils;
-import me.sciguymjm.uberenchant.utils.Reply;
-import me.sciguymjm.uberenchant.utils.UberLocale;
+import me.sciguymjm.uberenchant.utils.*;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import org.bukkit.conversations.*;
 
@@ -36,6 +33,19 @@ public class ListCommand extends UberTabCommand {
                 default -> EnchantmentUtils.help(player, "ulist");
             }
         } else {
+            /*
+            //ItemStack item = player.getInventory().getItemInMainHand();
+            //if (!item.getType().equals(Material.AIR)) {
+                //FileUtils.createConfig("test.yml");
+                ItemStack item = FileUtils.get("test.yml", "test", ItemStack.class);
+                if (item != null) {
+                    UberUtils.addEnchantmentLore(item);
+                    player.getInventory().setItemInMainHand(item);
+                }
+                //player.getInventory().addItem(item);
+                //FileUtils.set("test.yml", "test", item);
+            //}
+             */
             response("&6%1$s", command.getUsage());
         }
         return true;
@@ -56,8 +66,8 @@ public class ListCommand extends UberTabCommand {
     private void converse() {
         ConversationFactory factory = new ConversationFactory(UberEnchant.instance());
         Conversation chat = factory.withFirstPrompt(new NumericPrompt() {
-            private String HELP = ChatUtils.color(UberLocale.getCF("&8", "actions.list.page.instructions", 1, EnchantmentUtils.getPages()));
-            private String INVALID = ChatUtils.color("&8&l[&5UberEnchant&8&l] " + UberLocale.getC("&c", "actions.list.page.invalid_input"));
+            private final String HELP = ChatUtils.color(UberLocale.getCF("&8", "actions.list.page.instructions", 1, EnchantmentUtils.getPages()));
+            private final String INVALID = ChatUtils.color("&8&l[&5UberEnchant&8&l] " + UberLocale.getC("&c", "actions.list.page.invalid_input"));
 
             @Override
             protected Prompt acceptValidatedInput(ConversationContext context, Number input) {

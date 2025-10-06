@@ -26,9 +26,7 @@ import java.util.*;
 
 /**
  * Custom enchantment related utility class
- *
  * Data structure:
- *
  * ItemStack:(PersistentDataContainer)
  * -> UberEnchantment:(PersistentDataContainer)
  * --> Tag1(Type)
@@ -171,7 +169,7 @@ public class UberUtils extends PDCItemUtils {
 
     public static Map<Enchantment, Integer> getAllMap(ItemStack item) {
         Map<Enchantment, Integer> map = new HashMap<>(item.getEnchantments());
-        if (VersionUtils.isAtLeast("1.20.4"))
+        if (VersionUtils.isV1_20_4())
             map.putAll(getMap(item));
         return map;
     }
@@ -181,7 +179,7 @@ public class UberUtils extends PDCItemUtils {
         if (item.getItemMeta() instanceof EnchantmentStorageMeta meta) {
             if (meta.hasStoredEnchants())
                 map.putAll(meta.getStoredEnchants());
-            if (VersionUtils.isAtLeast("1.20.4"))
+            if (VersionUtils.isV1_20_4())
                 map.putAll(getStoredMap(item));
         }
         return map;
@@ -352,7 +350,7 @@ public class UberUtils extends PDCItemUtils {
                 remove(item, namespace);
 
             ItemMeta meta = item.getItemMeta();
-            if (!has(item, namespace)) {
+            if (notNull(meta) && !has(item, namespace)) {
                 setEnchantmentGlintOverride(meta, null);
                 item.setItemMeta(meta);
             }
@@ -555,6 +553,8 @@ public class UberUtils extends PDCItemUtils {
      */
     public static void addEnchantmentLore(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
+        if (meta == null)
+            return;
         List<String> lore = new ArrayList<>();
         if (meta.hasLore())
             lore = meta.getLore();
@@ -615,7 +615,7 @@ public class UberUtils extends PDCItemUtils {
 
     public static String displayName(UberEnchantment enchantment, int level, int duration) {
         if (enchantment instanceof EffectEnchantment e)
-            return ChatUtils.color(format(enchantment.getDisplayName(), level, duration * 20));
+            return ChatUtils.color(format(e.getDisplayName(), level, duration * 20));
         return ChatUtils.color(enchantment.getDisplayName() + " " + toRomanNumeral(level));
     }
 
@@ -697,7 +697,7 @@ public class UberUtils extends PDCItemUtils {
     private static void update(ItemStack item, NamespacedKey namespaced) {
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer data = getPDC(item, namespaced);
-        if (data == null)
+        if (meta == null || data == null)
             return;
         getCustomMap(item, namespaced).forEach((k, v) -> {
             if (data.has(k.getKey(), PersistentDataType.INTEGER))  {

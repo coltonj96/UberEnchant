@@ -1,9 +1,6 @@
 package me.sciguymjm.uberenchant.utils;
 
 import me.sciguymjm.uberenchant.UberEnchant;
-import me.sciguymjm.uberenchant.api.UberEnchantment;
-import org.bukkit.Registry;
-import org.bukkit.enchantments.Enchantment;
 
 import java.io.*;
 import java.util.*;
@@ -25,7 +22,7 @@ public class UberLocale {
             defaults = new PropertyResourceBundle(UberEnchant.instance().getResource("locale/en_us.properties"));
             bundles.put("defaults", defaults);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -50,9 +47,9 @@ public class UberLocale {
         }
     }
 
-    public static void updateEnchantments() {
+    /*public static void updateEnchantments() {
         List<Enchantment> temp;
-        if (VersionUtils.isAtLeast("1.20.4"))
+        if (VersionUtils.isV1_20_4())
             temp = new ArrayList<>(Registry.ENCHANTMENT.stream().toList());
         else
             temp = new ArrayList<>(Arrays.stream(Enchantment.values()).toList());
@@ -62,7 +59,8 @@ public class UberLocale {
         Properties prop = new Properties();
         //Properties def = new Properties();
         try {
-            file.createNewFile();
+            if (!file.exists())
+                file.createNewFile();
             FileInputStream input = new FileInputStream(file);
             //def.load(UberEnchant.instance().getResource("locale/en_us.properties"));
             prop.load(input);
@@ -71,20 +69,20 @@ public class UberLocale {
                 if (!prop.containsKey(k))
                     prop.put(k, v);
             });*/
-            keys.forEach(key -> {
+    /*        keys.forEach(key -> {
                 if (!prop.containsKey(key))
                     prop.put(key, key.split("\\.")[1]);
             });
-            temp.forEach(e -> {
+            /*temp.forEach(e -> {
                 prop.remove(VersionUtils.getKey(e).toString().replace(":", "."));
-            });
-            FileOutputStream output = new FileOutputStream(file);
+            });*/
+    /*        FileOutputStream output = new FileOutputStream(file);
             prop.store(output, "");
             output.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
+    }*/
 
     /**
      * Utility method for internal use.
@@ -98,7 +96,7 @@ public class UberLocale {
             locale = file.getName();
             bundles.put("loaded", bundle);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -107,7 +105,7 @@ public class UberLocale {
             PropertyResourceBundle prb = new PropertyResourceBundle(new FileInputStream(file));
             bundles.put(name, prb);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -125,9 +123,9 @@ public class UberLocale {
             UberEnchant.log(Level.WARNING, "Translation for " + key + " not found in " + locale + ", using default translation.");
             return defaults.getString(key);
         }
-        PropertyResourceBundle enchants = bundles.get("enchantments");
+        /*PropertyResourceBundle enchants = bundles.get("enchantments");
         if (enchants.containsKey(key))
-            return enchants.getString(key);
+            return enchants.getString(key);*/
         UberEnchant.log(Level.WARNING, "No translation found for " + key + "!");
         return key;
     }

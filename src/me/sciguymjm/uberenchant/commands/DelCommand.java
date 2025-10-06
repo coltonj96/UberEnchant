@@ -87,7 +87,7 @@ public class DelCommand extends UberTabCommand {
                 list.add("effect");
             if (hasPermission("uber.del.lore"))
                 list.add("lore");
-            if (VersionUtils.isAtLeast("1.20.4") && hasPermission("uber.del.meta"))
+            if (VersionUtils.isV1_20_4() && hasPermission("uber.del.meta"))
                 list.add("meta");
             if (hasPermission("uber.del.name"))
                 list.add("name");
@@ -101,7 +101,7 @@ public class DelCommand extends UberTabCommand {
                 }
                 case "effect" -> list = player.getActivePotionEffects().stream().map(effect -> effect.getType().getName().toLowerCase()).toList();
                 case "meta" -> {
-                    if (!VersionUtils.isAtLeast("1.20.4"))
+                    if (!VersionUtils.isV1_20_4())
                         return list;
                     Map<UberEnchantment, Integer> map = UberUtils.getMap(item);
                     if (!item.getType().equals(Material.AIR) && !map.isEmpty())
@@ -165,7 +165,7 @@ public class DelCommand extends UberTabCommand {
     }
 
     private void meta(ItemStack item) {
-        if (!VersionUtils.isAtLeast("1.20.4"))
+        if (!VersionUtils.isV1_20_4())
             return;
         if (item.getType().equals(Material.AIR)) {
             response(Reply.HOLD_ITEM);
@@ -180,6 +180,8 @@ public class DelCommand extends UberTabCommand {
         if (EnchantmentUtils.multi(player, set))
             return;
 
+        if (set == null)
+            return;
         UberEnchantment enchant = set.iterator().next();
 
         if (!enchant.containsEnchantment(item)) {
@@ -249,7 +251,7 @@ public class DelCommand extends UberTabCommand {
         }
         int index = UberUtils.offset(item);
         ItemMeta meta = item.getItemMeta();
-        if (!meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index == 0)) {
+        if (meta == null || !meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index == 0)) {
             localized("&c", "actions.lore.remove.no_lore");
             return;
         }
@@ -262,7 +264,7 @@ public class DelCommand extends UberTabCommand {
             localized("&a", "actions.lore.remove.success");
             return;
         }
-        int line = -1;
+        int line;
         try {
             line = Integer.parseInt(args[1]);
         } catch (NumberFormatException err) {

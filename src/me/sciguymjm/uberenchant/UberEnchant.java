@@ -28,9 +28,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
@@ -42,17 +40,24 @@ public class UberEnchant extends JavaPlugin {
     private static Economy economy;
 
     public void onEnable() {
-        //Debugging.enable();
+        Debugging.enable();
         plugin = this;
 
         initResources();
         //initTags();
         update();
 
-        if (VersionUtils.isAtLeast("1.20.4"))
+        if (VersionUtils.isV1_20_4())
             EffectEnchantment.init();
 
-        new Metrics(this, 1952);
+        Metrics metrics = new Metrics(this, 1952);
+        /*metrics.addCustomChart(new MultiLineChart("players_and_servers", () -> {
+            Map<String, Integer> valueMap = new HashMap<>();
+            valueMap.put("servers", 1);
+            valueMap.put("players", Bukkit.getOnlinePlayers().size());
+            return valueMap;
+        }));*/
+
 
         if (getConfig().getBoolean("use_economy") && !economyLoaded())
             log(Level.WARNING, UberLocale.get("uberenchant.economy_not_found"));
@@ -131,15 +136,16 @@ public class UberEnchant extends JavaPlugin {
         saveDefaultConfig();
 
         FileUtils.initResource("locale/en_us.properties");
+        FileUtils.initResource("locale/zh_cn.properties");
         FileUtils.initResource("enchantments/default/vanilla_enchantments.yml");
         FileUtils.initResource("enchantments/default/vanilla_effects.yml");
         FileUtils.initResource("mechanics/anvil.yml");
         FileUtils.initResource("mechanics/enchantment_table.yml");
 
         UberLocale.update();
-        UberLocale.updateEnchantments();
+        //UberLocale.updateEnchantments();
         UberLocale.load(FileUtils.getFile("/locale/" + getConfig().getString("locale") + ".properties"));
-        UberLocale.add("enchantments", FileUtils.getFile("/locale/enchantments.properties"));
+        //UberLocale.add("enchantments", FileUtils.getFile("/locale/enchantments.properties"));
     }
 
     private void initTags() {
@@ -171,7 +177,7 @@ public class UberEnchant extends JavaPlugin {
                 YamlConfiguration.loadConfiguration(old).save(enchantments);
                 old.delete();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
     }

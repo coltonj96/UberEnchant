@@ -86,7 +86,7 @@ public class SetCommand extends UberTabCommand {
                     list.add("effect");
                 if (hasPermission("uber.set.lore"))
                     list.add("lore");
-                if (VersionUtils.isAtLeast("1.20.4") && hasPermission("uber.set.meta"))
+                if (VersionUtils.isV1_20_4() && hasPermission("uber.set.meta"))
                     list.add("meta");
                 if (hasPermission("uber.set.name"))
                     list.add("name");
@@ -105,7 +105,7 @@ public class SetCommand extends UberTabCommand {
                     }
                     case "effect" -> list = EffectUtils.matchEffects(args[1]);
                     case "meta" -> {
-                        if (!VersionUtils.isAtLeast("1.20.4"))
+                        if (!VersionUtils.isV1_20_4())
                             return list;
                         ItemStack item = player.getInventory().getItemInMainHand();
                         Map<UberEnchantment, Integer> map = UberUtils.getMap(item);
@@ -123,6 +123,7 @@ public class SetCommand extends UberTabCommand {
                 ).toList();
             }
             if (args.length == 4 && BoolTag.matches(args[2])) {
+                list = new ArrayList<>(list);
                 list.add("true");
                 list.add("false");
             }
@@ -134,7 +135,7 @@ public class SetCommand extends UberTabCommand {
         /*UberEnchantmentsAddedEvent event = new UberEnchantmentsAddedEvent(player, item, null);
         if (event.isCancelled())
             return;*/
-        if (!VersionUtils.isAtLeast("1.20.4"))
+        if (!VersionUtils.isV1_20_4())
             return;
         if (item.getType().equals(Material.AIR)) {
             response(Reply.HOLD_ITEM);
@@ -147,6 +148,8 @@ public class SetCommand extends UberTabCommand {
         }
 
         Set<UberEnchantment> set = EnchantmentUtils.getMatches(item, args[1]);
+        if (set == null)
+            return;
         if (EnchantmentUtils.multi(player, set))
             return;
         UberEnchantment enchant = set.iterator().next();
@@ -248,8 +251,8 @@ public class SetCommand extends UberTabCommand {
             response(Reply.ARGUMENTS);
             return;
         }
-        int level = 1;
-        int duration = 60;
+        int level;
+        int duration;
         try {
             duration = Integer.parseInt(args[2]);
             duration *= 20;
@@ -289,13 +292,13 @@ public class SetCommand extends UberTabCommand {
         }
         int index = UberUtils.offset(item);
         ItemMeta meta = item.getItemMeta();
-        if (!meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index == 0)) {
+        if (meta == null || !meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index == 0)) {
             localized("&c", "actions.lore.set.no_lore");
             return;
         }
         List<String> lore = meta.getLore();
         int size = lore.size() - index;
-        int line = -1;
+        int line;
         try {
             line = Integer.parseInt(args[1]);
         } catch (NumberFormatException err) {

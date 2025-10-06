@@ -15,7 +15,7 @@ public class FileUtils {
     public static void initResource(String path) {
         if (!path.startsWith("/"))
             path = "/" + path;
-        File f = getFile(UberEnchant.instance(), path);
+        File f = getFile(path);
         if (!f.exists())
             UberEnchant.instance().saveResource(path.replaceFirst("/", ""), false);
     }
@@ -47,18 +47,41 @@ public class FileUtils {
         return YamlConfiguration.loadConfiguration(file);
     }
 
-    public static <T> T get(String path, String key, Object def, Class<T> type) {
+    public static YamlConfiguration createConfig(Plugin plugin, String path) {
+        File file = getFile(plugin, path);
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+        try {
+            config.save(file);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return config;
+    }
+
+    public static YamlConfiguration createConfig(String path) {
+        return createConfig(UberEnchant.instance(), path);
+    }
+
+    public static <T> T get(String path, String key, Class<T> type) {
+        return get(path, key, null, type);
+    }
+
+    public static <T> T get(String path, String key, T def, Class<T> type) {
         return get(UberEnchant.instance(), path, key, def, type);
     }
 
-    public static <T> T get(Plugin plugin, String path, String key, Object def, Class<T> type) {
+    public static <T> T get(Plugin plugin, String path, String key, Class<T> type) {
+        return get(plugin, path, key, null, type);
+    }
+
+    public static <T> T get(Plugin plugin, String path, String key, T def, Class<T> type) {
         YamlConfiguration config = loadConfig(plugin, path);
         if (config == null)
             return null;
-        return type.cast(config.get(key, def));
+        return config.getObject(key, type, def);
     }
 
-    public static <T> T updateAndGet(String path, String key, Object def, Class<T> type) {
+    public static <T> T updateAndGet(String path, String key, T def, Class<T> type) {
         if (!contains(path, key))
             set(path, key, def);
         return get(path, key, def, type);
@@ -87,11 +110,13 @@ public class FileUtils {
     public static void set(Plugin plugin, String path, String key, Object value) {
         File file = getFile(plugin, path);
         YamlConfiguration config = loadConfig(file);
+        if (config == null)
+            config = createConfig(plugin, path);
         config.set(key, value);
         try {
             config.save(file);
         } catch (IOException e) {
-            e.getCause().printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }

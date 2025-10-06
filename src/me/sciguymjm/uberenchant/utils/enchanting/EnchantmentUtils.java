@@ -426,7 +426,7 @@ public class EnchantmentUtils {
     }
 
     private static List<String> list(String... strings) {
-        if (VersionUtils.isAtLeast("1.20.4"))
+        if (VersionUtils.isV1_20_4())
             return new ArrayList<>(List.of(strings));
         return new ArrayList<>(Arrays.stream(strings).filter(string -> !string.contains("meta")).toList());
     }

@@ -24,7 +24,7 @@ public class PDCUtils {
     }
 
     public static boolean has(PersistentDataContainer pdc, NamespacedKey key) {
-        if (VersionUtils.isAtLeast("1.20.4"))
+        if (VersionUtils.isV1_20_4())
             return notNull(pdc, key) && pdc.has(key);
         return notNull(pdc, key) && pdc.getKeys().contains(key);
     }

@@ -2,7 +2,6 @@ package me.sciguymjm.uberenchant.utils.enchanting;
 
 import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
-import me.sciguymjm.uberenchant.api.utils.UberRecord;
 import me.sciguymjm.uberenchant.api.utils.random.UberRandom;
 import me.sciguymjm.uberenchant.api.utils.random.Weighted;
 import me.sciguymjm.uberenchant.api.utils.random.WeightedChance;
@@ -26,11 +25,11 @@ public class EnchantmentTableUtils {
 
     public static Map<UUID, Long> seed;
 
-    private static boolean floor_bonus;
-    private static Map<Material, Double> bonus_map;
-    private static WeightedChance<Integer> weight;
+    private static final boolean floor_bonus;
+    private static final Map<Material, Double> bonus_map;
+    private static final WeightedChance<Integer> weight;
 
-    private static Map<Enchantment, OtherData> other;
+    private static final Map<Enchantment, OtherData> other;
 
     static {
         seed = new HashMap<>();
@@ -40,11 +39,11 @@ public class EnchantmentTableUtils {
             String[] split = e.split(":");
 
             Material key = Registry.MATERIAL.get(NamespacedKey.minecraft(split[0]));
-            double value = 0.0;
+            double value;
             try {
                  value = Double.parseDouble(split[1]);
             } catch (NumberFormatException err) {
-                err.printStackTrace();
+                throw new RuntimeException(err);
             }
             if (key != null && key.isBlock())
                 bonus_map.put(key, value);
@@ -107,7 +106,17 @@ public class EnchantmentTableUtils {
                  "chainmail_chestplate",
                  "chainmail_helmet",
                  "chainmail_leggings" -> 12;
-            case "diamond_axe",
+            case "copper_boots",
+                 "copper_chestplate",
+                 "copper_helmet",
+                 "copper_leggings" -> 8;
+            case "copper_axe",
+                 "copper_hoe",
+                 "copper_pickaxe",
+                 "copper_shovel",
+                 "copper_sword" -> 13;
+            case "armadillo_scute",
+                 "diamond_axe",
                  "diamond_boots",
                  "diamond_chestplate",
                  "diamond_helmet",
@@ -178,7 +187,7 @@ public class EnchantmentTableUtils {
             return 0;
         } else {
             int l = random.nextInt(8) + 1 + (bonus >> 1) + random.nextInt(bonus + 1);
-            return slot == 0 ? Math.max(l / 3, 1) : (slot == 1 ? l * 2 / 3 + 1 : Math.max(l, bonus));
+            return slot == 0 ? Math.max(l / 3, 1) : (slot == 1 ? l * 2 / 3 + 1 : Math.max(l, bonus * 2));
         }
     }
 
@@ -302,14 +311,13 @@ public class EnchantmentTableUtils {
         Material type = item.getType();
         //List<WeightedEnchantment> list = new ArrayList<>();
         boolean isBook = type == Material.BOOK;
-        Set<UberRecord> enchantments = UberConfiguration.getRecords();
 
         CustomList list = new CustomList(new ArrayList<>(), new ArrayList<>());
 
-        for (UberRecord record : enchantments) {
+        UberConfiguration.getRecords().stream().filter(r ->
+                !EnchantmentTableEvents.isDisabled(r.getEnchant())
+        ).forEach(record -> {
             Enchantment enchantment = record.getEnchant();
-            if (EnchantmentTableEvents.isDisabled(enchantment))
-                continue;
             if ((!EnchantmentUtils.isTreasure(enchantment) || flag) && (EnchantmentUtils.canEnchant(enchantment, item) || isBook || record.getCanUseOnAnything())) {
                 for (int j = record.getMaxLevel(); j >= record.getMinLevel(); --j) {
                     if (cost >= minCost(j, enchantment) && cost <= maxCost(j, enchantment)) {
@@ -321,7 +329,7 @@ public class EnchantmentTableUtils {
                     }
                 }
             }
-        }
+        });
         return list;
     }
 

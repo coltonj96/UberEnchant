@@ -81,7 +81,7 @@ public class AddCommand extends UberTabCommand {
                 list.add("effect");
             if (hasPermission("uber.add.lore"))
                 list.add("lore");
-            if (VersionUtils.isAtLeast("1.20.4") && hasPermission("uber.add.meta"))
+            if (VersionUtils.isV1_20_4() && hasPermission("uber.add.meta"))
                 list.add("meta");
             if (hasPermission("uber.add.name"))
                 list.add("name");
@@ -91,7 +91,7 @@ public class AddCommand extends UberTabCommand {
                 case "enchant" -> list = EnchantmentUtils.find(player, args[1]);
                 case "effect" -> list = EffectUtils.matchEffects(args[1]);
                 case "meta" -> {
-                    if (!VersionUtils.isAtLeast("1.20.4"))
+                    if (!VersionUtils.isV1_20_4())
                         return list;
                     ItemStack item = player.getInventory().getItemInMainHand();
                     Map<UberEnchantment, Integer> map = UberUtils.getMap(item);
@@ -102,10 +102,11 @@ public class AddCommand extends UberTabCommand {
         }
         if (args.length >= 3 && args[0].equalsIgnoreCase("meta")) {
             if (args.length == 3)
-                list = UberMeta.values().stream().filter(value ->
-                        hasPermission(String.format("uber.add.meta.%1$s", value.getName()))
-                ).map(UberMeta::getName).toList();
+                list = UberMeta.values().stream().map(UberMeta::getName).filter(name ->
+                        hasPermission(String.format("uber.add.meta.%1$s", name))
+                ).toList();
             if (args.length == 4 && BoolTag.matches(args[2])) {
+                list = new ArrayList<>(list);
                 list.add("true");
                 list.add("false");
             }
@@ -141,7 +142,7 @@ public class AddCommand extends UberTabCommand {
             response(Reply.ARGUMENTS);
             return;
         }
-        int level = 0;
+        int level;
         try {
             level = Integer.parseInt(args[2]);
         } catch (NumberFormatException e) {
@@ -233,7 +234,7 @@ public class AddCommand extends UberTabCommand {
         //UberEnchantmentsAddedEvent event = new UberEnchantmentsAddedEvent(player, item, null);
         //if (event.isCancelled())
             //return;
-        if (!VersionUtils.isAtLeast("1.20.4"))
+        if (!VersionUtils.isV1_20_4())
             return;
         if (item.getType().equals(Material.AIR)) {
             response(Reply.HOLD_ITEM);
@@ -246,8 +247,11 @@ public class AddCommand extends UberTabCommand {
         }
 
         Set<UberEnchantment> set = EnchantmentUtils.getMatches(item, args[1]);
+        if (set == null)
+            return;
         if (EnchantmentUtils.multi(player, set))
             return;
+
         UberEnchantment enchant = set.iterator().next();
 
         if (!enchant.containsEnchantment(item)) {
@@ -409,7 +413,9 @@ public class AddCommand extends UberTabCommand {
         }
         String name = ChatUtils.color(message.toString().trim());
         ItemMeta meta = item.getItemMeta();
-        List<String> lore = new ArrayList<String>();
+        if (meta == null)
+            return;
+        List<String> lore = new ArrayList<>();
         if (meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index > 0)) {
             lore = meta.getLore();
         }
