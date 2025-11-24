@@ -13,6 +13,7 @@ import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
 import me.sciguymjm.uberenchant.enchantments.tasks.HeldEffectTask;
 import me.sciguymjm.uberenchant.utils.*;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
+import me.sciguymjm.uberenchant.utils.plugins.VaultUtils;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -81,7 +82,7 @@ public class AddCommand extends UberTabCommand {
                 list.add("effect");
             if (hasPermission("uber.add.lore"))
                 list.add("lore");
-            if (VersionUtils.isV1_20_4() && hasPermission("uber.add.meta"))
+            if (Versions.isV1_20_4() && hasPermission("uber.add.meta"))
                 list.add("meta");
             if (hasPermission("uber.add.name"))
                 list.add("name");
@@ -91,7 +92,7 @@ public class AddCommand extends UberTabCommand {
                 case "enchant" -> list = EnchantmentUtils.find(player, args[1]);
                 case "effect" -> list = EffectUtils.matchEffects(args[1]);
                 case "meta" -> {
-                    if (!VersionUtils.isV1_20_4())
+                    if (!Versions.isV1_20_4())
                         return list;
                     ItemStack item = player.getInventory().getItemInMainHand();
                     Map<UberEnchantment, Integer> map = UberUtils.getMap(item);
@@ -177,7 +178,7 @@ public class AddCommand extends UberTabCommand {
             response(Reply.PERMISSIONS);
             return;
         }
-        if (hasPermission("uber.enchant.%1$s.free", e.getName().toLowerCase()) || !EconomyUtils.useEconomy()) {
+        if (hasPermission("uber.enchant.%1$s.free", e.getName().toLowerCase()) || !VaultUtils.useEconomy()) {
             if (level >= e.getMinLevel() && level <= e.getMaxLevel() || hasPermission("uber.enchant.bypass.level")) {
                 if (level > 255) {
                     localized("&c", "actions.enchant.add.max_level");
@@ -196,7 +197,7 @@ public class AddCommand extends UberTabCommand {
             }
             return;
         }
-        if (EconomyUtils.hasEconomy()) {
+        if (VaultUtils.hasEconomy()) {
             if (!e.getEnchant().canEnchantItem(item)) {
                 if (!e.getCanUseOnAnything() || !hasPermission("uber.enchant.bypass.any")) {
                     localized("&c", "actions.enchant.add.incompatible");
@@ -205,7 +206,7 @@ public class AddCommand extends UberTabCommand {
             }
             if (level >= e.getMinLevel() && level <= e.getMaxLevel()) {
                 double cost = e.getLevelCost().containsKey(level) ? e.getLevelCost().get(level) : e.getCost() + (e.getCostMultiplier() * e.getCost() * (level - 1));
-                if (EconomyUtils.has(player, cost)) {
+                if (VaultUtils.has(player, cost)) {
                     if (level > 255) {
                         localized("&c", "actions.enchant.add.max_level");
                         level = 255;
@@ -215,12 +216,12 @@ public class AddCommand extends UberTabCommand {
                         EnchantmentUtils.setStoredEnchantment(enchant, item, level);
                     else
                         EnchantmentUtils.setEnchantment(enchant, item, level);
-                    EconomyResponse n = EconomyUtils.withdraw(player, cost);
+                    EconomyResponse n = VaultUtils.withdraw(player, cost);
                     player.getInventory().setItemInMainHand(item);
                     localized("&a", "actions.enchant.add.pay_success", e.getDisplayName(), level, n.amount);
                     Bukkit.getServer().getPluginManager().callEvent(event);
                 } else {
-                    localized("&c", "actions.enchant.add.pay_more", cost - EconomyUtils.getBalance(player));
+                    localized("&c", "actions.enchant.add.pay_more", cost - VaultUtils.getBalance(player));
                 }
             } else {
                 localized("&c", "actions.enchant.add.range", e.getMinLevel(), e.getMaxLevel());
@@ -234,7 +235,7 @@ public class AddCommand extends UberTabCommand {
         //UberEnchantmentsAddedEvent event = new UberEnchantmentsAddedEvent(player, item, null);
         //if (event.isCancelled())
             //return;
-        if (!VersionUtils.isV1_20_4())
+        if (!Versions.isV1_20_4())
             return;
         if (item.getType().equals(Material.AIR)) {
             response(Reply.HOLD_ITEM);
@@ -446,15 +447,15 @@ public class AddCommand extends UberTabCommand {
             localized("&c", "actions.name.no_name");
             return;
         }
-        if (EconomyUtils.hasEconomy()) {
-            double cost = EconomyUtils.getCost("cost.name.add");
-            if (EconomyUtils.has(player, cost)) {
-                EconomyUtils.withdraw(player, cost);
+        if (VaultUtils.hasEconomy()) {
+            double cost = VaultUtils.getCost("cost.name.add");
+            if (VaultUtils.has(player, cost)) {
+                VaultUtils.withdraw(player, cost);
                 meta.setDisplayName(prev + name);
                 item.setItemMeta(meta);
                 localized("&a", "actions.name.add.pay_success", cost);
             } else {
-                localized("&c", "actions.name.add.pay_fail", cost - EconomyUtils.getBalance(player));
+                localized("&c", "actions.name.add.pay_fail", cost - VaultUtils.getBalance(player));
             }
         } else {
             meta.setDisplayName(prev + name);

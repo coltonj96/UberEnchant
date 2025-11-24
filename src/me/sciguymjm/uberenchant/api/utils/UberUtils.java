@@ -9,7 +9,7 @@ import me.sciguymjm.uberenchant.api.utils.persistence.tags.MetaTag;
 import me.sciguymjm.uberenchant.api.utils.persistence.tags.UUIDTag;
 import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
 import me.sciguymjm.uberenchant.utils.ChatUtils;
-import me.sciguymjm.uberenchant.utils.VersionUtils;
+import me.sciguymjm.uberenchant.utils.Versions;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -169,7 +169,7 @@ public class UberUtils extends PDCItemUtils {
 
     public static Map<Enchantment, Integer> getAllMap(ItemStack item) {
         Map<Enchantment, Integer> map = new HashMap<>(item.getEnchantments());
-        if (VersionUtils.isV1_20_4())
+        if (Versions.isV1_20_4())
             map.putAll(getMap(item));
         return map;
     }
@@ -179,7 +179,7 @@ public class UberUtils extends PDCItemUtils {
         if (item.getItemMeta() instanceof EnchantmentStorageMeta meta) {
             if (meta.hasStoredEnchants())
                 map.putAll(meta.getStoredEnchants());
-            if (VersionUtils.isV1_20_4())
+            if (Versions.isV1_20_4())
                 map.putAll(getStoredMap(item));
         }
         return map;

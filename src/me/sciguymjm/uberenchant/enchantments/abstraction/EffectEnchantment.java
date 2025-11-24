@@ -15,11 +15,11 @@ import me.sciguymjm.uberenchant.enchantments.effects.armor.helmet.NightVisionEnc
 import me.sciguymjm.uberenchant.enchantments.effects.armor.helmet.WaterBreathingEnchantment;
 import me.sciguymjm.uberenchant.enchantments.tasks.HeldEffectTask;
 import me.sciguymjm.uberenchant.utils.UberEffects;
-import me.sciguymjm.uberenchant.utils.VersionUtils;
-import me.sciguymjm.uberenchant.utils.WorldGuardUtils;
+import me.sciguymjm.uberenchant.utils.Versions;
+import me.sciguymjm.uberenchant.utils.plugins.TownyUtils;
+import me.sciguymjm.uberenchant.utils.plugins.WorldGuardUtils;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Animals;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -158,7 +158,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
     }
 
     public boolean apply(ItemStack item, LivingEntity entity, int duration) {
-        if (WorldGuardUtils.worldGuardLoaded() && WorldGuardUtils.denyPotionSplash(entity, entity.getLocation()))
+        if (WorldGuardUtils.denyPotionSplash(entity, entity.getLocation()))
             return false;
         return new PotionEffect(getEffect().getEffect(), duration, getLevel(item) - 1, false, false).apply(entity);
     }
@@ -212,9 +212,9 @@ public abstract class EffectEnchantment extends UberEnchantment {
         new DolphinsGraceEnchantment();
         new BadOmenEnchantment();
         new HeroOfTheVillageEnchantment();
-        if (VersionUtils.isAtLeast("1.19"))
+        if (Versions.v1_19.atLeast())
             new DarknessEnchantment();
-        if (VersionUtils.isAtLeast("1.20.5")) {
+        if (Versions.v1_20_5.atLeast()) {
             new TrialOmenEnchantment();
             new RaidOmenEnchantment();
             new WindChargedEnchantment();
@@ -229,14 +229,16 @@ public abstract class EffectEnchantment extends UberEnchantment {
         if (damager instanceof Player player && damaged instanceof LivingEntity entity) {
             ItemStack item = player.getInventory().getItemInMainHand();
             if (item.getType() != Material.AIR && containsEnchantment(item)) {
-                if (WorldGuardUtils.worldGuardLoaded()) {
+                if (TownyUtils.denyDamage(player, entity) | WorldGuardUtils.denyDamage(player, entity))
+                    return;
+                /*if (WorldGuardUtils.isLoaded()) {
                     if (entity instanceof Player && WorldGuardUtils.denyPvp(player, entity.getLocation()))
                         return;
                     if (entity instanceof Animals && WorldGuardUtils.denyDamageAnimals(player, entity.getLocation()))
                         return;
                     if (WorldGuardUtils.denyPotionSplash(player, entity.getLocation()))
                         return;
-                }
+                }*/
                 double chance = DoubleTag.CHANCE.get(item, this, (double) getLevel(item) / getMaxLevel());
                 boolean outcome = WeightedChance.fromArray(
                         new WeightedEntry<>(true, chance),
@@ -251,7 +253,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
     public void apply(Player player) {
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item.getType() != Material.AIR && containsEnchantment(item)) {
-            if (WorldGuardUtils.worldGuardLoaded() && WorldGuardUtils.denyPotionSplash(player, player.getLocation()))
+            if (WorldGuardUtils.denyPotionSplash(player, player.getLocation()))
                 return;
             double chance = DoubleTag.CHANCE.get(item, this, (double) getLevel(item) / getMaxLevel());
             boolean outcome = WeightedChance.fromArray(
@@ -267,7 +269,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
         if (!player.isValid())
             return false;
         ItemStack i = player.getInventory().getItem(slot);
-        if (i == null || !containsEnchantment(i) || (WorldGuardUtils.worldGuardLoaded() && WorldGuardUtils.denyPotionSplash(player, player.getLocation())))
+        if (i == null || !containsEnchantment(i) || WorldGuardUtils.denyPotionSplash(player, player.getLocation()))
             return false;
         if (n % duration == 0)
             return apply(i, player);
@@ -368,14 +370,16 @@ public abstract class EffectEnchantment extends UberEnchantment {
             ItemStack item = player.getInventory().getItemInMainHand();
             if (item.getType() == Material.AIR || !containsEnchantment(item) || !BoolTag.ON_HIT.test(item, this))
                 return;
-            if (WorldGuardUtils.worldGuardLoaded()) {
+            if (TownyUtils.denyDamage(player, entity) | WorldGuardUtils.denyDamage(player, entity))
+                return;
+            /*if (WorldGuardUtils.isLoaded()) {
                 if (entity instanceof Player && WorldGuardUtils.denyPvp(player, entity.getLocation()))
                     return;
                 if (entity instanceof Animals && WorldGuardUtils.denyDamageAnimals(player, entity.getLocation()))
                     return;
                 if (WorldGuardUtils.denyPotionSplash(player, entity.getLocation()))
                     return;
-            }
+            }*/
             if (conditions(item))
                 return;
             if (!BoolTag.HAS_CHANCE.test(item, this)) {

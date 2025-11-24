@@ -3,9 +3,9 @@ package me.sciguymjm.uberenchant.commands;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.api.utils.UberRecord;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
-import me.sciguymjm.uberenchant.utils.EconomyUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
+import me.sciguymjm.uberenchant.utils.plugins.VaultUtils;
 import org.bukkit.enchantments.Enchantment;
 
 import java.util.ArrayList;
@@ -97,7 +97,7 @@ public class CostCommand extends UberTabCommand {
             response(Reply.ARGUMENTS);
             return;
         }
-        int level = 0;
+        int level;
         try {
             level = Integer.parseInt(args[3]);
         } catch (NumberFormatException e) {
@@ -115,7 +115,7 @@ public class CostCommand extends UberTabCommand {
             return;
         }
         UberRecord e = UberConfiguration.getByEnchant(enchantment);
-        if (EconomyUtils.hasEconomy()) {
+        if (VaultUtils.hasEconomy()) {
             if (level >= e.getMinLevel() && level <= e.getMaxLevel()) {
                 double cost = e.getLevelCost().containsKey(level) ? e.getLevelCost().get(level) : e.getCost() + (e.getCostMultiplier() * e.getCost() * (level - 1));
                 localized("&a", "actions.cost.add.display", e.getName(), level, cost);
@@ -133,8 +133,8 @@ public class CostCommand extends UberTabCommand {
             response(Reply.ARGUMENTS);
             return;
         }
-        if (EconomyUtils.hasEconomy()) {
-            int level = 0;
+        if (VaultUtils.hasEconomy()) {
+            int level;
             try {
                 level = Integer.parseInt(args[3]);
             } catch (NumberFormatException e) {
@@ -164,7 +164,7 @@ public class CostCommand extends UberTabCommand {
             response(Reply.ARGUMENTS);
             return;
         }
-        if (EconomyUtils.hasEconomy()) {
+        if (VaultUtils.hasEconomy()) {
             Set<Enchantment> set = EnchantmentUtils.getMatches(args[2]);
             if (EnchantmentUtils.multi(player, set))
                 return;

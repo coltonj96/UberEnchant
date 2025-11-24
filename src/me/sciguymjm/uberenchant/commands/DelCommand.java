@@ -7,11 +7,11 @@ import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.api.utils.persistence.UberMeta;
 import me.sciguymjm.uberenchant.api.utils.persistence.tags.MetaTag;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
-import me.sciguymjm.uberenchant.utils.EconomyUtils;
 import me.sciguymjm.uberenchant.utils.EffectUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
-import me.sciguymjm.uberenchant.utils.VersionUtils;
+import me.sciguymjm.uberenchant.utils.Versions;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
+import me.sciguymjm.uberenchant.utils.plugins.VaultUtils;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -87,7 +87,7 @@ public class DelCommand extends UberTabCommand {
                 list.add("effect");
             if (hasPermission("uber.del.lore"))
                 list.add("lore");
-            if (VersionUtils.isV1_20_4() && hasPermission("uber.del.meta"))
+            if (Versions.isV1_20_4() && hasPermission("uber.del.meta"))
                 list.add("meta");
             if (hasPermission("uber.del.name"))
                 list.add("name");
@@ -101,7 +101,7 @@ public class DelCommand extends UberTabCommand {
                 }
                 case "effect" -> list = player.getActivePotionEffects().stream().map(effect -> effect.getType().getName().toLowerCase()).toList();
                 case "meta" -> {
-                    if (!VersionUtils.isV1_20_4())
+                    if (!Versions.isV1_20_4())
                         return list;
                     Map<UberEnchantment, Integer> map = UberUtils.getMap(item);
                     if (!item.getType().equals(Material.AIR) && !map.isEmpty())
@@ -138,23 +138,23 @@ public class DelCommand extends UberTabCommand {
                 response(Reply.PERMISSIONS);
                 return;
             }
-            if (hasPermission("uber.del.enchant.free") || !EconomyUtils.useEconomy()) {
+            if (hasPermission("uber.del.enchant.free") || !VaultUtils.useEconomy()) {
                 if (EnchantmentUtils.removeEnchantment(enchantment, item))
                     localized("&a", "actions.enchant.remove.success", enchant.getDisplayName());
                 else
                     localized("&c", "actions.enchant.remove.no_enchant", enchant.getDisplayName());
                 return;
             }
-            if (EconomyUtils.hasEconomy()) {
-                if (EconomyUtils.has(player, enchant.getRemovalCost())) {
+            if (VaultUtils.hasEconomy()) {
+                if (VaultUtils.has(player, enchant.getRemovalCost())) {
                     if (EnchantmentUtils.removeEnchantment(enchantment, item)) {
-                        EconomyUtils.withdraw(player, enchant.getRemovalCost());
+                        VaultUtils.withdraw(player, enchant.getRemovalCost());
                         localized("&a", "actions.enchant.remove.pay_success", enchant.getDisplayName(), enchant.getRemovalCost());
                     } else {
                         localized("&c", "actions.enchant.remove.no_enchant", enchant.getDisplayName());
                     }
                 } else {
-                    localized("&c", "actions.enchant.remove.pay_more", enchant.getRemovalCost() - EconomyUtils.getBalance(player));
+                    localized("&c", "actions.enchant.remove.pay_more", enchant.getRemovalCost() - VaultUtils.getBalance(player));
                 }
             } else {
                 response(Reply.NO_ECONOMY);
@@ -165,7 +165,7 @@ public class DelCommand extends UberTabCommand {
     }
 
     private void meta(ItemStack item) {
-        if (!VersionUtils.isV1_20_4())
+        if (!Versions.isV1_20_4())
             return;
         if (item.getType().equals(Material.AIR)) {
             response(Reply.HOLD_ITEM);
@@ -302,15 +302,15 @@ public class DelCommand extends UberTabCommand {
             localized("&c", "actions.name.no_name");
             return;
         }
-        if (EconomyUtils.useEconomy() && EconomyUtils.hasEconomy()) {
-            double cost = EconomyUtils.getCost("cost.name.remove");
-            if (EconomyUtils.has(player, cost)) {
-                EconomyUtils.withdraw(player, cost);
+        if (VaultUtils.useEconomy() && VaultUtils.hasEconomy()) {
+            double cost = VaultUtils.getCost("cost.name.remove");
+            if (VaultUtils.has(player, cost)) {
+                VaultUtils.withdraw(player, cost);
                 meta.setDisplayName(null);
                 item.setItemMeta(meta);
                 localized("&a", "actions.name.remove.pay_success", cost);
             } else {
-                localized("&c", "actions.name.remove.pay_fail", (cost - EconomyUtils.getBalance(player)));
+                localized("&c", "actions.name.remove.pay_fail", (cost - VaultUtils.getBalance(player)));
             }
         } else {
             meta.setDisplayName(null);

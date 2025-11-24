@@ -193,7 +193,7 @@ knockback:
     removal_cost: 100.0
     extraction_cost: 1000.0
     use_on_anything: false
-    aliases: ["arrow_knockback"]
+    aliases: []
 looting:
     min_level: 1
     max_level: 10

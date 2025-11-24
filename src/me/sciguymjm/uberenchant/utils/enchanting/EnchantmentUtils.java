@@ -8,6 +8,7 @@ import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.utils.ChatUtils;
 import me.sciguymjm.uberenchant.utils.UberLocale;
 import me.sciguymjm.uberenchant.utils.VersionUtils;
+import me.sciguymjm.uberenchant.utils.Versions;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -386,34 +387,39 @@ public class EnchantmentUtils {
      */
     public static void help(Player player, String command) {
         Map<String, List<String>> map = new HashMap<>();
-        map.put("ulist", list("    &6&l/ulist &7effects | enchants"));
-        map.put("uadd", list(
-                "    &6&l/uadd &7enchant <enchantment> <level>",
-                "    &6&l/uadd &7enchant all <level>",
-                "    &6&l/uadd &7effect <effect> <duration> <level>",
-                "    &6&l/uadd &7meta <enchantment> <tag> <value>",
-                "    &6&l/uadd &7name <string...>",
-                "    &6&l/uadd &7lore <string...>"
-        ));
-        map.put("ucost", list("    &6&l/ucost &7<add | del | extract> enchant <enchantment> <level>"));
-        map.put("udel", list(
-                "    &6&l/udel &7enchant <enchantment>",
-                "    &6&l/udel &7effect <effect>",
-                "    &6&l/udel &7lore <line#>",
-                "    &6&l/udel &7meta <enchantment> <tag>",
-                "    &6&l/udel &7name"
-        ));
-        map.put("uextract", list("    &6&l/uextract &7<enchantment | id>"));
-        map.put("uset", list(
-                "    &6&l/uset &7effect <effect> <duration> <level>",
-                "    &6&l/uset &7hidden <true | false>",
-                "    &6&l/uset &7lore <line#> <string...>",
-                "    &6&l/uset &7meta <enchantment> <tag> <value>",
-                "    &6&l/uset &7name <string...>"
-        ));
-        map.put("uinsert", list("    &6&l/uinsert &7lore <line#> <string...>"));
-        map.put("uclear", list("    &6&l/uclear &7enchant | effect | lore"));
-        map.put("ureload", list("    &6&l/ureload"));
+        add(map, "ulist", "effects | enchants");
+        add(map, "uadd",
+                "enchant <enchantment> <level>",
+                "enchant all <level>",
+                "effect <effect> <duration> <level>",
+                "meta <enchantment> <tag> <value>",
+                "name <string...>",
+                "lore <string...>"
+        );
+        add(map, "ucost", "<add | del | extract> enchant <enchantment> <level>");
+        add(map, "udel",
+                "enchant <enchantment>",
+                "effect <effect>",
+                "lore <line#>",
+                "meta <enchantment> <tag>",
+                "name"
+        );
+        add(map, "uextract", "<enchantment | id>");
+        add(map, "uset",
+                "effect <effect> <duration> <level>",
+                "hidden <true | false>",
+                "lore <line#> <string...>",
+                "meta <enchantment> <tag> <value>",
+                "name <string...>"
+        );
+        add(map, "uinsert", "lore <line#> <string...>");
+        add(map, "uclear", "enchant | effect | lore");
+        add(map, "uitem",
+                "save <name>",
+                "load <name> [player]",
+                "delete <name>"
+        );
+        add(map, "ureload", "");
 
         if (!map.containsKey(command)) {
             List<String> list = new ArrayList<>();
@@ -425,10 +431,19 @@ public class EnchantmentUtils {
         }
     }
 
-    private static List<String> list(String... strings) {
-        if (VersionUtils.isV1_20_4())
-            return new ArrayList<>(List.of(strings));
-        return new ArrayList<>(Arrays.stream(strings).filter(string -> !string.contains("meta")).toList());
+    private static List<String> list(String command, String... args) {
+        boolean ver = Versions.v1_20_4.atLeast();
+        return new ArrayList<>(Arrays.stream(args)
+                .filter(arg -> !(ver && arg.contains("meta")))
+                .map(arg -> {
+                    if (arg.isEmpty())
+                        return "    &6&l/" + command;
+                    return String.format("    &6&l/%1$s &7%2$s", command, arg);
+                }).toList());
+    }
+
+    private static void add(Map<String, List<String>> map, String command, String... args) {
+        map.put(command, list(command, args));
     }
 
     /**

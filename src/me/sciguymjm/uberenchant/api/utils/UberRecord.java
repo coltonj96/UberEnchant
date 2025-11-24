@@ -1,5 +1,6 @@
 package me.sciguymjm.uberenchant.api.utils;
 
+import me.sciguymjm.uberenchant.utils.VersionUtils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 
@@ -104,6 +105,31 @@ public class UberRecord {
         this.useOnAnything = useOnAnything;
         this.aliases = aliases;
         this.levelCost = levelCost;
+    }
+
+    public UberRecord(Enchantment enchantment,
+                      String displayName,
+                      double cost,
+                      double costMultiplier,
+                      double removelCost,
+                      double extractionCost,
+                      boolean useOnAnything,
+                      List<String> aliases,
+                      Map<Integer, Double> levelCost) {
+        this(
+                enchantment,
+                VersionUtils.getKey(enchantment),
+                displayName,
+                enchantment.getStartLevel(),
+                enchantment.getMaxLevel(),
+                cost,
+                costMultiplier,
+                removelCost,
+                extractionCost,
+                useOnAnything,
+                aliases,
+                levelCost
+        );
     }
 
     /**

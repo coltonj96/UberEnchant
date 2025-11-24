@@ -1,10 +1,11 @@
 package me.sciguymjm.uberenchant.utils;
 
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.conversations.Conversable;
-import org.bukkit.entity.Player;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,15 +17,11 @@ public class ChatUtils {
     /**
      * Sends the specified player a specific reply.
      *
-     * @param player Player
+     * @param sender CommandSender
      * @param reply  Reply
      */
-    public static void response(Player player, Reply reply) {
-        response(player, reply.get());
-    }
-
-    public static void response(Conversable person, Reply reply) {
-        response(person, reply.get());
+    public static void response(CommandSender sender, Reply reply) {
+        response(sender, reply.get());
     }
 
     /**
@@ -33,28 +30,16 @@ public class ChatUtils {
      * @param message The message
      * @hidden
      */
-    public static void response(Player player, String message) {
-        response(player, message, "");
+    public static void response(CommandSender sender, String message) {
+        response(sender, message, "");
     }
 
-    public static void response(Conversable person, String message) {
-        response(person, message, "");
+    public static void localized(CommandSender sender, String color, String key) {
+        response(sender, UberLocale.getC(color, key));
     }
 
-    public static void localized(Player player, String color, String key) {
-        response(player, UberLocale.getC(color, key));
-    }
-
-    public static void localized(Conversable person, String color, String key) {
-        response(person, UberLocale.getC(color, key));
-    }
-
-    public static void localized(Player player, String color, String key, Object... args) {
-        response(player,  UberLocale.getCF(color, key, args));
-    }
-
-    public static void localized(Conversable person, String color, String key, Object... args) {
-        response(person,  UberLocale.getCF(color, key, args));
+    public static void localized(CommandSender sender, String color, String key, Object... args) {
+        response(sender, UberLocale.getCF(color, key, args));
     }
 
     /**
@@ -67,16 +52,12 @@ public class ChatUtils {
      * // outputs "[UberEnchant] This is a message for john_doe"
      * }</pre>
      *
-     * @param player  - The player
+     * @param sender  - The sender
      * @param message - The message
      * @param args    - The arguments for the message
      */
-    public static void response(Player player, String message, Object... args) {
-        player.sendMessage(color("&8&l[&5UberEnchant&8&l] %1$s".formatted(message).formatted(args)));
-    }
-
-    public static void response(Conversable person, String message, Object... args) {
-        person.sendRawMessage(color("&8&l[&5UberEnchant&8&l] %1$s".formatted(message).formatted(args)));
+    public static void response(CommandSender sender, String message, Object... args) {
+        sendMessage(sender, color("&8&l[&5UberEnchant&8&l] %1$s".formatted(message).formatted(args)));
     }
 
     /**
@@ -86,27 +67,25 @@ public class ChatUtils {
      * @param args    The formatting arguments
      * @hidden
      */
-    public static void response(Player player, String message, String[] args) {
-        response(player, message, (Object[]) args);
+    public static void response(CommandSender sender, String message, String[] args) {
+        response(sender, message, (Object[]) args);
     }
-
-    public static void response(Conversable person, String message, String[] args) {
-        response(person, message, (Object[]) args);
-    }
-
 
     /**
      * Sends the specified player an array of messages.
      *
-     * @param player   - The player
+     * @param sender   - The player
      * @param messages - The array of messages
      */
-    public static void response(Player player, String[] messages) {
+    public static void response(CommandSender sender, String[] messages) {
         messages[0] = color("&8&l[&5UberEnchant&8&l] %1$s".formatted(messages[0]));
         for (int i = 1; i < messages.length; i++) {
             messages[i] = color(messages[i]);
         }
-        player.sendMessage(messages);
+        if (sender instanceof Conversable person && person.isConversing())
+            Arrays.stream(messages).forEach(person::sendRawMessage);
+        else
+            sender.sendMessage(messages);
     }
 
     /**
@@ -128,7 +107,7 @@ public class ChatUtils {
      */
     public static String color(String string) {
         try {
-            Class<?> chatColor = null;
+            Class<?> chatColor;
             Class.forName("net.md_5.bungee.api.ChatColor");
             chatColor = Class.forName("net.md_5.bungee.api.ChatColor");
             Method of = chatColor.getMethod("of", String.class);
@@ -143,5 +122,12 @@ public class ChatUtils {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static void sendMessage(CommandSender sender, String message) {
+        if (sender instanceof Conversable person && person.isConversing())
+            person.sendRawMessage(message);
+        else
+            sender.sendMessage(message);
     }
 }

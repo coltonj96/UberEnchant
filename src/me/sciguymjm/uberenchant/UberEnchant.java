@@ -12,8 +12,9 @@ import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
 import me.sciguymjm.uberenchant.utils.*;
 import me.sciguymjm.uberenchant.utils.enchanting.AnvilEvents;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentTableEvents;
-import net.milkbowl.vault.economy.Economy;
+import me.sciguymjm.uberenchant.utils.plugins.PluginUtils;
 import org.bstats.bukkit.Metrics;
+import org.bstats.charts.MultiLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -22,7 +23,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -37,30 +37,25 @@ import java.util.logging.Level;
 public class UberEnchant extends JavaPlugin {
 
     private static UberEnchant plugin;
-    private static Economy economy;
 
     public void onEnable() {
-        Debugging.enable();
+        //Debugging.enable();
         plugin = this;
 
         initResources();
-        //initTags();
         update();
+        PluginUtils.initAll();
 
-        if (VersionUtils.isV1_20_4())
+        if (Versions.isV1_20_4())
             EffectEnchantment.init();
 
         Metrics metrics = new Metrics(this, 1952);
-        /*metrics.addCustomChart(new MultiLineChart("players_and_servers", () -> {
+        metrics.addCustomChart(new MultiLineChart("players_and_servers", () -> {
             Map<String, Integer> valueMap = new HashMap<>();
             valueMap.put("servers", 1);
             valueMap.put("players", Bukkit.getOnlinePlayers().size());
             return valueMap;
-        }));*/
-
-
-        if (getConfig().getBoolean("use_economy") && !economyLoaded())
-            log(Level.WARNING, UberLocale.get("uberenchant.economy_not_found"));
+        }));
 
         registerTabCommand("uadd", new AddCommand());
         registerTabCommand("uclear", new ClearCommand());
@@ -69,6 +64,7 @@ public class UberEnchant extends JavaPlugin {
         registerTabCommand("uextract", new ExtractCommand());
         registerCommand("uhelp", new HelpCommand());
         registerCommand("uinsert", new InsertCommand());
+        registerTabCommand("uitem", new ItemCommand());
         registerTabCommand("ulist", new ListCommand());
         registerCommand("ureload", new ReloadCommand());
         registerTabCommand("uset", new SetCommand());
@@ -95,17 +91,17 @@ public class UberEnchant extends JavaPlugin {
                         long def = UberConfiguration.getRecords(a -> a.getEnchant() instanceof EffectEnchantment && a.getKey() != null && a.getKey().getNamespace().equalsIgnoreCase(getName())).size();
                         long vanilla = UberConfiguration.getRecords(a -> a.getKey() != null && a.getKey().getNamespace().equalsIgnoreCase(NamespacedKey.MINECRAFT)).size();
                         List<String> strings = new ArrayList<>(List.of(new String[]{
-                                UberLocale.getF("console.enchantment_table_status", enchants ? "enabled" : "disabled"),
-                                UberLocale.getF("console.anvil_status", anvil ? "enabled" : "disabled"),
-                                UberLocale.getF("console.vanilla_enchantments", vanilla),
-                                UberLocale.getF("console.default_enchantments", def),
-                                UberLocale.getF("console.loaded_enchantments", loaded)
+                                UberLocale.getCF("&6", "console.enchantment_table_status", enchants ? "&aenabled" : "&cdisabled"),
+                                UberLocale.getCF("&6", "console.anvil_status", anvil ? "&aenabled" : "&cdisabled"),
+                                UberLocale.getCF("&6", "console.vanilla_enchantments", "&a" + vanilla),
+                                UberLocale.getCF("&6", "console.default_enchantments", "&a" + def),
+                                UberLocale.getCF("&6", "console.loaded_enchantments", "&a" + loaded)
                         }));
                         UberConfiguration.getIntegrated().forEach(name -> {
                             int enchantments = UberConfiguration.getRecords(record -> record.getKey() != null && record.getKey().getNamespace().equalsIgnoreCase(name)).size();
-                            strings.add(UberLocale.getF("console.integrated_loaded", enchantments, name));
+                            strings.add(UberLocale.getCF("&6", "console.integrated_loaded", "&a" + enchantments, "&a" + name));
                         });
-                        strings.add(UberLocale.getF("console.total_enchantments", UberConfiguration.getRecords().stream().filter(value -> value.getEnchant() != null).count()));
+                        strings.add(UberLocale.getCF("&6", "console.total_enchantments", "&a" + UberConfiguration.getRecords().stream().filter(value -> value.getEnchant() != null).count()));
                         int length = strings.stream().max(Comparator.comparing(String::length)).get().length();
                         /*String[] UE = {
                                 "UU  UU BBBBB  EEEEE RRRRR  EEEEE NN    NN  CCCCC HH  HH  AAAA  NN    NN TTTTTT",
@@ -116,16 +112,15 @@ public class UberEnchant extends JavaPlugin {
                         };
                         log(Level.INFO, "\n" + String.join("\n", UE));
                         Arrays.stream(UE).forEach(s -> log(Level.INFO, s));*/
-                        log(Level.INFO, "=".repeat(length+8));
-                        strings.forEach(string -> log(Level.INFO, "||  " + string + " ".repeat(length - string.length()+2) + "||"));
-                        log(Level.INFO, "=".repeat(length+8));
+                        log(Level.INFO, "&8" + "=".repeat(length+4));
+                        strings.forEach(string -> log(Level.INFO, "&8||  &5" + string + " ".repeat(length - string.length()+2) + "&8||"));
+                        log(Level.INFO, "&8" + "=".repeat(length+4));
                     }
                 }.runTask(plugin);
             }
         });
 
         UberRunnable.getInstance();
-
     }
 
     public void onDisable() {
@@ -182,16 +177,6 @@ public class UberEnchant extends JavaPlugin {
         }
     }
 
-    private boolean economyLoaded() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null)
-            return false;
-        RegisteredServiceProvider<Economy> economyService = getServer().getServicesManager().getRegistration(Economy.class);
-        if (economyService == null)
-            return false;
-        economy = economyService.getProvider();
-        return economy.isEnabled();
-    }
-
     private void registerCommand(String name, UberCommand command) {
         getCommand(name).setExecutor(command);
     }
@@ -237,29 +222,14 @@ public class UberEnchant extends JavaPlugin {
         Bukkit.getServer().getPluginManager().registerEvents(listener, plugin);
     }
 
-    /**
-     * Gets the economy currently being used.<br>
-     * (May return null in case of no economy or unspported economy)
-     *
-     * @return The current economy or null
-     */
-    public static Economy getEconomy() {
-        return economy;
-    }
-
-    /**
-     * Gets whether there is an economy or not.
-     *
-     * @return True if the server has a supported economy
-     */
-    public static boolean hasEconomy() {
-        return economy != null;
-    }
-
-    public static void log(Level level, String message) {
+    public static void log(Level level, String... message) {
         if (level.equals(Level.WARNING)) {
-            message = "!!!WARNING!!! " + message;
+            String[] temp = new String[message.length + 1];
+            temp[0] = "&4!!!WARNING!!!";
+            System.arraycopy(message, 0, temp, 1, message.length);
+            message = temp;
         }
-        plugin.getLogger().log(level, message);
+        ChatUtils.response(Bukkit.getConsoleSender(), message);
+        //plugin.getLogger().log(level, message);
     }
 }

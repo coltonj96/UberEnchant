@@ -10,6 +10,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public interface MetaTag<T> {
@@ -139,12 +140,41 @@ public interface MetaTag<T> {
                     }).collect(Collectors.toSet());
         }
 
+        static <T> MetaTag<T> get(Predicate<MetaTag<?>> filter, PersistentDataType<?, T> type) {
+            return tags.stream().filter(filter.and(tag -> tag.getType().equals(type))).map(tag ->
+                    new MetaTag<T>() {
+
+                        @Override
+                        public NamespacedKey getKey() {
+                            return tag.getKey();
+                        }
+
+                        @Override
+                        public String getName() {
+                            return tag.getName();
+                        }
+
+                        @Override
+                        public PersistentDataType<?, T> getType() {
+                            return type;
+                        }
+                    }).findFirst().orElse(null);
+        }
+
         static MetaTag<?> get(String name) {
             return tags.stream().filter(tag -> tag.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
         }
 
+        static <T> MetaTag<T> get(String name, PersistentDataType<?, T> type) {
+            return get(tag -> tag.getName().equalsIgnoreCase(name), type);
+        }
+
         static MetaTag<?> get(NamespacedKey key) {
             return tags.stream().filter(tag -> tag.getKey().equals(key)).findFirst().orElse(null);
+        }
+
+        static <T> MetaTag<T> get(NamespacedKey key, PersistentDataType<?, T> type) {
+            return get(tag -> tag.getKey().equals(key), type);
         }
 
         static void add(MetaTag<?> tag) {

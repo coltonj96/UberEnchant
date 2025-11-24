@@ -14,15 +14,11 @@ import java.util.regex.Pattern;
 public class VersionUtils {
 
     private static boolean isPaper;
-    private static final boolean v1_21_4;
-    private static final boolean v1_20_4;
 
     private static final int[] version;
 
     static {
         version = parseVersion(Bukkit.getBukkitVersion());
-        v1_21_4 = isAtLeast("1.21.4");
-        v1_20_4 = isAtLeast("1.20.4");
         try {
             Class.forName("io.papermc.paper.plugin.provider.classloader.PaperClassLoaderStorage");
             isPaper = true;
@@ -56,13 +52,9 @@ public class VersionUtils {
                 (v1[0] == v2[0] && v1[1] == v2[1] && v1[2] >= v2[2]);
     }
 
-    public static boolean isV1_20_4() {
-        return v1_20_4;
-    }
-
     public static <K extends Keyed> NamespacedKey getKey(K keyed) {
         NamespacedKey key;
-        if (!isPaper && v1_21_4 && keyed instanceof RegistryAware k)
+        if (!isPaper && Versions.v1_21_4.atLeast() && keyed instanceof RegistryAware k)
             key = k.getKeyOrNull();
         else
             key = keyed.getKey();

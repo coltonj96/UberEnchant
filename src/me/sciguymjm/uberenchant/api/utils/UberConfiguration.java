@@ -4,6 +4,7 @@ import me.sciguymjm.uberenchant.UberEnchant;
 import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.utils.UberLocale;
 import me.sciguymjm.uberenchant.utils.VersionUtils;
+import me.sciguymjm.uberenchant.utils.Versions;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
@@ -31,7 +32,7 @@ public class UberConfiguration {
     private static final Set<Enchantment> enchantments;
 
     static {
-        if (VersionUtils.isV1_20_4())
+        if (Versions.isV1_20_4())
             enchantments = new HashSet<>(Registry.ENCHANTMENT.stream().toList());
         else
             enchantments = new HashSet<>(List.of(Enchantment.values()));
@@ -330,7 +331,7 @@ public class UberConfiguration {
     @SuppressWarnings("deprecation")
     public static void integrate()  {
         List<Enchantment> temp;
-        if (VersionUtils.isV1_20_4())
+        if (Versions.isV1_20_4())
             temp = new ArrayList<>(Registry.ENCHANTMENT.stream().toList());
         else
             temp = Arrays.asList(Enchantment.values());

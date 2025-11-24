@@ -16,6 +16,8 @@ public abstract class UberCommand implements IUberCommand {
      */
     protected Player player;
 
+    protected CommandSender sender;
+
     /**
      * For internal use.
      */
@@ -26,16 +28,15 @@ public abstract class UberCommand implements IUberCommand {
     @Override
     public final boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         this.command = command;
-        if (sender instanceof Player player) {
-            this.player = player;
-            if (!hasPermission()) {
-                response(Reply.PERMISSIONS);
-                return true;
-            }
-            this.args = args;
-            return onCmd();
+        this.sender = sender;
+        this.args = args;
+        if (sender instanceof Player plyr)
+            this.player = plyr;
+        if (!hasPermission()) {
+            response(Reply.PERMISSIONS);
+            return true;
         }
-        return false;
+        return onCmd();
     }
 
     /**
@@ -46,7 +47,7 @@ public abstract class UberCommand implements IUberCommand {
      * @hidden
      */
     public final boolean hasPermission(String node) {
-        return player.hasPermission(node);
+        return sender.hasPermission(node);
     }
 
     /**
@@ -58,7 +59,7 @@ public abstract class UberCommand implements IUberCommand {
      * @hidden
      */
     public final boolean hasPermission(String node, Object... args) {
-        return player.hasPermission(node.formatted(args));
+        return sender.hasPermission(node.formatted(args));
     }
 
     /**
@@ -70,7 +71,7 @@ public abstract class UberCommand implements IUberCommand {
      * @hidden
      */
     public final boolean hasPermission(String node, String[] args) {
-        return player.hasPermission(node.formatted((Object[]) args));
+        return sender.hasPermission(node.formatted((Object[]) args));
     }
 
     /**
@@ -81,7 +82,7 @@ public abstract class UberCommand implements IUberCommand {
      * @hidden
      */
     public final boolean hasPermission() {
-        return player.hasPermission(command.getPermission());
+        return sender.hasPermission(command.getPermission());
     }
 
     /**
@@ -91,19 +92,19 @@ public abstract class UberCommand implements IUberCommand {
      * @hidden
      */
     public final void response(String message) {
-        ChatUtils.response(player, message);
+        ChatUtils.response(sender, message);
     }
 
     public final void response(Reply reply) {
-        ChatUtils.response(player, reply.get());
+        ChatUtils.response(sender, reply.get());
     }
 
     public final void localized(String color, String key) {
-        ChatUtils.localized(player, color, key);
+        ChatUtils.localized(sender, color, key);
     }
 
     public final void localized(String color, String key, Object... args) {
-        ChatUtils.localized(player, color, key, args);
+        ChatUtils.localized(sender, color, key, args);
     }
 
     /**
@@ -114,7 +115,7 @@ public abstract class UberCommand implements IUberCommand {
      * @hidden
      */
      public final void response(String message, Object... args) {
-         ChatUtils.response(player, message, args);
+         ChatUtils.response(sender, message, args);
      }
 
     /**
@@ -125,7 +126,7 @@ public abstract class UberCommand implements IUberCommand {
      * @hidden
      */
     public final void response(String message, String[] args) {
-        ChatUtils.response(player, message, args);
+        ChatUtils.response(sender, message, args);
     }
 
     /**
@@ -135,6 +136,6 @@ public abstract class UberCommand implements IUberCommand {
      * @hidden
      */
     public final void response(String[] messages) {
-        ChatUtils.response(player, messages);
+        ChatUtils.response(sender, messages);
     }
 }

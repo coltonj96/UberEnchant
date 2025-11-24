@@ -4,10 +4,10 @@ import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.api.utils.UberRecord;
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
-import me.sciguymjm.uberenchant.utils.EconomyUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
 import me.sciguymjm.uberenchant.utils.VersionUtils;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
+import me.sciguymjm.uberenchant.utils.plugins.VaultUtils;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -72,7 +72,7 @@ public class ExtractCommand extends UberTabCommand {
                 return;
             }
             int level = UberUtils.getAllMap(item).get(enchantment);
-            if (hasPermission("uber.extract.enchant.free") || !EconomyUtils.useEconomy()) {
+            if (hasPermission("uber.extract.enchant.free") || !VaultUtils.useEconomy()) {
                 if (player.getInventory().addItem(book).isEmpty()) {
                     EnchantmentUtils.removeEnchantment(enchantment, item);
                     localized("&a", "actions.enchant.extract.free_success", enchant.getDisplayName());
@@ -81,23 +81,23 @@ public class ExtractCommand extends UberTabCommand {
                 }
                 return;
             }
-            if (EconomyUtils.hasEconomy()) {
+            if (VaultUtils.hasEconomy()) {
                 if (!hasPermission("uber.extract.enchant.%1$s", enchant.getName().toLowerCase())) {
                     response(Reply.PERMISSIONS);
                     return;
                 }
                 double cost = enchant.getExtractionCost() + (enchant.getCostMultiplier() * enchant.getExtractionCost() * (level - 1));
-                if (EconomyUtils.has(player, cost)) {
+                if (VaultUtils.has(player, cost)) {
                     if (player.getInventory().addItem(book).isEmpty()) {
                         EnchantmentUtils.removeEnchantment(enchantment, item);
-                        EconomyResponse n = EconomyUtils.withdraw(player, cost);
+                        EconomyResponse n = VaultUtils.withdraw(player, cost);
                         localized("&a", "actions.enchant.extract.pay_success", enchant.getDisplayName(), n.amount);
                     } else {
                         localized("&c", "actions.enchant.extract.no_room");
                     }
                     return;
                 } else {
-                    localized("&c", "actions.enchant.extract.pay_more", cost - EconomyUtils.getBalance(player));
+                    localized("&c", "actions.enchant.extract.pay_more", cost - VaultUtils.getBalance(player));
                 }
             } else {
                 response(Reply.NO_ECONOMY);

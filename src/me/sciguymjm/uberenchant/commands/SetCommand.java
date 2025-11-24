@@ -13,6 +13,7 @@ import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
 import me.sciguymjm.uberenchant.enchantments.tasks.HeldEffectTask;
 import me.sciguymjm.uberenchant.utils.*;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
+import me.sciguymjm.uberenchant.utils.plugins.VaultUtils;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -86,7 +87,7 @@ public class SetCommand extends UberTabCommand {
                     list.add("effect");
                 if (hasPermission("uber.set.lore"))
                     list.add("lore");
-                if (VersionUtils.isV1_20_4() && hasPermission("uber.set.meta"))
+                if (Versions.v1_20_4.atLeast() && hasPermission("uber.set.meta"))
                     list.add("meta");
                 if (hasPermission("uber.set.name"))
                     list.add("name");
@@ -105,7 +106,7 @@ public class SetCommand extends UberTabCommand {
                     }
                     case "effect" -> list = EffectUtils.matchEffects(args[1]);
                     case "meta" -> {
-                        if (!VersionUtils.isV1_20_4())
+                        if (!Versions.isV1_20_4())
                             return list;
                         ItemStack item = player.getInventory().getItemInMainHand();
                         Map<UberEnchantment, Integer> map = UberUtils.getMap(item);
@@ -135,7 +136,7 @@ public class SetCommand extends UberTabCommand {
         /*UberEnchantmentsAddedEvent event = new UberEnchantmentsAddedEvent(player, item, null);
         if (event.isCancelled())
             return;*/
-        if (!VersionUtils.isV1_20_4())
+        if (!Versions.isV1_20_4())
             return;
         if (item.getType().equals(Material.AIR)) {
             response(Reply.HOLD_ITEM);
@@ -352,21 +353,21 @@ public class SetCommand extends UberTabCommand {
         }
         String name = ChatUtils.color(message.toString().trim());
         ItemMeta meta = item.getItemMeta();
-        if (hasPermission("uber.set.name.free") || !EconomyUtils.useEconomy()) {
+        if (hasPermission("uber.set.name.free") || !VaultUtils.useEconomy()) {
             meta.setDisplayName(name);
             item.setItemMeta(meta);
             localized("&a", "actions.name.set.success");
             return;
         }
-        if (EconomyUtils.hasEconomy()) {
-            double cost = EconomyUtils.getCost("cost.name.set");
-            if (EconomyUtils.has(player, cost)) {
-                EconomyUtils.withdraw(player, cost);
+        if (VaultUtils.hasEconomy()) {
+            double cost = VaultUtils.getCost("cost.name.set");
+            if (VaultUtils.has(player, cost)) {
+                VaultUtils.withdraw(player, cost);
                 meta.setDisplayName(name);
                 item.setItemMeta(meta);
                 localized("&a", "actions.name.set.pay_success", cost);
             } else {
-                localized("&c", "actions.name.set.pay_fail", cost - EconomyUtils.getBalance(player));
+                localized("&c", "actions.name.set.pay_fail", cost - VaultUtils.getBalance(player));
             }
         } else {
             meta.setDisplayName(name);

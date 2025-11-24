@@ -25,13 +25,17 @@ public class EnchantmentTableUtils {
 
     public static Map<UUID, Long> seed;
 
-    private static final boolean floor_bonus;
-    private static final Map<Material, Double> bonus_map;
-    private static final WeightedChance<Integer> weight;
+    private static boolean floor_bonus;
+    private static Map<Material, Double> bonus_map;
+    private static WeightedChance<Integer> weight;
 
-    private static final Map<Enchantment, OtherData> other;
+    private static Map<Enchantment, OtherData> other;
 
     static {
+        reload();
+    }
+
+    public static void reload() {
         seed = new HashMap<>();
         floor_bonus = FileUtils.get("/mechanics/enchantment_table.yml", "floor_bonus", false, Boolean.class);
         bonus_map = new HashMap<>();
@@ -41,7 +45,7 @@ public class EnchantmentTableUtils {
             Material key = Registry.MATERIAL.get(NamespacedKey.minecraft(split[0]));
             double value;
             try {
-                 value = Double.parseDouble(split[1]);
+                value = Double.parseDouble(split[1]);
             } catch (NumberFormatException err) {
                 throw new RuntimeException(err);
             }
@@ -172,6 +176,9 @@ public class EnchantmentTableUtils {
         };
     }
 
+    private static int[] min = {999, 999, 999};
+    private static int[] max = {0, 0, 0};
+
     /**
      * Utility method for internal use.
      *
@@ -186,9 +193,33 @@ public class EnchantmentTableUtils {
         if (value <= 0) {
             return 0;
         } else {
+
             int l = random.nextInt(8) + 1 + (bonus >> 1) + random.nextInt(bonus + 1);
-            return slot == 0 ? Math.max(l / 3, 1) : (slot == 1 ? l * 2 / 3 + 1 : Math.max(l, bonus * 2));
+
+            if (bonus > 15)
+                l += 2 * (bonus - 15);
+
+            int val1 = max(l / 3, 1);
+            int val2 = l * 2 / 3 + 1;
+            int val3 = max(l, bonus + 15);
+
+            int min3 = min(val3, 80); //c
+            int min2 = min(min3 - 16, val2); //b
+
+            int a = clamp(1, min2 - 8, val1);
+            int b = clamp(a + 8, min3 - 16, val2);
+            int c = clamp(b + 8, 80, val3);
+
+            return slot == 0 ? a : (slot == 1 ? b : c);
         }
+    }
+
+    private static int min(int... values) {
+        return Arrays.stream(values).min().orElse(1);
+    }
+
+    private static int max(int... values) {
+        return Arrays.stream(values).max().orElse(85);
     }
 
     /**
@@ -202,22 +233,17 @@ public class EnchantmentTableUtils {
      */
     public static CustomList getEnchantmentList(Player player, ItemStack item, int slot, int cost) {
         UberRandom random = new UberRandom(seed.get(player.getUniqueId()) + slot);
-
         CustomList list = selectEnchantment(random, item, cost, false);
 
-        if (item.getType().equals(Material.BOOK) && list.vanilla.size() > 1) {
+        if (item.getType().equals(Material.BOOK) && list.vanilla.size() > 1)
             list.vanilla.remove(random.nextInt(list.vanilla.size()));
-        }
-
-        if (item.getType().equals(Material.BOOK) && list.custom.size() > 1) {
+        if (item.getType().equals(Material.BOOK) && list.custom.size() > 1)
             list.custom.remove(random.nextInt(list.custom.size()));
-        }
-
         return list;
     }
 
-    private static int clamp(int i, int j) {
-        return Math.min(Math.max(i, j), Integer.MAX_VALUE);
+    private static int clamp(int i, int j, int k) {
+        return Math.max(i, Math.min(j, k));
     }
 
     /**
@@ -238,7 +264,7 @@ public class EnchantmentTableUtils {
             cost += 1 + random.nextInt(value / 4 + 1) + random.nextInt(value / 4 + 1);
             float f = (random.nextFloat() + random.nextFloat() - 1.0F) * 0.15F;
 
-            cost = clamp(Math.round((float) cost + (float) cost * f), 1);
+            cost = clamp(Math.round((float) cost + (float) cost * f), 1, Integer.MAX_VALUE);
 
             CustomList available = getAvailable(cost, item, flag);
 
@@ -250,15 +276,13 @@ public class EnchantmentTableUtils {
             }
 
             Optional<WeightedEnchantment> cInst;
-            if (!available.vanilla.isEmpty()) {
+            if (!available.custom.isEmpty()) {
                 cInst = getRandomItem(random, available.custom);
                 Objects.requireNonNull(list.custom);
                 cInst.ifPresent(list.custom::add);
             }
 
-            int rand = cost;
-
-            while (random.nextInt(rand) <= cost) {
+            while (random.nextInt(50) <= cost) {
                 if (!list.vanilla.isEmpty())
                     filter(available, list.vanilla.get(list.vanilla.size() - 1), item);
 
@@ -280,7 +304,7 @@ public class EnchantmentTableUtils {
                 if (available.vanilla.isEmpty() && available.custom.isEmpty())
                     break;
 
-                cost /= 2;
+                cost = 2 * cost / 3;
             }
         }
         return list;

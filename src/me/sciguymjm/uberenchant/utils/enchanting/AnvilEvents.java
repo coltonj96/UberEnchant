@@ -1,5 +1,6 @@
 package me.sciguymjm.uberenchant.utils.enchanting;
 
+import me.sciguymjm.uberenchant.UberEnchant;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.api.utils.persistence.UberMeta;
@@ -7,17 +8,25 @@ import me.sciguymjm.uberenchant.api.utils.persistence.tags.IntTag;
 import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
 import me.sciguymjm.uberenchant.utils.ChatUtils;
 import me.sciguymjm.uberenchant.utils.FileUtils;
+import me.sciguymjm.uberenchant.utils.plugins.ProtocolLibUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.PrepareAnvilEvent;
+import org.bukkit.event.inventory.*;
+import org.bukkit.event.server.ServerLoadEvent;
+import org.bukkit.inventory.AnvilInventory;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,12 +36,20 @@ import java.util.Map;
  */
 public class AnvilEvents implements Listener {
 
-    private static final boolean colors;
-    private static final boolean ignore;
+    private static boolean colors;
+    private static boolean ignore;
+    private static boolean has_limit;
+    private static int limit;
 
     static {
+        reload();
+    }
+
+    public static void reload() {
         colors = FileUtils.updateAndGet("/mechanics/anvil.yml", "colors_enabled", false, Boolean.class);
         ignore = FileUtils.updateAndGet("/mechanics/anvil.yml", "ignore_too_expensive", false, Boolean.class);
+        has_limit = FileUtils.updateAndGet("/mechanics/anvil.yml", "enable_level_cost_limit", false, Boolean.class);
+        limit = FileUtils.updateAndGet("/mechanics/anvil.yml", "level_cost_limit", 39, Integer.class);
     }
 
     private short getDamage(ItemStack item) {
@@ -58,20 +75,71 @@ public class AnvilEvents implements Listener {
         return meta instanceof Damageable;
     }
 
-    @SuppressWarnings("removal")
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void createResult(PrepareAnvilEvent event) {
+    public interface Test {
+        void run();
+    }
 
+    private void sched(Test test) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                test.run();
+            }
+        }.runTask(UberEnchant.instance());
+    }
+
+    @EventHandler
+    public void test(InventoryClickEvent event) {
+        Inventory inv = event.getInventory();
+        InventoryView view = event.getView();
+        if (inv.getType().equals(InventoryType.ANVIL) && inv instanceof AnvilInventory) {
+            //Bukkit.getServer().getPluginManager().callEvent(new PrepareAnvilEvent(anvil, anvil.getItem(2)));
+            sched(() -> {
+                ((Player) event.getWhoClicked()).updateInventory();
+            });
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onClose(InventoryCloseEvent event) {
+        if (event.getInventory() instanceof AnvilInventory)
+            sched(() -> {
+                Player player = (Player) event.getView().getPlayer();
+                if (!player.getGameMode().equals(GameMode.CREATIVE))
+                    ProtocolLibUtils.setBypass(player, false);
+            });
+    }
+
+    @EventHandler
+    public void onReload(ServerLoadEvent event) {
+        if (event.getType().equals(ServerLoadEvent.LoadType.RELOAD)) {
+            Bukkit.getOnlinePlayers().forEach(player -> {
+                if (!player.getGameMode().equals(GameMode.CREATIVE))
+                    ProtocolLibUtils.setBypass(player, false);
+            });
+        }
+    }
+
+    @SuppressWarnings("removal")
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void createResult(PrepareAnvilEvent event) {
+        calculate(event);
+    }
+
+    private void calculate(PrepareAnvilEvent event) {
         Map<EffectEnchantment, Integer> durations = new HashMap<>();
 
         UberAnvil anvil = new UberAnvil(event);
 
-        //AnvilInventory anvil = event.getInventory();
-
-        //boolean useView = VersionUtils.isAtLeast("1.21");
-        //AnvilInventory anvil = event.getInventory();
-        if (ignore)
+        if (ignore) {
             anvil.setMaximumRepairCost(1000);
+
+            sched(() -> {
+                Player player = (Player) event.getView().getPlayer();
+                if (!player.getGameMode().equals(GameMode.CREATIVE))
+                    ProtocolLibUtils.setBypass(player, true);
+            });
+        }
 
         ItemStack item = anvil.getItem(0);
 
@@ -246,7 +314,6 @@ public class AnvilEvents implements Listener {
                 Repairable meta2 = ((Repairable) itemstack1.getItemMeta());
                 meta2.setRepairCost(k2);
                 itemstack1.setItemMeta(meta2);
-                //UberUtils.removeEnchantmentLore(itemstack1);
                 if (itemstack1.getType().equals(Material.ENCHANTED_BOOK))
                     EnchantmentUtils.setStoredEnchantments(map, itemstack1);
                 else
@@ -257,7 +324,7 @@ public class AnvilEvents implements Listener {
                 }
             }
 
-            if (!hasChange(item, itemstack1) && (itemstack2 == null || itemstack2.getType() == Material.AIR)) {
+            if (!hasChange(item, itemstack1) && (itemstack2 == null || itemstack2.getType().isAir())) {
                 if (rename) {
                     anvil.setRepairCost(1);
                     event.setResult(itemcopy);
@@ -268,10 +335,13 @@ public class AnvilEvents implements Listener {
                 return;
             }
 
-            //if (hasChange(item, itemstack1))
+            if (has_limit && anvil.getRepairCost() > limit)
+                anvil.setRepairCost(limit);
+
+            if (!ignore && anvil.getRepairCost() > (has_limit ? limit : 39))
+                event.setResult(null);
+            else
                 event.setResult(itemstack1);
-            //else
-                //event.setResult(null);
         }
     }
 
@@ -282,8 +352,13 @@ public class AnvilEvents implements Listener {
         Map<Enchantment, Integer> all2 = UberUtils.getAllMap(item2);
         return !all1.entrySet().stream().allMatch(entry -> {
             boolean match = entry.getValue().equals(all2.get(entry.getKey()));
-            if (match && entry.getKey() instanceof EffectEnchantment effect)
-                return IntTag.DURATION.get(item1, effect).intValue() == IntTag.DURATION.get(item2, effect).intValue();
+            if (match && entry.getKey() instanceof EffectEnchantment effect) {
+                Integer tag1 = IntTag.DURATION.get(item1, effect);
+                Integer tag2 = IntTag.DURATION.get(item2, effect);
+                if (tag1 == null || tag2 == null)
+                    return false;
+                return tag1.intValue() == tag2.intValue();
+            }
             return match;
         });
     }

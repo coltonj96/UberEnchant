@@ -56,7 +56,7 @@ public class CustomOffer {
     private EnchantmentTableUtils.CustomList generate(PrepareItemEnchantEvent event, UberRandom random) {
         int bonus = event.getEnchantmentBonus();
         if (EnchantmentTableUtils.floorBonus()) {
-            if (bonus >= 22)
+            if (bonus >= 15)
                 bonus += getFloorBonus(event.getEnchantBlock());
         }
 

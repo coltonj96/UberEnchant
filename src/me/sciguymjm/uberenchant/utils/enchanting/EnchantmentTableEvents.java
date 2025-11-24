@@ -33,10 +33,10 @@ public class EnchantmentTableEvents implements Listener {
     private static boolean reroll;
 
     public EnchantmentTableEvents() {
-        reloadEnabled();
+        reload();
     }
 
-    public static void reloadEnabled() {
+    public static void reload() {
         disabled = FileUtils.loadConfig("/mechanics/enchantment_table.yml").getStringList("disabled_enchantments");
         if (FileUtils.updateAndGet("/mechanics/enchantment_table.yml", "disable_effect_enchantments", true, Boolean.class))
             disabled.addAll(UberEnchantment.getRegisteredEnchantments().stream().map(e -> e.getKey().getKey()).toList());

@@ -4,7 +4,7 @@ authors: [coltonj96]
 main: me.sciguymjm.uberenchant.UberEnchant
 version: ${project.version}
 api-version: 1.18
-soft-depend: [WorldGuard, Vault]
+softdepend: [WorldGuard, Towny, Vault, ProtocolLib]
 website: https://dev.bukkit.org/projects/uberenchant
 
 commands:
@@ -40,6 +40,10 @@ commands:
     description: Uber Insert Command
     permission: uber.insert
     usage: /uhelp uinsert
+  uitem:
+    description: Uber Item Command
+    permission: uber.item
+    usage: /uhelp uitem
   ulist:
     description: Uber List Command
     permission: uber.list
@@ -65,6 +69,7 @@ permissions:
       uber.reload: true
       uber.effect.*: true
       uber.insert.*: true
+      uber.item.*: true
       uber.set.*: true
       uber.list.*: true
       uber.enchant.bypass.any: true
@@ -176,10 +181,30 @@ permissions:
     description: Access to '/ureload'
     default: false
   uber.insert.*:
-    description: Fulle access to '/uinsert'
+    description: Full access to '/uinsert'
     default: op
     children:
       uber.insert.lore: true
+  uber.item.*:
+    description: Full access to '/uitem'
+    default: op
+    children:
+      uber.item.save: true
+      uber.item.load: true
+      uber.item.load.others: true
+      uber.item.delete: true
+  uber.item.save:
+    description: Access to '/uitem save'
+    default: false
+  uber.item.load:
+    description: Access to '/uitem load'
+    default: false
+  uber.item.load.others:
+    description: Access to '/uitem load <player>'
+    default: false
+  uber.item.delete:
+    description: Access to '/uitem delete'
+    default: false
   uber.insert.lore:
     description: Access to '/uinsert lore'
     default: false

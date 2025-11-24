@@ -1,7 +1,7 @@
 package me.sciguymjm.uberenchant.api.utils.persistence;
 
 import me.sciguymjm.uberenchant.UberEnchant;
-import me.sciguymjm.uberenchant.utils.VersionUtils;
+import me.sciguymjm.uberenchant.utils.Versions;
 import org.bukkit.NamespacedKey;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -24,7 +24,7 @@ public class PDCUtils {
     }
 
     public static boolean has(PersistentDataContainer pdc, NamespacedKey key) {
-        if (VersionUtils.isV1_20_4())
+        if (Versions.isV1_20_4())
             return notNull(pdc, key) && pdc.has(key);
         return notNull(pdc, key) && pdc.getKeys().contains(key);
     }

@@ -12,7 +12,7 @@ import java.util.logging.Level;
 public class UberLocale {
 
     private static PropertyResourceBundle bundle;
-    private static PropertyResourceBundle defaults;
+    private static final PropertyResourceBundle defaults;
     private static String locale;
     private static final Map<String, PropertyResourceBundle> bundles;
 
@@ -41,7 +41,7 @@ public class UberLocale {
             FileOutputStream output = new FileOutputStream(FileUtils.getFile("/locale/en_us.properties"));
             prop.store(output, "");
             output.close();
-            UberEnchant.log(Level.INFO, "Updated translations in locale/en_us.properties!");
+            UberEnchant.log(Level.INFO, "&aUpdated translations in locale/en_us.properties!");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
