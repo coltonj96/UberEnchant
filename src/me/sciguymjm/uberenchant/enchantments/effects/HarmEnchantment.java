@@ -2,6 +2,7 @@ package me.sciguymjm.uberenchant.enchantments.effects;
 
 import me.sciguymjm.uberenchant.api.utils.Rarity;
 import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
+import me.sciguymjm.uberenchant.utils.WorldGuardUtils;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.ItemStack;
 
