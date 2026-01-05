@@ -3,32 +3,32 @@ package me.sciguymjm.uberenchant;
 import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.api.utils.ArmorEquippedListener;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
-import me.sciguymjm.uberenchant.api.utils.UberConfiguration.UberRecord;
 import me.sciguymjm.uberenchant.api.utils.UberRunnable;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.*;
 import me.sciguymjm.uberenchant.commands.*;
 import me.sciguymjm.uberenchant.commands.abstraction.UberCommand;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
-import me.sciguymjm.uberenchant.utils.Debugging;
-import me.sciguymjm.uberenchant.utils.FileUtils;
-import me.sciguymjm.uberenchant.utils.UberLocale;
+import me.sciguymjm.uberenchant.utils.*;
 import me.sciguymjm.uberenchant.utils.enchanting.AnvilEvents;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentTableEvents;
-import me.sciguymjm.uberenchant.utils.enchanting.GrindstoneEvents;
-import net.milkbowl.vault.economy.Economy;
+import me.sciguymjm.uberenchant.utils.plugins.PluginUtils;
 import org.bstats.bukkit.Metrics;
+import org.bstats.charts.MultiLineChart;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.ServerLoadEvent;
-import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
@@ -37,20 +37,25 @@ import java.util.logging.Level;
 public class UberEnchant extends JavaPlugin {
 
     private static UberEnchant plugin;
-    private static Economy economy;
 
     public void onEnable() {
-        Debugging.enable();
+        //Debugging.enable();
         plugin = this;
 
         initResources();
         update();
-        EffectEnchantment.init();
+        PluginUtils.initAll();
 
-        new Metrics(this, 1952);
+        if (Versions.isV1_20_4())
+            EffectEnchantment.init();
 
-        if (getConfig().getBoolean("use_economy") && !economyLoaded())
-            getLogger().log(Level.WARNING, UberLocale.get("uberenchant.economy_not_found"));
+        Metrics metrics = new Metrics(this, 1952);
+        metrics.addCustomChart(new MultiLineChart("players_and_servers", () -> {
+            Map<String, Integer> valueMap = new HashMap<>();
+            valueMap.put("servers", 1);
+            valueMap.put("players", Bukkit.getOnlinePlayers().size());
+            return valueMap;
+        }));
 
         registerTabCommand("uadd", new AddCommand());
         registerTabCommand("uclear", new ClearCommand());
@@ -59,11 +64,10 @@ public class UberEnchant extends JavaPlugin {
         registerTabCommand("uextract", new ExtractCommand());
         registerCommand("uhelp", new HelpCommand());
         registerCommand("uinsert", new InsertCommand());
+        registerTabCommand("uitem", new ItemCommand());
         registerTabCommand("ulist", new ListCommand());
         registerCommand("ureload", new ReloadCommand());
         registerTabCommand("uset", new SetCommand());
-
-        UberConfiguration.loadFromEnchantmentsFolder();
 
         final boolean enchants = FileUtils.get("/mechanics/enchantment_table.yml", "enabled", false, Boolean.class);
         final boolean anvil = FileUtils.get("/mechanics/anvil.yml", "enabled", false, Boolean.class);
@@ -83,16 +87,38 @@ public class UberEnchant extends JavaPlugin {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        long found = UberEnchantment.getRegisteredEnchantments().stream().filter(a -> !a.getKey().getNamespace().equalsIgnoreCase(getName())).count();
-                        long loaded = UberRecord.values().stream().filter(a -> a.enchantment() instanceof UberEnchantment && !a.enchantment().getKey().getNamespace().equalsIgnoreCase(getName())).count();
-                        getLogger().log(Level.INFO, UberLocale.getF("console.found_enchantments", found));
-                        getLogger().log(Level.INFO, UberLocale.getF("console.loaded_enchantments", loaded));
-                        getLogger().log(Level.INFO, UberLocale.getF("console.enchantment_table_status", enchants ? "enabled" : "disabled"));
-                        getLogger().log(Level.INFO, UberLocale.getF("console.anvil_status", anvil ? "enabled" : "disabled"));
-                        getLogger().log(Level.INFO, "Grindstone integration: enabled");
-                        //test();
+                        UberConfiguration.integrate();
+                        UberConfiguration.loadFromEnchantmentsFolder();
+                        long loaded = UberConfiguration.getRecords(a -> a.getEnchant() instanceof UberEnchantment && a.getKey() != null && !a.getKey().getNamespace().equalsIgnoreCase(getName())).size();
+                        long def = UberConfiguration.getRecords(a -> a.getEnchant() instanceof EffectEnchantment && a.getKey() != null && a.getKey().getNamespace().equalsIgnoreCase(getName())).size();
+                        long vanilla = UberConfiguration.getRecords(a -> a.getKey() != null && a.getKey().getNamespace().equalsIgnoreCase(NamespacedKey.MINECRAFT)).size();
+                        List<String> strings = new ArrayList<>(List.of(new String[]{
+                                UberLocale.getCF("&6", "console.enchantment_table_status", enchants ? "&aenabled" : "&cdisabled"),
+                                UberLocale.getCF("&6", "console.anvil_status", anvil ? "&aenabled" : "&cdisabled"),
+                                UberLocale.getCF("&6", "console.vanilla_enchantments", "&a" + vanilla),
+                                UberLocale.getCF("&6", "console.default_enchantments", "&a" + def),
+                                UberLocale.getCF("&6", "console.loaded_enchantments", "&a" + loaded)
+                        }));
+                        UberConfiguration.getIntegrated().forEach(name -> {
+                            int enchantments = UberConfiguration.getRecords(record -> record.getKey() != null && record.getKey().getNamespace().equalsIgnoreCase(name)).size();
+                            strings.add(UberLocale.getCF("&6", "console.integrated_loaded", "&a" + enchantments, "&a" + name));
+                        });
+                        strings.add(UberLocale.getCF("&6", "console.total_enchantments", "&a" + UberConfiguration.getRecords().stream().filter(value -> value.getEnchant() != null).count()));
+                        int length = strings.stream().max(Comparator.comparing(String::length)).get().length();
+                        /*String[] UE = {
+                                "UU  UU BBBBB  EEEEE RRRRR  EEEEE NN    NN  CCCCC HH  HH  AAAA  NN    NN TTTTTT",
+                                "UU  UU BB   B EE    RR   R EE    NNNN  NN CC     HH  HH AA  AA NNNN  NN   TT  ",
+                                "UU  UU BBBBB  EEEE  RRRRR  EEEE  NN NN NN CC     HHHHHH AAAAAA NN NN NN   TT  ",
+                                "UU  UU BB   B EE    RR RR  EE    NN  NNNN CC     HH  HH AA  AA NN  NNNN   TT  ",
+                                "UUUUUU BBBBB  EEEEE RR  RR EEEEE NN    NN  CCCCC HH  HH AA  AA NN    NN   TT  "
+                        };
+                        log(Level.INFO, "\n" + String.join("\n", UE));
+                        Arrays.stream(UE).forEach(s -> log(Level.INFO, s));*/
+                        log(Level.INFO, "&8" + "=".repeat(length+4));
+                        strings.forEach(string -> log(Level.INFO, "&8||  &5" + string + " ".repeat(length - string.length()+2) + "&8||"));
+                        log(Level.INFO, "&8" + "=".repeat(length+4));
                     }
-                }.runTaskLater(plugin, 100);
+                }.runTask(plugin);
             }
         });
 
@@ -107,12 +133,20 @@ public class UberEnchant extends JavaPlugin {
         saveDefaultConfig();
 
         FileUtils.initResource("locale/en_us.properties");
+        FileUtils.initResource("locale/zh_cn.properties");
         FileUtils.initResource("enchantments/default/vanilla_enchantments.yml");
         FileUtils.initResource("enchantments/default/vanilla_effects.yml");
         FileUtils.initResource("mechanics/anvil.yml");
         FileUtils.initResource("mechanics/enchantment_table.yml");
 
+        UberLocale.update();
+        //UberLocale.updateEnchantments();
         UberLocale.load(FileUtils.getFile("/locale/" + getConfig().getString("locale") + ".properties"));
+        //UberLocale.add("enchantments", FileUtils.getFile("/locale/enchantments.properties"));
+    }
+
+    private void initTags() {
+        MetaTag.create("Test", PersistentDataType.BOOLEAN);
     }
 
     private void update() {
@@ -140,19 +174,9 @@ public class UberEnchant extends JavaPlugin {
                 YamlConfiguration.loadConfiguration(old).save(enchantments);
                 old.delete();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
-    }
-
-    private boolean economyLoaded() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null)
-            return false;
-        RegisteredServiceProvider<Economy> economyService = getServer().getServicesManager().getRegistration(Economy.class);
-        if (economyService == null)
-            return false;
-        economy = economyService.getProvider();
-        return economy.isEnabled();
     }
 
     private void registerCommand(String name, UberCommand command) {
@@ -200,22 +224,14 @@ public class UberEnchant extends JavaPlugin {
         Bukkit.getServer().getPluginManager().registerEvents(listener, plugin);
     }
 
-    /**
-     * Gets the economy currently being used.<br>
-     * (May return null in case of no economy or unspported economy)
-     *
-     * @return The current economy or null
-     */
-    public static Economy getEconomy() {
-        return economy;
-    }
-
-    /**
-     * Gets whether there is an economy or not.
-     *
-     * @return True if the server has a supported economy
-     */
-    public static boolean hasEconomy() {
-        return economy != null;
+    public static void log(Level level, String... message) {
+        if (level.equals(Level.WARNING)) {
+            String[] temp = new String[message.length + 1];
+            temp[0] = "&4!!!WARNING!!!";
+            System.arraycopy(message, 0, temp, 1, message.length);
+            message = temp;
+        }
+        ChatUtils.response(Bukkit.getConsoleSender(), message);
+        //plugin.getLogger().log(level, message);
     }
 }

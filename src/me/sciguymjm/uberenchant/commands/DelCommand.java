@@ -1,12 +1,17 @@
 package me.sciguymjm.uberenchant.commands;
 
+import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
+import me.sciguymjm.uberenchant.api.utils.UberRecord;
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
+import me.sciguymjm.uberenchant.api.utils.persistence.UberMeta;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.MetaTag;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
-import me.sciguymjm.uberenchant.utils.EconomyUtils;
 import me.sciguymjm.uberenchant.utils.EffectUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
+import me.sciguymjm.uberenchant.utils.Versions;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
+import me.sciguymjm.uberenchant.utils.plugins.VaultUtils;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -46,12 +51,24 @@ public class DelCommand extends UberTabCommand {
                     else
                         response(Reply.PERMISSIONS);
                 }
+                case "meta" -> {
+                    if (hasPermission("uber.del.meta"))
+                        meta(item);
+                    else
+                        response(Reply.PERMISSIONS);
+                }
                 case "name" -> {
                     if (hasPermission("uber.del.name"))
                         name(item);
                     else
                         response(Reply.PERMISSIONS);
                 }
+                /*case "owner" -> {
+                    if (hasPermission("uber.del.owner"))
+                        owner(item);
+                    else
+                        response(Reply.PERMISSIONS);
+                }*/
                 default -> EnchantmentUtils.help(player, "udel");
             }
         } else {
@@ -70,18 +87,32 @@ public class DelCommand extends UberTabCommand {
                 list.add("effect");
             if (hasPermission("uber.del.lore"))
                 list.add("lore");
+            if (Versions.isV1_20_4() && hasPermission("uber.del.meta"))
+                list.add("meta");
             if (hasPermission("uber.del.name"))
                 list.add("name");
-        } else if (args.length == 2) {
-            ItemStack item = player.getInventory().getItemInMainHand();
+        }
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (args.length == 2) {
             switch (args[0].toLowerCase()) {
                 case "enchant" -> {
-                    if (!item.getType().equals(Material.AIR) && !UberUtils.getAllMap(item).isEmpty()) {
-                        UberUtils.getAllMap(item).keySet().forEach(enchant -> list.add(enchant.getKey().getKey().toLowerCase()));
-                    }
+                    if (!item.getType().equals(Material.AIR) && !UberUtils.getAllMap(item).isEmpty())
+                        list = EnchantmentUtils.find(player, item, args[1]);
                 }
-                case "effect" -> player.getActivePotionEffects().forEach(effect -> list.add(effect.getType().getName().toLowerCase()));
+                case "effect" -> list = player.getActivePotionEffects().stream().map(effect -> effect.getType().getName().toLowerCase()).toList();
+                case "meta" -> {
+                    if (!Versions.isV1_20_4())
+                        return list;
+                    Map<UberEnchantment, Integer> map = UberUtils.getMap(item);
+                    if (!item.getType().equals(Material.AIR) && !map.isEmpty())
+                        list = map.keySet().stream().map(key -> key.getKey().getKey().toLowerCase()).toList();
+                }
             }
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("meta")) {
+            list = UberUtils.getTags(item, args[1]).stream()
+                    .map(MetaTag::getName)
+                    .filter(tag -> !tag.equalsIgnoreCase("level") && !tag.equalsIgnoreCase("duration")).toList();
         }
         return list;
     }
@@ -92,37 +123,38 @@ public class DelCommand extends UberTabCommand {
             return;
         }
         if (args.length < 2) {
-            response("&a/udel enchant &c<enchantment | id>");
+            response("&a/udel enchant &c<enchantment>");
             response(Reply.ARGUMENTS);
             return;
         }
         Set<Enchantment> set = EnchantmentUtils.getMatches(args[1]);
+        set.retainAll(UberUtils.getAllMap(item).keySet());
         if (EnchantmentUtils.multi(player, set))
             return;
         Enchantment enchantment = set.iterator().next();
         if (enchantment != null) {
-            UberConfiguration.UberRecord enchant = UberConfiguration.getByEnchant(enchantment);
+            UberRecord enchant = UberConfiguration.getByEnchant(enchantment);
             if (!hasPermission("uber.del.enchant.%1$s", enchant.getName().toLowerCase())) {
                 response(Reply.PERMISSIONS);
                 return;
             }
-            if (hasPermission("uber.del.enchant.free") || !EconomyUtils.useEconomy()) {
+            if (hasPermission("uber.del.enchant.free") || !VaultUtils.useEconomy()) {
                 if (EnchantmentUtils.removeEnchantment(enchantment, item))
                     localized("&a", "actions.enchant.remove.success", enchant.getDisplayName());
                 else
                     localized("&c", "actions.enchant.remove.no_enchant", enchant.getDisplayName());
                 return;
             }
-            if (EconomyUtils.hasEconomy()) {
-                if (EconomyUtils.has(player, enchant.getRemovalCost())) {
+            if (VaultUtils.hasEconomy()) {
+                if (VaultUtils.has(player, enchant.getRemovalCost())) {
                     if (EnchantmentUtils.removeEnchantment(enchantment, item)) {
-                        EconomyUtils.withdraw(player, enchant.getRemovalCost());
+                        VaultUtils.withdraw(player, enchant.getRemovalCost());
                         localized("&a", "actions.enchant.remove.pay_success", enchant.getDisplayName(), enchant.getRemovalCost());
                     } else {
                         localized("&c", "actions.enchant.remove.no_enchant", enchant.getDisplayName());
                     }
                 } else {
-                    localized("&c", "actions.enchant.remove.pay_more", enchant.getRemovalCost() - EconomyUtils.getBalance(player));
+                    localized("&c", "actions.enchant.remove.pay_more", enchant.getRemovalCost() - VaultUtils.getBalance(player));
                 }
             } else {
                 response(Reply.NO_ECONOMY);
@@ -132,9 +164,69 @@ public class DelCommand extends UberTabCommand {
         localized("&c", "actions.enchant.not_exist");
     }
 
+    private void meta(ItemStack item) {
+        if (!Versions.isV1_20_4())
+            return;
+        if (item.getType().equals(Material.AIR)) {
+            response(Reply.HOLD_ITEM);
+            return;
+        }
+        if (args.length < 3) {
+            response("&a/udel meta &c<enchantment> <tag>");
+            response(Reply.ARGUMENTS);
+            return;
+        }
+        Set<UberEnchantment> set = EnchantmentUtils.getMatches(item, args[1]);
+        if (EnchantmentUtils.multi(player, set))
+            return;
+
+        if (set == null)
+            return;
+        UberEnchantment enchant = set.iterator().next();
+
+        if (!enchant.containsEnchantment(item)) {
+            localized("&c", "actions.meta.enchantment_not_found");
+            return;
+        }
+
+        if (!UberMeta.contains(args[2])) {
+            localized("&c", "actions.meta.invalid_tag");
+            return;
+        }
+
+        UberMeta<?> meta = UberMeta.getByName(args[2]);
+
+        if (meta == null) {
+            localized("&c", "actions.meta.invalid_tag");
+            return;
+        }
+
+        if (UberUtils.removeMeta(item, enchant, meta)) {
+            localized("&a", "actions.meta.remove.success");
+            return;
+        }
+        localized("&c", "actions.meta.remove.fail");
+    }
+
+    private void owner(ItemStack item) {
+        if (item.getType().equals(Material.AIR)) {
+            response(Reply.HOLD_ITEM);
+            return;
+        }
+
+        if (!UberUtils.hasOwner(item)) {
+            localized("&c", "actions.owner.del.no_owner");
+            return;
+        }
+
+        UberUtils.removeOwner(item);
+
+        localized("&a", "actions.owner.del.success");
+    }
+
     private void effect() {
         if (args.length < 2) {
-            response("&a/udel effect &c<effect | id>");
+            response("&a/udel effect &c<effect>");
             response(Reply.ARGUMENTS);
             return;
         }
@@ -159,7 +251,7 @@ public class DelCommand extends UberTabCommand {
         }
         int index = UberUtils.offset(item);
         ItemMeta meta = item.getItemMeta();
-        if (!meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index == 0)) {
+        if (meta == null || !meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index == 0)) {
             localized("&c", "actions.lore.remove.no_lore");
             return;
         }
@@ -172,7 +264,7 @@ public class DelCommand extends UberTabCommand {
             localized("&a", "actions.lore.remove.success");
             return;
         }
-        int line = -1;
+        int line;
         try {
             line = Integer.parseInt(args[1]);
         } catch (NumberFormatException err) {
@@ -210,15 +302,15 @@ public class DelCommand extends UberTabCommand {
             localized("&c", "actions.name.no_name");
             return;
         }
-        if (EconomyUtils.useEconomy() && EconomyUtils.hasEconomy()) {
-            double cost = EconomyUtils.getCost("cost.name.remove");
-            if (EconomyUtils.has(player, cost)) {
-                EconomyUtils.withdraw(player, cost);
+        if (VaultUtils.useEconomy() && VaultUtils.hasEconomy()) {
+            double cost = VaultUtils.getCost("cost.name.remove");
+            if (VaultUtils.has(player, cost)) {
+                VaultUtils.withdraw(player, cost);
                 meta.setDisplayName(null);
                 item.setItemMeta(meta);
                 localized("&a", "actions.name.remove.pay_success", cost);
             } else {
-                localized("&c", "actions.name.remove.pay_fail", (cost - EconomyUtils.getBalance(player)));
+                localized("&c", "actions.name.remove.pay_fail", (cost - VaultUtils.getBalance(player)));
             }
         } else {
             meta.setDisplayName(null);

@@ -1,17 +1,22 @@
 package me.sciguymjm.uberenchant.enchantments.effects;
 
 import me.sciguymjm.uberenchant.api.utils.Rarity;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.BoolTag;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.IntTag;
 import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
+import org.bukkit.Material;
 import org.bukkit.enchantments.EnchantmentTarget;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class FastDiggingEnchantment extends EffectEnchantment {
 
     public FastDiggingEnchantment() {
         super("FAST_DIGGING");
+        setTag(BoolTag.HAS_CHANCE, true);
+        setTag(IntTag.DURATION, 3);
     }
 
     @Override
@@ -30,12 +35,18 @@ public class FastDiggingEnchantment extends EffectEnchantment {
     }
 
     @EventHandler
-    public void OnHit(EntityDamageByEntityEvent event) {
-        apply(event.getDamager(), event.getEntity());
-    }
-
-    @EventHandler
     public void onDig(BlockBreakEvent event) {
-        apply(event.getPlayer());
+        if (event.isCancelled())
+            return;
+        Player player = event.getPlayer();
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (item == null || item.getType() == Material.AIR || !containsEnchantment(item))
+            return;
+        if (conditions(item))
+            return;
+        if (BoolTag.HAS_CHANCE.test(item, this))
+            apply(player);
+        else
+            apply(item, player);
     }
 }

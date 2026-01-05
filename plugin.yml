@@ -3,8 +3,8 @@ author: Sciguymjm
 authors: [coltonj96]
 main: me.sciguymjm.uberenchant.UberEnchant
 version: ${project.version}
-api-version: 1.20
-soft-depend: [Vault, WorldGuard]
+api-version: 1.18
+softdepend: [WorldGuard, Towny, Vault, ProtocolLib]
 website: https://dev.bukkit.org/projects/uberenchant
 
 commands:
@@ -40,6 +40,10 @@ commands:
     description: Uber Insert Command
     permission: uber.insert
     usage: /uhelp uinsert
+  uitem:
+    description: Uber Item Command
+    permission: uber.item
+    usage: /uhelp uitem
   ulist:
     description: Uber List Command
     permission: uber.list
@@ -65,6 +69,7 @@ permissions:
       uber.reload: true
       uber.effect.*: true
       uber.insert.*: true
+      uber.item.*: true
       uber.set.*: true
       uber.list.*: true
       uber.enchant.bypass.any: true
@@ -77,6 +82,7 @@ permissions:
       uber.add.enchant: true
       uber.add.effect: true
       uber.add.lore: true
+      uber.add.meta: true
       uber.add.name: true
   uber.add.enchant:
     description: Access to '/uadd enchant'
@@ -92,6 +98,9 @@ permissions:
     default: false
   uber.add.lore:
     description: Access to '/uadd lore'
+    default: false
+  uber.add.meta:
+    description: Access to '/uadd meta'
     default: false
   uber.add.name:
     description: Access to '/uadd name'
@@ -136,6 +145,7 @@ permissions:
       uber.del.enchant.free: true
       uber.del.effect: true
       uber.del.lore: true
+      uber.del.meta: true
       uber.del.name: true
   uber.del.enchant:
     description: Access to '/udel enchant'
@@ -148,6 +158,9 @@ permissions:
     default: false
   uber.del.lore:
     description: Access to '/udel lore'
+    default: false
+  uber.del.meta:
+    description: Access to '/udel meta'
     default: false
   uber.del.name:
     description: Access to '/udel name'
@@ -168,10 +181,30 @@ permissions:
     description: Access to '/ureload'
     default: false
   uber.insert.*:
-    description: Fulle access to '/uinsert'
+    description: Full access to '/uinsert'
     default: op
     children:
       uber.insert.lore: true
+  uber.item.*:
+    description: Full access to '/uitem'
+    default: op
+    children:
+      uber.item.save: true
+      uber.item.load: true
+      uber.item.load.others: true
+      uber.item.delete: true
+  uber.item.save:
+    description: Access to '/uitem save'
+    default: false
+  uber.item.load:
+    description: Access to '/uitem load'
+    default: false
+  uber.item.load.others:
+    description: Access to '/uitem load <player>'
+    default: false
+  uber.item.delete:
+    description: Access to '/uitem delete'
+    default: false
   uber.insert.lore:
     description: Access to '/uinsert lore'
     default: false
@@ -194,6 +227,7 @@ permissions:
       uber.set.effect: true
       uber.set.hidden: true
       uber.set.lore: true
+      uber.set.meta: true
       uber.set.name: true
   uber.set.effect:
     description: Access to '/uset effect'
@@ -203,6 +237,9 @@ permissions:
     default: false
   uber.set.lore:
     description: Access to '/uset lore'
+    default: false
+  uber.set.meta:
+    description: Access to '/uset meta'
     default: false
   uber.set.name:
     description: Access to '/uset name'

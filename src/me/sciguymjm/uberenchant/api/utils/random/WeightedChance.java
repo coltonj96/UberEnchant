@@ -20,7 +20,7 @@ import java.util.function.Predicate;
 public class WeightedChance<E> {
 
     private NavigableMap<Double, Weighted<E>> map = new TreeMap<>();
-    private UberRandom random = new UberRandom();;
+    private UberRandom random = new UberRandom();
     private double total = 0;
 
     /**

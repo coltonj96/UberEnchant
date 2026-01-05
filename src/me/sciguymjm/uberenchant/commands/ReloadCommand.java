@@ -3,7 +3,13 @@ package me.sciguymjm.uberenchant.commands;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.commands.abstraction.UberCommand;
 import me.sciguymjm.uberenchant.utils.Reply;
+import me.sciguymjm.uberenchant.utils.enchanting.AnvilEvents;
+import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentTableEvents;
+import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentTableUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.InventoryView;
 
 /**
  * For internal use.
@@ -12,9 +18,19 @@ public class ReloadCommand extends UberCommand implements CommandExecutor {
 
     @Override
     public boolean onCmd() {
-        if (hasPermission("uber.reload"))
+        if (hasPermission("uber.reload")) {
+            Bukkit.getOnlinePlayers().forEach(player -> {
+                InventoryView view = player.getOpenInventory();
+                if (view != null) {
+                    if (view.getType().equals(InventoryType.ANVIL) || view.getType().equals(InventoryType.ENCHANTING))
+                        view.close();
+                }
+            });
             UberConfiguration.reloadAll();
-        else
+            EnchantmentTableEvents.reload();
+            EnchantmentTableUtils.reload();
+            AnvilEvents.reload();
+        } else
             response(Reply.PERMISSIONS);
         return true;
     }

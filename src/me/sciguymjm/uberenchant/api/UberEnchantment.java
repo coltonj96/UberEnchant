@@ -2,11 +2,13 @@ package me.sciguymjm.uberenchant.api;
 
 import me.sciguymjm.uberenchant.UberEnchant;
 import me.sciguymjm.uberenchant.api.utils.*;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.IntTag;
+import me.sciguymjm.uberenchant.api.utils.persistence.tags.MetaTag;
+import me.sciguymjm.uberenchant.api.utils.persistence.UberMeta;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
 import java.util.*;
@@ -19,14 +21,16 @@ public abstract class UberEnchantment extends Enchantment implements Listener/*,
     private static final Map<NamespacedKey, UberEnchantment> enchantments = new HashMap<>();
 
     private boolean registered = false;
-    private NamespacedKey key;
+    private final NamespacedKey key;
+
+
 
     /**
      * Constructs a new UberEnchantment using a unique custom NamespacedKey.
      *
      * @param namespacedKey - The NamespacedKey to be used
      */
-    public UberEnchantment(NamespacedKey namespacedKey) {
+    protected UberEnchantment(NamespacedKey namespacedKey) {
         this.key = namespacedKey;
         enchantments.put(key, this);
         UberEnchant.registerEvents(this);
@@ -56,6 +60,7 @@ public abstract class UberEnchantment extends Enchantment implements Listener/*,
      *
      * @return The key
      */
+    @Override
     public final String getName() {
         return key.getKey();
     }
@@ -92,6 +97,27 @@ public abstract class UberEnchantment extends Enchantment implements Listener/*,
      */
     public final boolean containsEnchantment(ItemStack item) {
         return containsEnchantment(item, this);
+    }
+
+    public final List<String> getAliases() {
+        return UberConfiguration.getByEnchant(this).getAliases();
+    }
+
+    public final <T> T getMetaTag(ItemStack item, MetaTag<T> tag) {
+        return tag.get(item, this);
+    }
+
+    public final boolean testBoolTag(ItemStack item, MetaTag<Boolean> tag) {
+        return testTag(item, tag, true);
+    }
+
+    public final boolean conditions(ItemStack item) {
+        return false;
+        //return ConditionalTag.CONDITIONS.has(item, this) && !ConditionalTag.CONDITIONS.test(item, this);
+    }
+
+    public final <T> boolean testTag(ItemStack item, MetaTag<T> tag, T testValue) {
+        return tag.testValue(item, this, testValue);
     }
 
     /**
@@ -131,8 +157,11 @@ public abstract class UberEnchantment extends Enchantment implements Listener/*,
      * @see #getLevel(ItemStack)
      */
     public static int getLevel(ItemStack item, UberEnchantment enchantment) {
-        if (containsEnchantment(item, enchantment))
-            return UberUtils.getData(item).get(enchantment.getKey(), PersistentDataType.INTEGER);
+        if (containsEnchantment(item, enchantment)) {
+            Integer level = IntTag.LEVEL.get(item,  enchantment);
+            if (level != null)
+                return level;
+        }
         return 0;
     }
 
@@ -257,6 +286,7 @@ public abstract class UberEnchantment extends Enchantment implements Listener/*,
      * @return True if already registered
      * @see #isRegistered(UberEnchantment)
      */
+    @Override
     public final boolean isRegistered() {
         return isRegistered(this);
     }
@@ -280,6 +310,10 @@ public abstract class UberEnchantment extends Enchantment implements Listener/*,
      */
     public static UberEnchantment getByKey(NamespacedKey key) {
         return enchantments.get(key);
+    }
+
+    public static UberEnchantment getByName(String name) {
+        return enchantments.values().stream().filter(enchant -> enchant.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 
     public static boolean containsKey(NamespacedKey key) {
@@ -310,6 +344,10 @@ public abstract class UberEnchantment extends Enchantment implements Listener/*,
         UberRunnable.addTask(task);
     }
 
+    protected <T> T getTag(ItemStack item, UberMeta<T> tag) {
+        return tag.get(item, this);
+    }
+
     /*@Override
     public EquipmentSlot[] getSlots() {
         return switch (this.getItemTarget()) {
@@ -324,4 +362,14 @@ public abstract class UberEnchantment extends Enchantment implements Listener/*,
             default -> throw new IllegalStateException("Unexpected value: " + this.getItemTarget());
         };
     }*/
+
+    @Override
+    public final NamespacedKey getKeyOrThrow() {
+        return getKeyOrNull();
+    }
+
+    @Override
+    public final NamespacedKey getKeyOrNull() {
+        return getKey();
+    }
 }

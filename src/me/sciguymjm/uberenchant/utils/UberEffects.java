@@ -23,7 +23,7 @@ public class UberEffects {
 
     public static Map<String, UberEffects> values;
 
-    static {
+     static {
         values = new HashMap<>();
 
         values.put("SPEED", wrap(PotionEffectType.SPEED, "speed", "effects.speed", 1, 1));
@@ -59,9 +59,9 @@ public class UberEffects {
         values.put("BAD_OMEN", wrap(PotionEffectType.BAD_OMEN, "badomen", "effects.bad_omen", 31, -1));
         values.put("HERO_OF_THE_VILLAGE", wrap(PotionEffectType.HERO_OF_THE_VILLAGE, "heroofthevillage", "effects.hero_of_the_village", 32, 1));
 
-        if (VersionUtils.isAtLeast("1.19"))
+        if (Versions.v1_19.atLeast())
             values.put("DARKNESS", wrap(PotionEffectType.DARKNESS, "darkness", "effects.darkness", 33, -1));
-        if (VersionUtils.isAtLeast("1.20.5")) {
+        if (Versions.v1_20_5.atLeast()) {
             values.put("TRIAL_OMEN", wrap(getType("TRIAL_OMEN"), "trialomen", "effects.trial_omen", 34, 0));
             values.put("RAID_OMEN", wrap(getType("RAID_OMEN"), "raidomen", "effects.raid_omen", 35, 0));
             values.put("WIND_CHARGED", wrap(getType("WIND_CHARGED"), "windcharged", "effects.wind_charged", 36, -1));
@@ -73,7 +73,7 @@ public class UberEffects {
 
     private static PotionEffectType getType(String key) {
         NamespacedKey namespacedKey = NamespacedKey.minecraft(key.toLowerCase());
-        return VersionUtils.isAtLeast("1.20.4") ? Registry.EFFECT.get(namespacedKey) : PotionEffectType.getByName(namespacedKey.getKey().toUpperCase());
+        return Versions.isV1_20_4() ? Registry.EFFECT.get(namespacedKey) : PotionEffectType.getByName(namespacedKey.getKey().toUpperCase());
     }
 
     private static PotionEffectType getType(String... s) {
@@ -82,9 +82,9 @@ public class UberEffects {
             String[] split = s[i].split(":");
             v[i] = v(split[0], split[1]);
         }
-        Version version = Arrays.stream(v).sorted((a, b) -> b.version.compareTo(a.version)).filter(ver -> VersionUtils.isAtLeast(ver.version)).findFirst().orElse(null);
+        Version version = Arrays.stream(v).sorted((a, b) -> b.version.compareTo(a.version)).filter(ver -> Versions.isAtLeast(ver.version)).findFirst().orElse(null);
         NamespacedKey key = NamespacedKey.minecraft(version.type.toLowerCase());
-        return VersionUtils.isAtLeast("1.20.4") ? Registry.EFFECT.get(key) : PotionEffectType.getByName(key.getKey().toUpperCase());
+        return Versions.isV1_20_4() ? Registry.EFFECT.get(key) : PotionEffectType.getByName(key.getKey().toUpperCase());
     }
 
     private record Version(String type, String version) {}

@@ -13,12 +13,14 @@ public abstract class UberTabCommand extends UberCommand implements IUberTabComp
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        this.sender = sender;
+        this.args = args;
         if (sender instanceof Player player) {
             this.player = player;
-            this.args = args;
-            return onTab();
+            return onTab().stream().filter(l ->
+                    args[args.length-1].isEmpty() || l.startsWith(args[args.length-1]) || l.contains(args[args.length-1])
+            ).toList();
         }
         return null;
     }
-
 }

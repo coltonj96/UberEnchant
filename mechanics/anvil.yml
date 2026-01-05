@@ -1,2 +1,5 @@
 enabled: true
 colors_enabled: true
+ignore_too_expensive: false
+enable_level_cost_limit: false
+level_cost_limit: 39

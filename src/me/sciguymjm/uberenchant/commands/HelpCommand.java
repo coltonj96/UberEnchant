@@ -1,5 +1,6 @@
 package me.sciguymjm.uberenchant.commands;
 
+import me.sciguymjm.uberenchant.UberEnchant;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.utils.Reply;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
@@ -28,17 +29,8 @@ public class HelpCommand extends UberTabCommand {
     @Override
     public List<String> onTab() {
         List<String> list = new ArrayList<>();
-        if (args.length == 1) {
-            list.add("ulist");
-            list.add("uadd");
-            list.add("ucost");
-            list.add("udel");
-            list.add("uextract");
-            list.add("uset");
-            list.add("uinsert");
-            list.add("uclear");
-            list.add("ureload");
-        }
+        if (args.length == 1)
+            list.addAll(UberEnchant.instance().getDescription().getCommands().keySet());
         return list;
     }
 }

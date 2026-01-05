@@ -16,7 +16,7 @@ public class UberRunnable extends BukkitRunnable {
         start();
     }
 
-    public static UberRunnable getInstance() {
+    public static synchronized UberRunnable getInstance() {
         if (instance == null)
             instance = new UberRunnable();
         return instance;
@@ -26,16 +26,16 @@ public class UberRunnable extends BukkitRunnable {
         actions.add(task);
     }
 
-    public boolean isRunning() {
+    public synchronized boolean isRunning() {
         return instance != null && !isCancelled();
     }
 
-    public void start() {
+    public synchronized void start() {
         if (!isRunning())
             runTaskTimer(UberEnchant.instance(), 0, 0L);
     }
 
-    public void stop() {
+    public synchronized void stop() {
         if (isRunning())
             cancel();
     }
