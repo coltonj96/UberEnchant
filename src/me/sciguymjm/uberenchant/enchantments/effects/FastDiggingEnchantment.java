@@ -4,7 +4,6 @@ import me.sciguymjm.uberenchant.api.utils.Rarity;
 import me.sciguymjm.uberenchant.api.utils.persistence.tags.BoolTag;
 import me.sciguymjm.uberenchant.api.utils.persistence.tags.IntTag;
 import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
-import org.bukkit.Material;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
