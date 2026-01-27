@@ -76,8 +76,6 @@ public class UberEnchant extends JavaPlugin {
             registerEvents(new GrindstoneEvents());
 
         registerEvents(new ArmorEquippedListener());
-        registerEvents(new GrindstoneEvents());
-        getLogger().log(Level.INFO, "Successfully registered GrindstoneEvents listener.");
 
         registerEvents(new Listener() {
             @EventHandler
