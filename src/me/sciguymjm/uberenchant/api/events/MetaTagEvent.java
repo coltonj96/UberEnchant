@@ -7,11 +7,11 @@ import org.bukkit.inventory.ItemStack;
 
 public class MetaTagEvent<T> extends UberEvent {
 
-    private Player player;
-    private ItemStack item;
-    private UberEnchantment enchantment;
-    private MetaTag<T> tag;
-    private T value;
+    private final Player player;
+    private final ItemStack item;
+    private final UberEnchantment enchantment;
+    private final MetaTag<T> tag;
+    private final T value;
 
     public MetaTagEvent(Player player, ItemStack item, UberEnchantment enchantment, MetaTag<T> tag, T value) {
         super();

@@ -40,7 +40,7 @@ public class FastDiggingEnchantment extends EffectEnchantment {
             return;
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (item == null || item.getType() == Material.AIR || !containsEnchantment(item))
+        if (item.getType().isAir() || !containsEnchantment(item))
             return;
         if (conditions(item))
             return;

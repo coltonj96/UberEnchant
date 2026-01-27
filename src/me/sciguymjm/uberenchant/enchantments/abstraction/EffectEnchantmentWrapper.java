@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class EffectEnchantmentWrapper extends UberEnchantment {
 
-    private final UberEffects a;
+    private final UberEffects effect;
 
     /**
      * For internal use
@@ -20,11 +20,11 @@ public class EffectEnchantmentWrapper extends UberEnchantment {
      */
     public EffectEnchantmentWrapper(UberEffects effect) {
         super(effect.getName());
-        a = effect;
+        this.effect = effect;
     }
 
     public UberEffects getEffect() {
-        return a;
+        return effect;
     }
 
     @Override
@@ -61,12 +61,12 @@ public class EffectEnchantmentWrapper extends UberEnchantment {
 
     @Override
     public boolean canEnchantItem(ItemStack item) {
-        if (UberEffects.valuesContain(1, a.getEffect()))
+        if (UberEffects.valuesContain(1, effect.getEffect()))
             return EnchantmentTarget.ARMOR.includes(item) || item.getType().equals(Material.SHIELD);
-        else if (UberEffects.valuesContain(-1, a.getEffect()))
+        else if (UberEffects.valuesContain(-1, effect.getEffect()))
             return EnchantmentTarget.ARMOR.includes(item) || EnchantmentTarget.WEAPON.includes(item);
         else
-            return UberEffects.valuesContain(0, a.getEffect());
+            return UberEffects.valuesContain(0, effect.getEffect());
     }
 
     @Override

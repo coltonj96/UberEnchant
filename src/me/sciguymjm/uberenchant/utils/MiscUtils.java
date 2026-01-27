@@ -27,9 +27,8 @@ public class MiscUtils {
         map.forEach((k,v) -> Debugging.debug("[" + k + "=" + v + "]"));*/
         StringBuilder builder = new StringBuilder();
 
-        for (String entry : entries) {
+        for (String entry : entries)
             test(player, args, entry, builder, list);
-        }
 
         if (args[3].endsWith(","))
             test(player, args, "", builder, list);
@@ -57,9 +56,8 @@ public class MiscUtils {
                         && (TAG.isEmpty() || tag.getName().startsWith(TAG) || tag.getName().contains(TAG))
         ).map(tag -> (BoolTag) tag).toList();
 
-        if (pair.length < 2) {
+        if (pair.length < 2)
             list.addAll(tags.stream().map(tag -> builder + tag.getName() + "=").toList());
-        }
 
         tags.forEach(tag -> {
             if (isValid(TAG))

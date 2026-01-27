@@ -13,6 +13,10 @@ import java.util.List;
  */
 public class HelpCommand extends UberTabCommand {
 
+    public HelpCommand() {
+        super("uhelp");
+    }
+
     @Override
     public boolean onCmd() {
         if (hasPermission("uber.help")) {
@@ -20,9 +24,8 @@ public class HelpCommand extends UberTabCommand {
                 EnchantmentUtils.help(player, "all");
             if (args.length == 1)
                 EnchantmentUtils.help(player, args[0]);
-        } else {
+        } else
             response(Reply.PERMISSIONS);
-        }
         return true;
     }
 

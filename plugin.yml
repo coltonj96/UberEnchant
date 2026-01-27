@@ -79,11 +79,15 @@ permissions:
     description: Full access to '/uadd'
     default: op
     children:
+      uber.add.attribute: true
       uber.add.enchant: true
       uber.add.effect: true
       uber.add.lore: true
       uber.add.meta: true
       uber.add.name: true
+  uber.add.attribute:
+    description: Access to '/uadd attribute'
+    default: false
   uber.add.enchant:
     description: Access to '/uadd enchant'
     default: false
@@ -141,12 +145,16 @@ permissions:
     description: Full access to '/udel'
     default: op
     children:
+      uber.del.attribute: true
       uber.del.enchant: true
       uber.del.enchant.free: true
       uber.del.effect: true
       uber.del.lore: true
       uber.del.meta: true
       uber.del.name: true
+  uber.del.attribute:
+    description: Access to '/udel attribute'
+    default: false
   uber.del.enchant:
     description: Access to '/udel enchant'
     default: false
@@ -224,11 +232,15 @@ permissions:
     description: Full access to '/uset'
     default: op
     children:
+      uber.set.attribute: true
       uber.set.effect: true
       uber.set.hidden: true
       uber.set.lore: true
       uber.set.meta: true
       uber.set.name: true
+  uber.set.attribute:
+    description: Access to '/uset attribute'
+    default: false
   uber.set.effect:
     description: Access to '/uset effect'
     default: false

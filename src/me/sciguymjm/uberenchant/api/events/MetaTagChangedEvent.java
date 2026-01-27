@@ -7,7 +7,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class MetaTagChangedEvent<T> extends MetaTagEvent<T> {
 
-    private T old;
+    private final T old;
 
     public MetaTagChangedEvent(Player player, ItemStack item, UberEnchantment enchantment, MetaTag<T> tag, T old, T value) {
         super(player, item, enchantment, tag, value);

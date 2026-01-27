@@ -8,7 +8,7 @@ public enum Rarity {
 
     private final double weight;
 
-    private Rarity(double weight) {
+    Rarity(double weight) {
         this.weight = weight;
     }
 

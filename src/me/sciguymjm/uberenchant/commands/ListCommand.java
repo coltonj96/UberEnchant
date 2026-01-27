@@ -14,25 +14,19 @@ import java.util.List;
  */
 public class ListCommand extends UberTabCommand {
 
+    public ListCommand() {
+        super("ulist");
+    }
+
     @Override
     public boolean onCmd() {
-        if (args.length == 1) {
+        if (args.length == 1)
             switch (args[0].toLowerCase()) {
-                case "enchants" -> {
-                    if (hasPermission("uber.list.enchants"))
-                        converse();//response(EnchantmentUtils.listEnchants(1));
-                    else
-                        response(Reply.PERMISSIONS);
-                }
-                case "effects" -> {
-                    if (hasPermission("uber.list.effects"))
-                        response(EffectUtils.listEffects());
-                    else
-                        response(Reply.PERMISSIONS);
-                }
+                case "enchants" -> action("enchants", this::converse);
+                case "effects" -> action("effects", this::response, EffectUtils.listEffects());
                 default -> EnchantmentUtils.help(player, "ulist");
             }
-        } else {
+        else
             /*
             //ItemStack item = player.getInventory().getItemInMainHand();
             //if (!item.getType().equals(Material.AIR)) {
@@ -47,7 +41,6 @@ public class ListCommand extends UberTabCommand {
             //}
              */
             response("&6%1$s", command.getUsage());
-        }
         return true;
     }
 
@@ -55,10 +48,8 @@ public class ListCommand extends UberTabCommand {
     public List<String> onTab() {
         List<String> list = new ArrayList<>();
         if (args.length == 1) {
-            if (hasPermission("uber.list.enchants"))
-                list.add("enchants");
-            if (hasPermission("uber.list.effects"))
-                list.add("effects");
+            add(list, "uber.list,enchants", "enchants");
+            add(list, "uber.list,effects", "effects");
         }
         return list;
     }

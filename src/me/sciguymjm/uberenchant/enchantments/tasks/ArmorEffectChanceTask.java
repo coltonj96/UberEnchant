@@ -6,7 +6,7 @@ import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 
-public class ArmorEffectChanceTask extends ArmorEffectTask {
+public class  ArmorEffectChanceTask extends ArmorEffectTask {
 
     private final WeightedChance<Boolean> chance;
 

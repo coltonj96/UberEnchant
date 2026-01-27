@@ -16,5 +16,5 @@ public interface IUberTabComplete extends TabCompleter {
      * @return A list of autocomplete options
      * @hidden
      */
-    public List<String> onTab();
+    List<String> onTab();
 }

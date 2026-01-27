@@ -13,12 +13,12 @@ public interface Weighted<E> {
      *
      * @return The value
      */
-    public E value();
+    E value();
 
     /**
      * Gets the weight
      *
      * @return The weight
      */
-    public double weight();
+    double weight();
 }

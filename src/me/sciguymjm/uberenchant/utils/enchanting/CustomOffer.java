@@ -22,7 +22,7 @@ public class CustomOffer {
     private final Player player;
     private final ItemStack item;
 
-    private EnchantmentTableUtils.CustomList list;
+    private final EnchantmentTableUtils.CustomList list;
 
     public void setEnchanted() {
         enchanted = true;
@@ -55,10 +55,9 @@ public class CustomOffer {
 
     private EnchantmentTableUtils.CustomList generate(PrepareItemEnchantEvent event, UberRandom random) {
         int bonus = event.getEnchantmentBonus();
-        if (EnchantmentTableUtils.floorBonus()) {
+        if (EnchantmentTableUtils.floorBonus())
             if (bonus >= 15)
                 bonus += getFloorBonus(event.getEnchantBlock());
-        }
 
         for (int i = 0; i < 3; ++i) {
             costs[i] = EnchantmentTableUtils.getCost(random, i, bonus, item);
@@ -70,7 +69,7 @@ public class CustomOffer {
 
         Enchantment[] enchants = new Enchantment[3];
         int[] levels = new int[3];
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 3; ++i)
             if (costs[i] > 0) {
                 list = getEnchantmentList(i);
 
@@ -80,22 +79,18 @@ public class CustomOffer {
                     levels[i] = enchant.getLevel();
                 }
             }
-        }
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++)
             if (offers[i] != null && enchants[i] != null)
                 offers[i] = new EnchantmentOffer(enchants[i], levels[i], costs[i]);
-        }
         return list;
     }
 
     private int getFloorBonus(Block block) {
         double bonus = 0.0;
-        for (int x = 1; x >= -1; x--) {
-            for (int z = 1; z >= -1; z--) {
+        for (int x = 1; x >= -1; x--)
+            for (int z = 1; z >= -1; z--)
                 bonus += getBonusValue(block.getRelative(x, -1, z).getType());
-            }
-        }
         return (int) Math.round(bonus);
     }
 

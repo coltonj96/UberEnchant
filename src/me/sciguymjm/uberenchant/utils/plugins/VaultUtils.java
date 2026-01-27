@@ -17,7 +17,7 @@ public class VaultUtils extends PluginUtils {
 
     protected VaultUtils() {
         super("Vault");
-        if (UberEnchant.instance().getConfig().getBoolean("use_economy")) {
+        if (UberEnchant.instance().getConfig().getBoolean("use_economy"))
             if (pluginLoaded) {
                 RegisteredServiceProvider<Economy> economyService = UberEnchant.instance().getServer().getServicesManager().getRegistration(Economy.class);
                 if (economyService != null) {
@@ -27,10 +27,8 @@ public class VaultUtils extends PluginUtils {
                     UberEnchant.log(Level.WARNING, UberLocale.getC("&c", "uberenchant.economy_not_found"));
                     pluginLoaded = false;
                 }
-            } else {
+            } else
                 UberEnchant.log(Level.WARNING, UberLocale.getC("&c", "uberenchant.economy_not_found"));
-            }
-        }
         instance = this;
     }
 

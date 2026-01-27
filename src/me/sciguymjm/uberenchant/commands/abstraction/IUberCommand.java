@@ -1,6 +1,9 @@
 package me.sciguymjm.uberenchant.commands.abstraction;
 
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * For internal use.
@@ -8,11 +11,26 @@ import org.bukkit.command.CommandExecutor;
 public interface IUberCommand extends CommandExecutor {
 
     /**
-     * Simplified version of {@link #onCommand(org.bukkit.command.CommandSender, org.bukkit.command.Command, String, String[])}
+     * Simplified version of {@link #onCommand(CommandSender, Command, String, String[])}
      *
      * @return True if command was successful
      * @hidden
      */
-    public boolean onCmd();
+    boolean onCmd();
 
+    interface Action {
+        void run();
+    }
+
+    interface AbstractAction<T> {
+        void run(T t);
+    }
+
+    interface ItemAction {
+        void apply(ItemStack item);
+    }
+
+    interface Condition {
+        boolean test();
+    }
 }

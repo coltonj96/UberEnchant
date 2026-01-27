@@ -5,6 +5,7 @@ public enum Versions {
     v1_20_4,
     v1_20_5,
     v1_21,
+    v1_21_3,
     v1_21_4;
 
     private final boolean check;

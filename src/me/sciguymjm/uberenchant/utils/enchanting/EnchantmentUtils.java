@@ -2,13 +2,9 @@ package me.sciguymjm.uberenchant.utils.enchanting;
 
 import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.api.utils.ExcellentEnchantsRecord;
-import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.api.utils.UberRecord;
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
-import me.sciguymjm.uberenchant.utils.ChatUtils;
-import me.sciguymjm.uberenchant.utils.UberLocale;
-import me.sciguymjm.uberenchant.utils.VersionUtils;
-import me.sciguymjm.uberenchant.utils.Versions;
+import me.sciguymjm.uberenchant.utils.*;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -22,6 +18,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Utility class for enchantments
@@ -35,7 +32,9 @@ public class EnchantmentUtils {
      * @hidden
      */
     public static String[] listEnchants(int page) {
-        List<String> records = UberConfiguration.getRecords().stream().filter(value -> value.getEnchant() != null).map(value -> String.format("    &6&l%1$s&8 (&5%2$s&8)", value.getName(), value.getKey().getNamespace())).distinct().sorted().toList();
+        List<String> records = filter(UberRecord.values(), value -> value.getEnchant() != null)
+                .map(value -> String.format("    &6&l%1$s&8 (&5%2$s&8)", value.getName(), value.getKey().getNamespace()))
+                .distinct().sorted().toList();
         int t = records.size();
         List<String> sub = new ArrayList<>(records.subList(Math.max(Math.min(page * 10 - 10, t - 10), 0), Math.min(page * 10, t)));
         sub.add(0, UberLocale.getCF("&6", "utils.enchantments.list", page, sub.size() / 10));
@@ -44,7 +43,9 @@ public class EnchantmentUtils {
     }
 
     public static String listPage(int page) {
-        List<String> records = UberConfiguration.getRecords().stream().filter(value -> value.getEnchant() != null).map(value -> String.format("    &6&l%1$s&8 (&5%2$s&8)", value.getName(), value.getKey().getNamespace())).distinct().sorted().toList();
+        List<String> records = filter(UberRecord.values(), value -> value.getEnchant() != null)
+                .map(value -> String.format("    &6&l%1$s&8 (&5%2$s&8)", value.getName(), value.getKey().getNamespace()))
+                .distinct().sorted().toList();
         int t = records.size();
         int pages = (int) Math.ceil(t / 10.0);
         page = clamp(1, pages, page);
@@ -56,7 +57,7 @@ public class EnchantmentUtils {
     }
 
     public static int getPages() {
-        int t = (int) UberConfiguration.getRecords().stream().filter(value -> value.getEnchant() != null).distinct().count();
+        int t = (int) filter(UberRecord.values(), value -> value.getEnchant() != null).distinct().count();
         return  (int) Math.ceil(t / 10.0);
     }
 
@@ -86,7 +87,7 @@ public class EnchantmentUtils {
             return null;
         Pattern pattern = Pattern.compile(name.toLowerCase());
         Predicate<String> filter = string -> pattern.matcher(string.toLowerCase()).lookingAt();
-        return UberRecord.values().stream().filter(
+        return filter(UberRecord.values(),
                 enchant -> filter.test(enchant.getName()) ||
                         filter.test(enchant.getKey().toString()) ||
                         enchant.getAliases().stream().anyMatch(filter))
@@ -96,20 +97,22 @@ public class EnchantmentUtils {
     /**
      * Gets a set of matching enchantments by name/alias from UberRecords
      *
-     * @param name The partial name/alias of an enchantment
+     * @param value The partial name/alias of an enchantment
      * @return A set of all matching enchantments
      */
-    public static Set<Enchantment> getMatches(String name) {
-        return UberRecord.values().stream().filter(record ->
-                record.getName().equalsIgnoreCase(name) ||
-                        record.getName().contains(name.toLowerCase()) ||
-                        record.getKey().toString().equalsIgnoreCase(name) ||
-                        record.getKey().toString().contains(name.toLowerCase()) ||
-                        record.getAliases().contains(name.toLowerCase()) ||
-                        record.getAliases().stream().anyMatch(alias ->
-                                alias.equalsIgnoreCase(name) ||
-                                        alias.contains(name.toLowerCase()))
-        ).distinct().map(UberRecord::getEnchant).collect(Collectors.toSet());
+    public static Set<Enchantment> getMatches(String value) {
+        return filter(UberRecord.values(), record -> {
+            String name = record.getName();
+            String key = record.getKey().toString();
+            List<String> aliases = record.getAliases();
+            String val = value.toLowerCase();
+            return name.equalsIgnoreCase(val) ||
+                    name.contains(val) ||
+                    key.equalsIgnoreCase(val) ||
+                    key.contains(val) ||
+                    aliases.contains(val) ||
+                    aliases.stream().anyMatch(alias -> alias.equalsIgnoreCase(val) || alias.contains(val));
+        }).distinct().map(UberRecord::getEnchant).collect(Collectors.toSet());
         /*if (name.isEmpty())
             return null;
         BiFunction<String, String, Boolean> lookingAt = (String a, String b) -> Pattern.compile(a.toLowerCase()).matcher(b.toLowerCase()).lookingAt();
@@ -129,26 +132,32 @@ public class EnchantmentUtils {
     /**
      * Gets a set of matching enchantments by name/alias from UberRecords
      *
-     * @param name The partial name/alias of an enchantment
+     * @param value The partial name/alias of an enchantment
      * @return A set of all matching enchantments
      */
-    public static Set<UberEnchantment> getMatches(ItemStack item, String name) {
+    public static Set<UberEnchantment> getMatches(ItemStack item, String value) {
         Set<UberEnchantment> enchants;
         if (!item.getType().equals(Material.AIR) && !UberUtils.getMap(item).isEmpty())
             enchants = new HashSet<>(UberUtils.getMap(item).keySet());
         else
             return null;
-        if (name.isEmpty())
+        if (value.isEmpty())
             return enchants;
-        return enchants.stream().filter(enchant ->
-                enchant.getName().equalsIgnoreCase(name) ||
-                        enchant.getName().contains(name.toLowerCase()) ||
-                        enchant.getKey().toString().equalsIgnoreCase(name) ||
-                        enchant.getKey().toString().contains(name.toLowerCase()) ||
-                        enchant.getAliases().contains(name.toLowerCase()) ||
-                        enchant.getAliases().stream().anyMatch(alias ->
-                                alias.equalsIgnoreCase(name) ||
-                                        alias.contains(name.toLowerCase()))
+        String val = value.toLowerCase();
+        return filter(enchants,
+                enchant -> {
+                    String name = enchant.getName();
+                    String key = enchant.getKey().toString();
+                    List<String> aliases = enchant.getAliases();
+                    return name.equalsIgnoreCase(val) ||
+                            name.contains(val) ||
+                            key.equalsIgnoreCase(val) ||
+                            key.contains(val) ||
+                            aliases.contains(val) ||
+                            aliases.stream().anyMatch(
+                                    alias -> alias.equalsIgnoreCase(val) || alias.contains(val)
+                            );
+                }
         ).collect(Collectors.toSet());
         /*return UberRecord.values().stream().filter(record ->
                 record.getEnchant() instanceof UberEnchantment &&
@@ -177,6 +186,10 @@ public class EnchantmentUtils {
         else
             elements = stream.map(record -> (UberEnchantment) record.enchantment()).collect(Collectors.toSet());
         return elements;*/
+    }
+
+    public static <T> Stream<T> filter(Collection<T> values, Predicate<T> filter) {
+        return values.stream().filter(filter);
     }
 
     /**
@@ -238,7 +251,7 @@ public class EnchantmentUtils {
             list.add(record.getKey().toString());
             list.addAll(record.getAliases());
         });
-        return list.stream().filter(a -> name.isBlank() || a.toLowerCase().contains(name.toLowerCase())).distinct().toList();
+        return filter(list, a -> name.isBlank() || a.toLowerCase().contains(name.toLowerCase())).distinct().toList();
         /*if (name.isEmpty()) {
             UberRecord.values().forEach(value -> {
                 if (!list.contains(value.getName().toLowerCase()))
@@ -352,9 +365,8 @@ public class EnchantmentUtils {
             meta.addStoredEnchant(enchant, item.getEnchantmentLevel(enchant), true);
             book.setItemMeta(meta);
             return book;
-        } else {
+        } else
             return null;
-        }
     }
 
     /**
@@ -374,9 +386,22 @@ public class EnchantmentUtils {
             else
                 item.removeEnchantment(enchant);
             return true;
-        } else {
-            return false;
         }
+        return false;
+    }
+
+    /**
+     * Utility method for internal use.<br>
+     * Plugins should use
+     * {@link UberUtils#removeStoredEnchantment(UberEnchantment, ItemStack)}
+     *
+     * @param enchant UberEnchantment
+     * @param item    ItemStack
+     * @return Boolean
+     * @hidden
+     */
+    public static boolean removeStoredEnchantment(UberEnchantment enchant, ItemStack item) {
+        return UberUtils.removeStoredEnchantment(enchant, item) > 0;
     }
 
     /**
@@ -389,6 +414,7 @@ public class EnchantmentUtils {
         Map<String, List<String>> map = new HashMap<>();
         add(map, "ulist", "effects | enchants");
         add(map, "uadd",
+                "attribute <attribute> <value> <operation> [group]",
                 "enchant <enchantment> <level>",
                 "enchant all <level>",
                 "effect <effect> <duration> <level>",
@@ -398,6 +424,7 @@ public class EnchantmentUtils {
         );
         add(map, "ucost", "<add | del | extract> enchant <enchantment> <level>");
         add(map, "udel",
+                "attribute <key>",
                 "enchant <enchantment>",
                 "effect <effect>",
                 "lore <line#>",
@@ -406,6 +433,7 @@ public class EnchantmentUtils {
         );
         add(map, "uextract", "<enchantment | id>");
         add(map, "uset",
+                "attribute <key> <value | operation | group> <value>",
                 "effect <effect> <duration> <level>",
                 "hidden <true | false>",
                 "lore <line#> <string...>",
@@ -465,9 +493,8 @@ public class EnchantmentUtils {
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
                 item.setItemMeta(meta);
                 msg = UberLocale.getC("&a", "utils.enchantments.hidden_success");
-            } else {
+            } else
                 msg = UberLocale.getC("&c", "utils.enchantments.already_hidden");
-            }
             if (UberEnchantment.hasEnchantments(item))
                 UberUtils.removeEnchantmentLore(item);
         } else {
@@ -475,9 +502,8 @@ public class EnchantmentUtils {
                 meta.removeItemFlags(ItemFlag.HIDE_ENCHANTS);
                 item.setItemMeta(meta);
                 msg = UberLocale.getC("&a", "utils.enchantments.shown_success");
-            } else {
+            } else
                 msg = UberLocale.getC("&c", "utils.enchantments.already_shown");
-            }
             if (UberEnchantment.hasEnchantments(item))
                 UberUtils.addEnchantmentLore(item);
         }
@@ -495,7 +521,7 @@ public class EnchantmentUtils {
     public static List<String> find(Player player, String name) {
         if (player.hasPermission("uber.add.enchant.all"))
             return matchEnchants(name);
-        return UberRecord.values().stream().filter(a -> {
+        return filter(UberRecord.values(), a -> {
             if (name.isBlank() || a.getKey().toString().toLowerCase().contains(name.toLowerCase()))
                 return player.hasPermission(String.format("uber.add.enchant.%1$s", a.getName().toLowerCase()));
             return false;
@@ -510,7 +536,7 @@ public class EnchantmentUtils {
 
     public static List<String> find(Player player, ItemStack item, String name) {
         Set<Enchantment> all = UberUtils.getAllMap(item).keySet();
-        return UberRecord.values().stream().filter(record -> {
+        return filter(UberRecord.values(), record -> {
             if (all.contains(record.getEnchant()) && record.getKey().toString().toLowerCase().contains(name.toLowerCase()))
                 return player.hasPermission(String.format("uber.del.enchant.%1$s", record.getName().toLowerCase()));
             return false;

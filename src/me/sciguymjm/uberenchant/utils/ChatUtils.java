@@ -79,9 +79,8 @@ public class ChatUtils {
      */
     public static void response(CommandSender sender, String[] messages) {
         messages[0] = color("&8&l[&5UberEnchant&8&l] %1$s".formatted(messages[0]));
-        for (int i = 1; i < messages.length; i++) {
+        for (int i = 1; i < messages.length; i++)
             messages[i] = color(messages[i]);
-        }
         if (sender instanceof Conversable person && person.isConversing())
             Arrays.stream(messages).forEach(person::sendRawMessage);
         else
@@ -121,7 +120,7 @@ public class ChatUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return ChatColor.translateAlternateColorCodes('&', string);
     }
 
     public static void sendMessage(CommandSender sender, String message) {

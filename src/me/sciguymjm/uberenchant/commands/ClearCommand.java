@@ -2,7 +2,6 @@ package me.sciguymjm.uberenchant.commands;
 
 import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
-import me.sciguymjm.uberenchant.utils.Reply;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -15,34 +14,22 @@ import java.util.List;
  */
 public class ClearCommand extends UberTabCommand {
 
+    public ClearCommand() {
+        super("uclear");
+    }
+
     @Override
     public boolean onCmd() {
         if (args.length == 1) {
             ItemStack item = player.getInventory().getItemInMainHand();
             switch (args[0].toLowerCase()) {
-                case "enchant" -> {
-                    if (hasPermission("uber.clear.enchant"))
-                        enchant(item);
-                    else
-                        response(Reply.PERMISSIONS);
-                }
-                case "effect" -> {
-                    if (hasPermission("uber.clear.effect"))
-                        effect();
-                    else
-                        response(Reply.PERMISSIONS);
-                }
-                case "lore" -> {
-                    if (hasPermission("uber.clear.lore"))
-                        lore(item);
-                    else
-                        response(Reply.PERMISSIONS);
-                }
+                case "enchant" -> action("enchant", this::enchant, item);
+                case "effect" -> action("effect", this::effect);
+                case "lore" -> action("lore", this::lore, item);
                 default -> EnchantmentUtils.help(player, "uclear");
             }
-        } else {
+        } else
             response("&6%1$s", command.getUsage());
-        }
         return true;
     }
 
@@ -50,12 +37,9 @@ public class ClearCommand extends UberTabCommand {
     public List<String> onTab() {
         List<String> list = new ArrayList<>();
         if (args.length == 1) {
-            if (hasPermission("uber.clear.enchant"))
-                list.add("enchant");
-            if (hasPermission("uber.clear.effect"))
-                list.add("effect");
-            if (hasPermission("uber.clear.lore"))
-                list.add("lore");
+            add(list, "uber.clear.enchant", "enchant");
+            add(list, "uber.clear.effect", "effect");
+            add(list, "uber.clear.lore", "lore");
         }
         return list;
     }

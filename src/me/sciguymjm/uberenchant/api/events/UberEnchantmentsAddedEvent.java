@@ -8,9 +8,9 @@ import java.util.Map;
 
 public class UberEnchantmentsAddedEvent extends UberEvent {
 
-    private Player player;
-    private ItemStack item;
-    private Map<Enchantment, Integer> enchantments;
+    private final Player player;
+    private final ItemStack item;
+    private final Map<Enchantment, Integer> enchantments;
 
     public UberEnchantmentsAddedEvent(Player player, ItemStack item, Map<Enchantment, Integer> enchantments) {
         super();

@@ -28,16 +28,42 @@ public class UberLocale {
 
     public static void update() {
         Properties def = new Properties();
-        Properties prop = new Properties();
+
+        // Dirty way to force the output to be sorted in order
+        Properties prop = new Properties() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Set<Object> keySet() {
+                return Collections.unmodifiableSet(new TreeSet<>(super.keySet()));
+            }
+
+            @Override
+            public Set<Map.Entry<Object, Object>> entrySet() {
+
+                Set<Map.Entry<Object, Object>> set1 = super.entrySet();
+                Set<Map.Entry<Object, Object>> set2 = new LinkedHashSet<>(set1.size());
+
+                Iterator<Map.Entry<Object, Object>> iterator = set1.stream().sorted(Comparator.comparing(o -> o.getKey().toString())).iterator();
+
+                while (iterator.hasNext())
+                    set2.add(iterator.next());
+
+                return set2;
+            }
+
+            @Override
+            public synchronized Enumeration<Object> keys() {
+                return Collections.enumeration(new TreeSet<>(super.keySet()));
+            }
+        };
         try {
             FileInputStream input = new FileInputStream(FileUtils.getFile("/locale/en_us.properties"));
             def.load(UberEnchant.instance().getResource("locale/en_us.properties"));
             prop.load(input);
             input.close();
-            def.forEach((k, v) -> {
-                if (!prop.containsKey(k))
-                    prop.put(k, v);
-            });
+            def.forEach(prop::putIfAbsent);
             FileOutputStream output = new FileOutputStream(FileUtils.getFile("/locale/en_us.properties"));
             prop.store(output, "");
             output.close();
@@ -140,11 +166,9 @@ public class UberLocale {
      */
     public static String getF(String key, Object... args) {
         String value = get(key);
-        if (args != null && args.length > 0) {
-            for (int n = 0; n < args.length; n++) {
+        if (args != null && args.length > 0)
+            for (int n = 0; n < args.length; n++)
                 value = value.replace("{" + n + "}", String.valueOf(args[n]));
-            }
-        }
         return value;
     }
 

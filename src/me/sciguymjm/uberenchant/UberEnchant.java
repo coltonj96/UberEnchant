@@ -7,11 +7,12 @@ import me.sciguymjm.uberenchant.api.utils.UberRunnable;
 import me.sciguymjm.uberenchant.api.utils.persistence.tags.*;
 import me.sciguymjm.uberenchant.commands.*;
 import me.sciguymjm.uberenchant.commands.abstraction.UberCommand;
-import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
 import me.sciguymjm.uberenchant.utils.*;
 import me.sciguymjm.uberenchant.utils.enchanting.AnvilEvents;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentTableEvents;
+import me.sciguymjm.uberenchant.utils.enchanting.GrindstoneEvents;
+import me.sciguymjm.uberenchant.utils.enchanting.VillagerEvents;
 import me.sciguymjm.uberenchant.utils.plugins.PluginUtils;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.MultiLineChart;
@@ -57,25 +58,22 @@ public class UberEnchant extends JavaPlugin {
             return valueMap;
         }));
 
-        registerTabCommand("uadd", new AddCommand());
-        registerTabCommand("uclear", new ClearCommand());
-        registerTabCommand("ucost", new CostCommand());
-        registerTabCommand("udel", new DelCommand());
-        registerTabCommand("uextract", new ExtractCommand());
-        registerCommand("uhelp", new HelpCommand());
-        registerCommand("uinsert", new InsertCommand());
-        registerTabCommand("uitem", new ItemCommand());
-        registerTabCommand("ulist", new ListCommand());
-        registerCommand("ureload", new ReloadCommand());
-        registerTabCommand("uset", new SetCommand());
+        UberCommand.init();
 
         final boolean enchants = FileUtils.get("/mechanics/enchantment_table.yml", "enabled", false, Boolean.class);
         final boolean anvil = FileUtils.get("/mechanics/anvil.yml", "enabled", false, Boolean.class);
+        final boolean villagers = FileUtils.get("/mechanics/villager.yml", "enabled", false, Boolean.class);
+        final boolean grindstone = FileUtils.get("/mechanics/grindstone.yml", "enabled", false, Boolean.class);
+
 
         if (enchants)
             registerEvents(new EnchantmentTableEvents());
         if (anvil)
             registerEvents(new AnvilEvents());
+        if (villagers)
+            registerEvents(new VillagerEvents());
+        if (grindstone)
+            registerEvents(new GrindstoneEvents());
 
         registerEvents(new ArmorEquippedListener());
         registerEvents(new GrindstoneEvents());
@@ -85,6 +83,9 @@ public class UberEnchant extends JavaPlugin {
             @EventHandler
             public void OnLoad(ServerLoadEvent event) {
                 new BukkitRunnable() {
+                    private String toggle(boolean toggle) {
+                        return toggle ? "&aEnabled" : "&cDisabled";
+                    }
                     @Override
                     public void run() {
                         UberConfiguration.integrate();
@@ -93,8 +94,10 @@ public class UberEnchant extends JavaPlugin {
                         long def = UberConfiguration.getRecords(a -> a.getEnchant() instanceof EffectEnchantment && a.getKey() != null && a.getKey().getNamespace().equalsIgnoreCase(getName())).size();
                         long vanilla = UberConfiguration.getRecords(a -> a.getKey() != null && a.getKey().getNamespace().equalsIgnoreCase(NamespacedKey.MINECRAFT)).size();
                         List<String> strings = new ArrayList<>(List.of(new String[]{
-                                UberLocale.getCF("&6", "console.enchantment_table_status", enchants ? "&aenabled" : "&cdisabled"),
-                                UberLocale.getCF("&6", "console.anvil_status", anvil ? "&aenabled" : "&cdisabled"),
+                                UberLocale.getCF("&6", "console.enchantment_table_status", toggle(enchants)),
+                                UberLocale.getCF("&6", "console.anvil_status", toggle(anvil)),
+                                UberLocale.getCF("&6", "console.villager_status", toggle(villagers)),
+                                UberLocale.getCF("&6", "console.grindstone_status", toggle(grindstone)),
                                 UberLocale.getCF("&6", "console.vanilla_enchantments", "&a" + vanilla),
                                 UberLocale.getCF("&6", "console.default_enchantments", "&a" + def),
                                 UberLocale.getCF("&6", "console.loaded_enchantments", "&a" + loaded)
@@ -123,6 +126,38 @@ public class UberEnchant extends JavaPlugin {
         });
 
         UberRunnable.getInstance();
+
+        /* new BukkitRunnable() {
+            @Override
+            public void run() {
+                WeightedChance<EnchantmentTableUtils.WeightedEnchantment> weights = new WeightedChance<>();
+                Map<String, Integer> stats = new HashMap<>();
+                UberRecord.getRecords().forEach(record -> {
+                    EnchantmentTableUtils.WeightedEnchantment entry = new EnchantmentTableUtils.WeightedEnchantment(record.getEnchant(), 1);
+                    weights.add(entry);
+                    stats.put(VersionUtils.key(record.getEnchant()), 0);
+                });
+                stats.put("null", 0);
+                weights.add(new EnchantmentTableUtils.WeightedEnchantment(null, 0), Debugging.debug(weights.getTotal()) / 2.0);
+                //double total = UberEnchantment.getRegisteredEnchantments().size() + 1.0;
+                double total = 1000000.0;
+                for (int n = 1; n <= total; n++) {
+                    Enchantment enc = weights.select().getEnchantment();
+                    if (enc == null) {
+                        stats.put("null", stats.get("null") + 1);
+                        continue;
+                    }
+                    String name = VersionUtils.key(enc);
+                    stats.put(name, stats.get(name) + 1);
+                }
+                stats.entrySet().stream().sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())).forEach(entry -> {
+                    double percent = (entry.getValue() / total) * 100.0;
+                    percent = Math.round(percent * 100.0);
+                    percent /= 100.0;
+                    log(Level.INFO, "&8" + entry.getKey() + " = (" + entry.getValue() + ") " + percent + "%");
+                });
+            }
+        }.runTaskLater(this, 20L);*/
     }
 
     public void onDisable() {
@@ -138,6 +173,8 @@ public class UberEnchant extends JavaPlugin {
         FileUtils.initResource("enchantments/default/vanilla_effects.yml");
         FileUtils.initResource("mechanics/anvil.yml");
         FileUtils.initResource("mechanics/enchantment_table.yml");
+        FileUtils.initResource("mechanics/villager.yml");
+        FileUtils.initResource("mechanics/grindstone.yml");
 
         UberLocale.update();
         //UberLocale.updateEnchantments();
@@ -169,23 +206,13 @@ public class UberEnchant extends JavaPlugin {
             saveConfig();
         }
 
-        if (old.exists()) {
+        if (old.exists())
             try {
                 YamlConfiguration.loadConfiguration(old).save(enchantments);
                 old.delete();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        }
-    }
-
-    private void registerCommand(String name, UberCommand command) {
-        getCommand(name).setExecutor(command);
-    }
-
-    private void registerTabCommand(String name, UberTabCommand executor) {
-        registerCommand(name, executor);
-        getCommand(name).setTabCompleter(executor);
     }
 
     /*@SuppressWarnings({"unchecked", "deprecation"})

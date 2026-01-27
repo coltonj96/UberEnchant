@@ -109,20 +109,18 @@ public class UberUtils extends PDCItemUtils {
         Map<UberEnchantment, Integer> map = new HashMap<>();
         if (has(item, namespace)) {
             PersistentDataContainer data = getPDC(item, namespace);
-            if (notNull(data)) {
+            if (notNull(data))
                 data.getKeys().forEach(key -> {
-                    if (UberEnchantment.containsKey(key)) {
-                        if (has(data, key, PersistentDataType.INTEGER)) {
+                    if (UberEnchantment.containsKey(key))
+                        if (has(data, key, PersistentDataType.INTEGER))
                             map.put(UberEnchantment.getByKey(key), get(data, key, PersistentDataType.INTEGER));
-                        } else {
+                        else {
                             PersistentDataContainer meta = getPDC(data, key);
                             UberMeta<Integer> level = UberMeta.LEVEL;
                             if (has(meta, level.getKey()))
                                 map.put(UberEnchantment.getByKey(key), get(meta, level.getKey(), level.getType()));
                         }
-                    }
                 });
-            }
         }
         return map;
     }
@@ -330,6 +328,11 @@ public class UberUtils extends PDCItemUtils {
 
     public static void addStoredData(ItemStack item, UberEnchantment enchantment, int level) {
         addCustom(item, enchantment, level, storedUberEnchantment);
+        if (enchantment instanceof EffectEnchantment effect) {
+            addMeta(item, enchantment, storedUberEnchantment, UberMeta.DURATION, level);
+            effect.getTagDefaults(PersistentDataType.BOOLEAN).forEach((k, v) -> addMeta(item, enchantment, storedUberEnchantment, k.asMeta(), v));
+            effect.getTagDefaults(PersistentDataType.INTEGER).forEach((k, v) -> addMeta(item, enchantment, storedUberEnchantment, k.asMeta(), v));
+        }
     }
 
     private static int removeCustom(ItemStack item, UberEnchantment enchantment, NamespacedKey namespace) {
@@ -513,8 +516,8 @@ public class UberUtils extends PDCItemUtils {
      * @param book        - The book
      */
     public static int removeStoredEnchantment(UberEnchantment enchantment, ItemStack book) {
-        if (!book.getType().equals(Material.ENCHANTED_BOOK))
-            return 0;
+        //if (!book.getType().equals(Material.ENCHANTED_BOOK))
+            //return 0;
         return removeStoredData(book, enchantment);
     }
 
@@ -558,7 +561,9 @@ public class UberUtils extends PDCItemUtils {
         List<String> lore = new ArrayList<>();
         if (meta.hasLore())
             lore = meta.getLore();
-        Map<UberEnchantment, Integer> enchantments = item.getType() == Material.ENCHANTED_BOOK ? getStoredMap(item) : getMap(item);
+        Map<UberEnchantment, Integer> enchantments = getMap(item);
+        if (item.getType() == Material.ENCHANTED_BOOK)
+            enchantments.putAll(getStoredMap(item));
         /* Minecraft 1.20.2
         if (item.getItemMeta() instanceof EnchantmentStorageMeta)
             enchantments = UberEnchantment.getStoredEnchantments(item);
@@ -630,8 +635,11 @@ public class UberUtils extends PDCItemUtils {
         if (item.getItemMeta() instanceof EnchantmentStorageMeta)
             return UberEnchantment.getStoredEnchantments(item).size();
         */
-        return item.getType() == Material.ENCHANTED_BOOK ? getStoredMap(item).size() : (int) getMap(item).keySet().stream()
+        int n = (int) getMap(item).keySet().stream()
                 .filter(enchantment -> !BoolTag.HIDDEN.test(item, enchantment)).count();
+        if (hasStoredData(item))
+            n += getStoredMap(item).size();
+        return n;
     }
 
     /**
@@ -641,9 +649,8 @@ public class UberUtils extends PDCItemUtils {
      * @return the converted number as a String or an empty String if number is less than 1
      */
     public static String toRomanNumeral(int number) {
-        if (number < 1) {
+        if (number < 1)
             return "";
-        }
         TreeMap<Integer, String> map = new TreeMap<>();
         map.put(1000000, "(M)");
         map.put(900000, "(C)(M)");
@@ -671,9 +678,8 @@ public class UberUtils extends PDCItemUtils {
         map.put(4, "IV");
         map.put(1, "I");
         int l = map.floorKey(number);
-        if (number == l) {
+        if (number == l)
             return map.get(number);
-        }
         return map.get(l) + toRomanNumeral(number - l);
     }
 

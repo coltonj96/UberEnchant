@@ -65,10 +65,9 @@ public interface MetaTag<T> {
     }
 
     static <T> boolean testValues(ItemStack item, UberEnchantment enchantment, Map<? extends MetaTag<T>, T> map) {
-        for (Map.Entry<? extends MetaTag<T>, T> entry: map.entrySet()) {
+        for (Map.Entry<? extends MetaTag<T>, T> entry: map.entrySet())
             if (!entry.getKey().testValue(item, enchantment, entry.getValue()))
                 return false;
-        }
         return true;
     }
 

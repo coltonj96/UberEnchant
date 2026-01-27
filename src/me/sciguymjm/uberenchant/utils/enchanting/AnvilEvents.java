@@ -92,12 +92,11 @@ public class AnvilEvents implements Listener {
     public void test(InventoryClickEvent event) {
         Inventory inv = event.getInventory();
         InventoryView view = event.getView();
-        if (inv.getType().equals(InventoryType.ANVIL) && inv instanceof AnvilInventory) {
+        if (inv.getType().equals(InventoryType.ANVIL) && inv instanceof AnvilInventory)
             //Bukkit.getServer().getPluginManager().callEvent(new PrepareAnvilEvent(anvil, anvil.getItem(2)));
             sched(() -> {
                 ((Player) event.getWhoClicked()).updateInventory();
             });
-        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -112,15 +111,13 @@ public class AnvilEvents implements Listener {
 
     @EventHandler
     public void onReload(ServerLoadEvent event) {
-        if (event.getType().equals(ServerLoadEvent.LoadType.RELOAD)) {
+        if (event.getType().equals(ServerLoadEvent.LoadType.RELOAD))
             Bukkit.getOnlinePlayers().forEach(player -> {
                 if (!player.getGameMode().equals(GameMode.CREATIVE))
                     ProtocolLibUtils.setBypass(player, false);
             });
-        }
     }
 
-    @SuppressWarnings("removal")
     @EventHandler(priority = EventPriority.HIGHEST)
     public void createResult(PrepareAnvilEvent event) {
         calculate(event);
@@ -229,16 +226,15 @@ public class AnvilEvents implements Listener {
                             if (event.getViewers().get(0).getGameMode().equals(GameMode.CREATIVE) || item.getType().equals(Material.ENCHANTED_BOOK))
                                 flag3 = true;
 
-                            for (Enchantment enchantment1 : map.keySet()) {
+                            for (Enchantment enchantment1 : map.keySet())
                                 if (enchantment1 != enchantment && enchantment.conflictsWith(enchantment1)) {
                                     flag3 = false;
                                     ++i;
                                 }
-                            }
 
-                            if (!flag3) {
+                            if (!flag3)
                                 flag2 = true;
-                            } else {
+                            else {
                                 flag1 = true;
                                 int max = UberConfiguration.getByEnchant(enchantment).getMaxLevel();
                                 if (i2 > max)
@@ -382,28 +378,28 @@ public class AnvilEvents implements Listener {
     }
 
     private boolean isValid(ItemStack item1, ItemStack item2) {
-        Material m1 = item1.getType();
-        Material m2 = item2.getType();
+        String m1 = item1.getType().name().toUpperCase();
+        String m2 = item2.getType().name().toUpperCase();
 
         switch (m1) {
-            case WOODEN_AXE,
-                    WOODEN_HOE,
-                    WOODEN_PICKAXE,
-                    WOODEN_SHOVEL,
-                    WOODEN_SWORD,
-                    SHIELD -> {
+            case "WOODEN_AXE",
+                    "WOODEN_HOE",
+                    "WOODEN_PICKAXE",
+                    "WOODEN_SHOVEL",
+                    "WOODEN_SWORD",
+                    "SHIELD" -> {
                 switch (m2) {
-                    case ACACIA_PLANKS,
-                            BAMBOO_PLANKS,
-                            BIRCH_PLANKS,
-                            CHERRY_PLANKS,
-                            CRIMSON_PLANKS,
-                            DARK_OAK_PLANKS,
-                            JUNGLE_PLANKS,
-                            MANGROVE_PLANKS,
-                            OAK_PLANKS,
-                            SPRUCE_PLANKS,
-                            WARPED_PLANKS -> {
+                    case "ACACIA_PLANKS",
+                            "BAMBOO_PLANKS",
+                            "BIRCH_PLANKS",
+                            "CHERRY_PLANKS",
+                            "CRIMSON_PLANKS",
+                            "DARK_OAK_PLANKS",
+                            "JUNGLE_PLANKS",
+                            "MANGROVE_PLANKS",
+                            "OAK_PLANKS",
+                            "SPRUCE_PLANKS",
+                            "WARPED_PLANKS" -> {
                         return true;
                     }
                     default -> {
@@ -411,21 +407,21 @@ public class AnvilEvents implements Listener {
                     }
                 }
             }
-            case LEATHER_BOOTS,
-                    LEATHER_CHESTPLATE,
-                    LEATHER_HELMET,
-                    LEATHER_LEGGINGS -> {
-                return m2.equals(Material.LEATHER);
+            case "LEATHER_BOOTS",
+                    "LEATHER_CHESTPLATE",
+                    "LEATHER_HELMET",
+                    "LEATHER_LEGGINGS" -> {
+                return m2.equals("LEATHER");
             }
-            case STONE_AXE,
-                    STONE_HOE,
-                    STONE_PICKAXE,
-                    STONE_SHOVEL,
-                    STONE_SWORD -> {
+            case "STONE_AXE",
+                    "STONE_HOE",
+                    "STONE_PICKAXE",
+                    "STONE_SHOVEL",
+                    "STONE_SWORD" -> {
                 switch (m2) {
-                    case COBBLED_DEEPSLATE,
-                            COBBLESTONE,
-                            BLACKSTONE -> {
+                    case "COBBLED_DEEPSLATE",
+                            "COBBLESTONE",
+                            "BLACKSTONE" -> {
                         return true;
                     }
                     default -> {
@@ -433,59 +429,59 @@ public class AnvilEvents implements Listener {
                     }
                 }
             }
-            case CHAINMAIL_BOOTS,
-                    CHAINMAIL_CHESTPLATE,
-                    CHAINMAIL_HELMET,
-                    CHAINMAIL_LEGGINGS,
-                    IRON_AXE,
-                    IRON_HOE,
-                    IRON_BOOTS,
-                    IRON_CHESTPLATE,
-                    IRON_HELMET,
-                    IRON_LEGGINGS,
-                    IRON_PICKAXE,
-                    IRON_SWORD,
-                    IRON_SHOVEL -> {
-                return m2.equals(Material.IRON_INGOT);
+            case "CHAINMAIL_BOOTS",
+                    "CHAINMAIL_CHESTPLATE",
+                    "CHAINMAIL_HELMET",
+                    "CHAINMAIL_LEGGINGS",
+                    "IRON_AXE",
+                    "IRON_HOE",
+                    "IRON_BOOTS",
+                    "IRON_CHESTPLATE",
+                    "IRON_HELMET",
+                    "IRON_LEGGINGS",
+                    "IRON_PICKAXE",
+                    "IRON_SWORD",
+                    "IRON_SHOVEL" -> {
+                return m2.equals("IRON_INGOT");
             }
-            case GOLDEN_BOOTS,
-                    GOLDEN_CHESTPLATE,
-                    GOLDEN_HELMET,
-                    GOLDEN_LEGGINGS,
-                    GOLDEN_AXE,
-                    GOLDEN_HOE,
-                    GOLDEN_PICKAXE,
-                    GOLDEN_SHOVEL,
-                    GOLDEN_SWORD -> {
-                return m2.equals(Material.GOLD_INGOT);
+            case "GOLDEN_BOOTS",
+                    "GOLDEN_CHESTPLATE",
+                    "GOLDEN_HELMET",
+                    "GOLDEN_LEGGINGS",
+                    "GOLDEN_AXE",
+                    "GOLDEN_HOE",
+                    "GOLDEN_PICKAXE",
+                    "GOLDEN_SHOVEL",
+                    "GOLDEN_SWORD" -> {
+                return m2.equals("GOLD_INGOT");
             }
-            case DIAMOND_BOOTS,
-                    DIAMOND_CHESTPLATE,
-                    DIAMOND_HELMET,
-                    DIAMOND_LEGGINGS,
-                    DIAMOND_AXE,
-                    DIAMOND_HOE,
-                    DIAMOND_PICKAXE,
-                    DIAMOND_SHOVEL,
-                    DIAMOND_SWORD -> {
-                return m2.equals(Material.DIAMOND);
+            case "DIAMOND_BOOTS",
+                    "DIAMOND_CHESTPLATE",
+                    "DIAMOND_HELMET",
+                    "DIAMOND_LEGGINGS",
+                    "DIAMOND_AXE",
+                    "DIAMOND_HOE",
+                    "DIAMOND_PICKAXE",
+                    "DIAMOND_SHOVEL",
+                    "DIAMOND_SWORD" -> {
+                return m2.equals("DIAMOND");
             }
-            case NETHERITE_BOOTS,
-                    NETHERITE_CHESTPLATE,
-                    NETHERITE_HELMET,
-                    NETHERITE_LEGGINGS,
-                    NETHERITE_AXE,
-                    NETHERITE_HOE,
-                    NETHERITE_PICKAXE,
-                    NETHERITE_SHOVEL,
-                    NETHERITE_SWORD -> {
-                return m2.equals(Material.NETHERITE_INGOT);
+            case "NETHERITE_BOOTS",
+                    "NETHERITE_CHESTPLATE",
+                    "NETHERITE_HELMET",
+                    "NETHERITE_LEGGINGS",
+                    "NETHERITE_AXE",
+                    "NETHERITE_HOE",
+                    "NETHERITE_PICKAXE",
+                    "NETHERITE_SHOVEL",
+                    "NETHERITE_SWORD" -> {
+                return m2.equals("NETHERITE_INGOT");
             }
-            case TURTLE_HELMET -> {
-                return m2.equals(Material.getMaterial("SCUTE"));
+            case "TURTLE_HELMET" -> {
+                return m2.equals("SCUTE");
             }
-            case ELYTRA -> {
-                return m2.equals(Material.PHANTOM_MEMBRANE);
+            case "ELYTRA" -> {
+                return m2.equals("PHANTOM_MEMBRANE");
             }
             default -> {
                 return false;

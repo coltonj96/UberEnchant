@@ -1,5 +1,6 @@
 package me.sciguymjm.uberenchant.commands;
 
+import me.sciguymjm.uberenchant.UberEnchant;
 import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.api.events.UberEnchantmentsAddedEvent;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
@@ -17,7 +18,13 @@ import me.sciguymjm.uberenchant.utils.plugins.VaultUtils;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
@@ -29,66 +36,52 @@ import java.util.*;
  */
 public class AddCommand extends UberTabCommand {
 
+    public AddCommand() {
+        super("uadd");
+    }
+
     @Override
     public boolean onCmd() {
         if (args.length != 0) {
             ItemStack item = player.getInventory().getItemInMainHand();
             switch (args[0].toLowerCase()) {
-                case "enchant" -> {
-                    if (hasPermission("uber.add.enchant"))
-                        enchant(item);
-                    else
-                        response(Reply.PERMISSIONS);
-                }
-                case "effect" -> {
-                    if (hasPermission("uber.add.effect"))
-                        effect();
-                    else
-                        response(Reply.PERMISSIONS);
-                }
-                case "lore" -> {
-                    if (hasPermission("uber.add.lore"))
-                        lore(item);
-                    else
-                        response(Reply.PERMISSIONS);
-                }
-                case "meta" -> {
-                    if (hasPermission("uber.add.meta"))
-                        meta(item);
-                    else
-                        response(Reply.PERMISSIONS);
-                }
-                case "name" -> {
-                    if (hasPermission("uber.add.name"))
-                        name(item);
-                    else
-                        response(Reply.PERMISSIONS);
-                }
+                case "attribute" -> action("attribute", this::attribute, item);
+                case "enchant" -> action("enchant", this::enchant, item);
+                case "effect" -> action("effect", this::effect);
+                case "lore" -> action("lore", this::lore, item);
+                case "meta" -> action("meta", this::meta, item);
+                case "name" -> action("name", this::name, item);
                 default -> EnchantmentUtils.help(player, "uadd");
             }
-        } else {
+        } else
             response("&6%1$s", command.getUsage());
-        }
         return true;
     }
 
+    /*
+    /uadd atrribute <atrribute> <name> <value> <operation> [group]
+     */
     @Override
     public List<String> onTab() {
         List<String> list = new ArrayList<>();
         if (args.length == 1) {
-            if (hasPermission("uber.add.enchant"))
-                list.add("enchant");
-            if (hasPermission("uber.add.effect"))
-                list.add("effect");
-            if (hasPermission("uber.add.lore"))
-                list.add("lore");
-            if (Versions.isV1_20_4() && hasPermission("uber.add.meta"))
-                list.add("meta");
-            if (hasPermission("uber.add.name"))
-                list.add("name");
+            add(list, "uber.add.attribute", "attribute");
+            add(list, "uber.add.enchant", "enchant");
+            add(list, "uber.add.effect", "effect");
+            add(list, "uber.add.lore", "lore");
+            add(list, "uber.add.meta", "meta", Versions.isV1_20_4());
+            add(list, "uber.add.name", "name");
         }
-        if (args.length == 2) {
+        if (args.length == 2)
             switch (args[0].toLowerCase()) {
+                case "attribute" -> {
+                    List<Attribute> attributes;
+                    if (Versions.isV1_20_4())
+                        attributes = Registry.ATTRIBUTE.stream().toList();
+                    else
+                        attributes = List.of(Attribute.values());
+                    list = attributes.stream().map(VersionUtils::key).filter(name -> args[1].isBlank() || name.toLowerCase().contains(args[1].toLowerCase())).distinct().toList();
+                }
                 case "enchant" -> list = EnchantmentUtils.find(player, args[1]);
                 case "effect" -> list = EffectUtils.matchEffects(args[1]);
                 case "meta" -> {
@@ -100,7 +93,6 @@ public class AddCommand extends UberTabCommand {
                         list = map.keySet().stream().map(key -> key.getKey().getKey().toLowerCase()).toList();
                 }
             }
-        }
         if (args.length >= 3 && args[0].equalsIgnoreCase("meta")) {
             if (args.length == 3)
                 list = UberMeta.values().stream().map(UberMeta::getName).filter(name ->
@@ -119,6 +111,12 @@ public class AddCommand extends UberTabCommand {
                 if (hasPermission("uber.add.meta.owner.others"))
                     list.addAll(Bukkit.getServer().getOnlinePlayers().stream().map(Player::getName).toList());
             }*/
+        }
+        if (args.length >= 4 && args[0].equalsIgnoreCase("attribute")) {
+            if (args.length == 4)
+                list = Arrays.stream(AttributeModifier.Operation.values()).map(op -> op.name().toLowerCase()).filter(name -> args[3].isBlank() || name.contains(args[3])).distinct().toList();
+            if (args.length == 5)
+                list = Arrays.stream(EquipmentSlot.values()).map(slot -> slot.getGroup().toString()).filter(name -> args[4].isBlank() || name.contains(args[4])).distinct().toList();
         }
         /*if (args.length == 5 && args[0].equalsIgnoreCase("effect")) {
             list = Bukkit.getServer().getOnlinePlayers().stream().map(Player::getName).toList();
@@ -139,7 +137,7 @@ public class AddCommand extends UberTabCommand {
             item = new ItemStack(Material.ENCHANTED_BOOK);
         }
         if (args.length < 3) {
-            response("&a/uadd enchant &c<enchantment> <level>");
+            response(argue("&a/uadd enchant <enchantment> <level>"));
             response(Reply.ARGUMENTS);
             return;
         }
@@ -192,18 +190,16 @@ public class AddCommand extends UberTabCommand {
                 player.getInventory().setItemInMainHand(item);
                 localized("&a", "actions.enchant.add.success", e.getDisplayName(), level);
                 Bukkit.getServer().getPluginManager().callEvent(event);
-            } else {
+            } else
                 localized("&c", "actions.enchant.add.range", e.getMinLevel(), e.getMaxLevel());
-            }
             return;
         }
         if (VaultUtils.hasEconomy()) {
-            if (!e.getEnchant().canEnchantItem(item)) {
+            if (!e.getEnchant().canEnchantItem(item))
                 if (!e.getCanUseOnAnything() || !hasPermission("uber.enchant.bypass.any")) {
                     localized("&c", "actions.enchant.add.incompatible");
                     return;
                 }
-            }
             if (level >= e.getMinLevel() && level <= e.getMaxLevel()) {
                 double cost = e.getLevelCost().containsKey(level) ? e.getLevelCost().get(level) : e.getCost() + (e.getCostMultiplier() * e.getCost() * (level - 1));
                 if (VaultUtils.has(player, cost)) {
@@ -220,15 +216,12 @@ public class AddCommand extends UberTabCommand {
                     player.getInventory().setItemInMainHand(item);
                     localized("&a", "actions.enchant.add.pay_success", e.getDisplayName(), level, n.amount);
                     Bukkit.getServer().getPluginManager().callEvent(event);
-                } else {
+                } else
                     localized("&c", "actions.enchant.add.pay_more", cost - VaultUtils.getBalance(player));
-                }
-            } else {
+            } else
                 localized("&c", "actions.enchant.add.range", e.getMinLevel(), e.getMaxLevel());
-            }
-        } else {
+        } else
             response(Reply.NO_ECONOMY);
-        }
     }
 
     private void meta(ItemStack item) {
@@ -242,7 +235,7 @@ public class AddCommand extends UberTabCommand {
             return;
         }
         if (args.length < 4) {
-            response("&a/uadd meta &c<enchantment> <tag> <value>");
+            response(argue("&a/uadd meta <enchantment> <tag> <value>"));
             response(Reply.ARGUMENTS);
             return;
         }
@@ -279,19 +272,16 @@ public class AddCommand extends UberTabCommand {
 
         boolean success = false;
 
-        if (meta.getTag() instanceof BoolTag tag)  {
+        if (meta.tag() instanceof BoolTag tag)  {
             boolean value;
             switch (args[3].toLowerCase()) {
-                case "true", "t", "1":
-                    value = true;
-                    break;
-                case "false", "f", "0":
-                    value = false;
-                    break;
-                default:
+                case "true", "t", "1" -> value = true;
+                case "false", "f", "0" -> value = false;
+                default -> {
                     localized("&c", "actions.meta.invalid_bool_value");
                     response("&a/uadd %1$s %2$s %3$s &c%4$s", args);
                     return;
+                }
             }
             if (enchant instanceof EffectEnchantment effect && tag == BoolTag.ON_HELD && !UberUtils.containsMeta(item, enchant, BoolTag.ON_HELD) && value)
                 UberRunnable.addTask(new HeldEffectTask(player, effect, (p, i, e) ->
@@ -301,7 +291,7 @@ public class AddCommand extends UberTabCommand {
             UberUtils.addMetaData(item, enchant, tag.asMeta(), value);
             success = true;
         }
-        if (!success && meta.getTag() instanceof IntTag tag)  {
+        if (!success && meta.tag() instanceof IntTag tag)  {
             int value;
             try {
                 value = Integer.parseInt(args[3]);
@@ -313,7 +303,7 @@ public class AddCommand extends UberTabCommand {
             UberUtils.addMetaData(item, enchant, tag.asMeta(), value);
             success = true;
         }
-        if (!success && meta.getTag() instanceof DoubleTag tag)  {
+        if (!success && meta.tag() instanceof DoubleTag tag)  {
             double value;
             try {
                 value = Double.parseDouble(args[3]);
@@ -359,9 +349,80 @@ public class AddCommand extends UberTabCommand {
             localized("&c", "actions.meta.add.fail");
     }
 
+    private void attribute(ItemStack item) {
+        if (item.getType().equals(Material.AIR)) {
+            response(Reply.HOLD_ITEM);
+            return;
+        }
+        if (args.length < 4) {
+            response(argue("&a/uadd attribute <attribute> <value> <operation> [group]"));
+            //response("&a/uadd attribute &c<attribute> <value> <operation> [group]");
+            response(Reply.ARGUMENTS);
+            return;
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
+            return;
+        Attribute attribute;
+        if (Versions.isV1_20_4())
+            attribute = Registry.ATTRIBUTE.get(NamespacedKey.minecraft(args[1].toLowerCase()));
+        else
+            attribute = Attribute.valueOf(args[1].toLowerCase());
+        if (attribute == null) {
+            localized("&c", "actions.attribute.not_exist");
+            return;
+        }
+        double value;
+        try {
+            value = Double.parseDouble(args[2]);
+        } catch (NumberFormatException e) {
+            response("&a/uadd %1$s %2$s &c%3$s %4$s" + (args.length < 5 ? "" : " %5$s"), args);
+            response(Reply.DECIMAL_NUMBER);
+            return;
+        }
+        AttributeModifier.Operation operation;
+        try {
+            operation = AttributeModifier.Operation.valueOf(args[3].toUpperCase());
+        }  catch (IllegalArgumentException e) {
+            localized("&c", "actions.attribute.operation.not_exist");
+            return;
+        }
+
+        EquipmentSlotGroup group = EquipmentSlotGroup.ANY;
+        if (args.length == 5) {
+            group = EquipmentSlotGroup.getByName(args[4]);
+            if (group == null) {
+                localized("&c", "actions.attribute.group.not_exist");
+                return;
+            }
+        }
+
+        String format = String.format(
+                Locale.ROOT,
+                "%1$s/%2$s/%3$s/%4$s",
+                VersionUtils.key(attribute),
+                operation.name().toLowerCase(),
+                value,
+                group
+        );
+        NamespacedKey key = new NamespacedKey(UberEnchant.instance(), format);
+        if (meta.hasAttributeModifiers() && meta.getAttributeModifiers(attribute) != null && meta.getAttributeModifiers(attribute).stream().anyMatch(mod -> mod.getKey().equals(key))) {
+            localized("&c", "actions.attribute.exists");
+            return;
+        }
+        AttributeModifier modifier = new AttributeModifier(key, value, operation, group);
+        if (meta.hasAttributeModifiers() && meta.getAttributeModifiers().containsKey(attribute) && meta.getAttributeModifiers(attribute).contains(modifier)) {
+            localized("&c", "actions.attribute.modifier.exists");
+            return;
+        }
+        meta.addAttributeModifier(attribute, modifier);
+        item.setItemMeta(meta);
+        localized("&a", "actions.attribute.add.success");
+    }
+
     private void effect() {
         if (args.length < 4) {
-            response("&a/uadd effect &c<effect> <duration> <level>");
+            response(argue("&a/uadd effect <effect> <duration> <level>"));
             response(Reply.ARGUMENTS);
             return;
         }
@@ -388,9 +449,8 @@ public class AddCommand extends UberTabCommand {
             response("&a/ulist effects");
             return;
         }
-        if (player.hasPotionEffect(type)) {
+        if (player.hasPotionEffect(type))
             EffectUtils.removeEffect(player, type);
-        }
         EffectUtils.setEffect(player, type, duration, level);
         localized("&a", "actions.effect.add.success");
     }
@@ -407,19 +467,16 @@ public class AddCommand extends UberTabCommand {
         }
         int index = UberUtils.offset(item);
         StringBuilder message = new StringBuilder(args[1]);
-        if (args.length > 2) {
-            for (int arg = 2; arg < args.length; arg++) {
+        if (args.length > 2)
+            for (int arg = 2; arg < args.length; arg++)
                 message.append(" ").append(args[arg]);
-            }
-        }
         String name = ChatUtils.color(message.toString().trim());
         ItemMeta meta = item.getItemMeta();
         if (meta == null)
             return;
         List<String> lore = new ArrayList<>();
-        if (meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index > 0)) {
+        if (meta.hasLore() || (meta.hasLore() && meta.getLore().size() - index > 0))
             lore = meta.getLore();
-        }
         lore.add(name.replace("%null", ""));
         meta.setLore(lore);
         item.setItemMeta(meta);
@@ -437,9 +494,8 @@ public class AddCommand extends UberTabCommand {
             return;
         }
         StringBuilder message = new StringBuilder(args[1]);
-        for (int arg = 2; arg < args.length; arg++) {
+        for (int arg = 2; arg < args.length; arg++)
             message.append(" ").append(args[arg]);
-        }
         String name = ChatUtils.color(message.toString().trim());
         ItemMeta meta = item.getItemMeta();
         String prev = meta.getDisplayName();
@@ -454,9 +510,8 @@ public class AddCommand extends UberTabCommand {
                 meta.setDisplayName(prev + name);
                 item.setItemMeta(meta);
                 localized("&a", "actions.name.add.pay_success", cost);
-            } else {
+            } else
                 localized("&c", "actions.name.add.pay_fail", cost - VaultUtils.getBalance(player));
-            }
         } else {
             meta.setDisplayName(prev + name);
             item.setItemMeta(meta);

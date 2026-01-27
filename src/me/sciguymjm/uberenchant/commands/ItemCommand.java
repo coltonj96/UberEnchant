@@ -15,33 +15,21 @@ import java.util.List;
 
 public class ItemCommand extends UberTabCommand {
 
+    public ItemCommand() {
+        super("uitem");
+    }
+
     @Override
     public boolean onCmd() {
-        if (args.length != 0) {
+        if (args.length != 0)
             switch (args[0].toLowerCase()) {
-                case "save" -> {
-                    if (hasPermission("uber.item.save"))
-                        save();
-                    else
-                        response(Reply.PERMISSIONS);
-                }
-                case "load" -> {
-                    if (hasPermission("uber.item.load"))
-                        load();
-                    else
-                        response(Reply.PERMISSIONS);
-                }
-                case "delete" -> {
-                    if (hasPermission("uber.item.delete"))
-                        delete();
-                    else
-                        response(Reply.PERMISSIONS);
-                }
+                case "save" -> action("save", this::save);
+                case "load" -> action("load", this::load);
+                case "delete" -> action("delete", this::delete);
                 default -> EnchantmentUtils.help(player, "uitem");
             }
-        } else {
+        else
             response("&6%1$s", command.getUsage());
-        }
         return true;
     }
 
@@ -49,12 +37,9 @@ public class ItemCommand extends UberTabCommand {
     public List<String> onTab() {
         List<String> list = new ArrayList<>();
         if (args.length == 1) {
-            if (hasPermission("uber.item.save"))
-                list.add("save");
-            if (hasPermission("uber.item.load"))
-                list.add("load");
-            if (hasPermission("uber.item.delete"))
-                list.add("delete");
+            add(list, "uber.item.save", "save" );
+            add(list, "uber.item.load", "load" );
+            add(list, "uber.item.delete", "delete" );
         }
         if (args.length == 2)
             if (args[0].equalsIgnoreCase("load") || args[0].equalsIgnoreCase("delete"))
@@ -118,15 +103,13 @@ public class ItemCommand extends UberTabCommand {
                     localized("&c", "actions.item.load.player.inventory", player.getDisplayName());
                 else
                     localized("&c", "actions.item.load.inventory");
-            } else {
+            } else
                 if (other)
                     localized("&a", "actions.item.load.player.success", player.getDisplayName(), args[1]);
                 else
                     localized("&a", "actions.item.load.success", args[1]);
-            }
-        } else {
+        } else
             localized("&c", "actions.item.load.fail", args[1]);
-        }
     }
 
     private void delete() {

@@ -12,8 +12,8 @@ import java.util.Map;
 
 public class ExcellentEnchantsRecord extends UberRecord implements EnchantmentData {
 
-    private static Plugin plugin;
-    private static YamlConfiguration types;
+    private static final Plugin plugin;
+    private static final YamlConfiguration types;
 
     static {
         plugin = Bukkit.getPluginManager().getPlugin("ExcellentEnchants");

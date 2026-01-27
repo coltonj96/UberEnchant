@@ -41,9 +41,8 @@ public class ArmorEquippedListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getWhoClicked() instanceof Player player && event.getClickedInventory() instanceof PlayerInventory inventory) {
+        if (event.getWhoClicked() instanceof Player player && event.getClickedInventory() instanceof PlayerInventory inventory)
             fireEvents(player, inventory);
-        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -61,13 +60,12 @@ public class ArmorEquippedListener implements Listener {
             @Override
             public void run() {
                 ItemStack[] armor = player.getInventory().getArmorContents();
-                for (int n = 0; n < 4; n++) {
+                for (int n = 0; n < 4; n++)
                     if (armor[n] != null) {
                         Bukkit.getServer().getPluginManager().callEvent(new PlayerEquipArmorEvent(player, armor[n], n + 36));
                         if (UberEnchantment.hasEnchantments(armor[n]))
                             Bukkit.getServer().getPluginManager().callEvent(new UberArmorEquippedEvent(player, armor[n], n + 36));
                     }
-                }
             }
         }.runTaskLater(UberEnchant.instance(), 20L);
     }
@@ -81,37 +79,34 @@ public class ArmorEquippedListener implements Listener {
             @Override
             public void run() {
                 ItemStack[] armor = player.getInventory().getArmorContents();
-                for (int n = 0; n < 4; n++) {
+                for (int n = 0; n < 4; n++)
                     if (armor[n] != null) {
                         Bukkit.getServer().getPluginManager().callEvent(new PlayerEquipArmorEvent(player, armor[n], n + 36));
                         if (UberEnchantment.hasEnchantments(armor[n]))
                             Bukkit.getServer().getPluginManager().callEvent(new UberArmorEquippedEvent(player, armor[n], n + 36));
                     }
-                }
             }
         }.runTask(UberEnchant.instance());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onReload(ServerLoadEvent event) {
-        if (event.getType().equals(ServerLoadEvent.LoadType.RELOAD)) {
+        if (event.getType().equals(ServerLoadEvent.LoadType.RELOAD))
             new BukkitRunnable() {
 
                 @Override
                 public void run() {
                     Bukkit.getOnlinePlayers().forEach(player -> {
                         ItemStack[] armor = player.getInventory().getArmorContents();
-                        for (int n = 0; n < 4; n++) {
+                        for (int n = 0; n < 4; n++)
                             if (armor[n] != null) {
                                 Bukkit.getServer().getPluginManager().callEvent(new PlayerEquipArmorEvent(player, armor[n], n + 36));
                                 if (UberEnchantment.hasEnchantments(armor[n]))
                                     Bukkit.getServer().getPluginManager().callEvent(new UberArmorEquippedEvent(player, armor[n], n + 36));
                             }
-                        }
                     });
                 }
             }.runTask(UberEnchant.instance());
-        }
     }
 
     private void fireEvents(Player player, PlayerInventory inventory) {

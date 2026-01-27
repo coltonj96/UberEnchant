@@ -26,8 +26,8 @@ import java.util.*;
  */
 public class EnchantmentTableEvents implements Listener {
 
-    private Map<UUID, CustomOffer> players = new HashMap<>();
-    private Map<UUID, Map<UberEnchantment, Integer>> books = new HashMap<>();
+    private final Map<UUID, CustomOffer> players = new HashMap<>();
+    private final Map<UUID, Map<UberEnchantment, Integer>> books = new HashMap<>();
     public static List<String> disabled;
 
     private static boolean reroll;

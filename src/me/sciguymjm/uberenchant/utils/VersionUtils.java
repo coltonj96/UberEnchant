@@ -60,4 +60,16 @@ public class VersionUtils {
             key = keyed.getKey();
         return key;
     }
+
+    public static <K extends Keyed> String getNamespace(K keyed) {
+        return getKey(keyed).getNamespace();
+    }
+
+    public static <K extends Keyed> String key(K keyed) {
+        return getKey(keyed).getKey();
+    }
+
+    public static <K extends Keyed> boolean nameMatches(K keyed, String name) {
+        return getKey(keyed).getNamespace().equalsIgnoreCase(name);
+    }
 }

@@ -176,9 +176,6 @@ public class EnchantmentTableUtils {
         };
     }
 
-    private static int[] min = {999, 999, 999};
-    private static int[] max = {0, 0, 0};
-
     /**
      * Utility method for internal use.
      *
@@ -190,9 +187,9 @@ public class EnchantmentTableUtils {
      */
     public static int getCost(UberRandom random, int slot, int bonus, ItemStack item) {
         int value = enchantValue(item);
-        if (value <= 0) {
+        if (value <= 0)
             return 0;
-        } else {
+        else {
 
             int l = random.nextInt(8) + 1 + (bonus >> 1) + random.nextInt(bonus + 1);
 
@@ -331,7 +328,7 @@ public class EnchantmentTableUtils {
      * @param flag
      * @return
      */
-    public static CustomList getAvailable(int cost, ItemStack item, boolean flag) {
+    public static CustomList  getAvailable(int cost, ItemStack item, boolean flag) {
         Material type = item.getType();
         //List<WeightedEnchantment> list = new ArrayList<>();
         boolean isBook = type == Material.BOOK;
@@ -391,7 +388,7 @@ public class EnchantmentTableUtils {
         }
 
         private double rarity() {
-            return switch (VersionUtils.getKey(enchantment).getKey().toLowerCase()) {
+            return switch (VersionUtils.key(enchantment).toLowerCase()) {
                 case "protection",
                      "sharpness",
                      "efficiency",
@@ -424,7 +421,8 @@ public class EnchantmentTableUtils {
                      "multishot",
                      "mending",
                      "breach",
-                     "wind_burst" -> 2.0;
+                     "wind_burst",
+                     "luck_of_the_sea" -> 2.0;
                 case "thorns",
                      "binding_curse",
                      "soul_speed",
@@ -449,7 +447,7 @@ public class EnchantmentTableUtils {
         int calc(int a, int b);
     }
 
-    private static int minCost(int i, Enchantment e) {
+    public static int minCost(int i, Enchantment e) {
         Cost cost = (int base, int per) -> base + per * (i - 1);
         if (e == null)
             return 1 + 10 * (i - 1);
@@ -506,7 +504,7 @@ public class EnchantmentTableUtils {
         return value;
     }
 
-    private static int maxCost(int i, Enchantment e) {
+    public static int maxCost(int i, Enchantment e) {
         Cost cost = (int base, int per) -> base + per * (i - 1);
         if (e == null)
             return minCost(i, null) + 5;

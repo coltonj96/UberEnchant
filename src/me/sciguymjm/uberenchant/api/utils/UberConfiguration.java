@@ -98,9 +98,8 @@ public class UberConfiguration {
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
-                } else {
+                } else
                     cost = section.getConfigurationSection("cost_for_level");
-                }
                 cost.getKeys(false).forEach(k -> {
                     try {
                         list.put(Integer.parseInt(k), cost.getDouble(k));
@@ -335,9 +334,9 @@ public class UberConfiguration {
             temp = new ArrayList<>(Registry.ENCHANTMENT.stream().toList());
         else
             temp = Arrays.asList(Enchantment.values());
-        List<String> plugins = temp.stream().filter(distinctByKey(e -> VersionUtils.getKey(e).getNamespace()))
-                .filter(e -> !(e instanceof UberEnchantment) && !VersionUtils.getKey(e).getNamespace().equalsIgnoreCase(NamespacedKey.MINECRAFT))
-                .map(k -> VersionUtils.getKey(k).getNamespace()).toList();
+        List<String> plugins = temp.stream().filter(distinctByKey(VersionUtils::getNamespace))
+                .filter(e -> !(e instanceof UberEnchantment) && !VersionUtils.nameMatches(e, NamespacedKey.MINECRAFT))
+                .map(VersionUtils::getNamespace).toList();
         for (String name : plugins) {
             Plugin plugin = Arrays.stream(Bukkit.getPluginManager().getPlugins()).filter(p -> p.getName().toLowerCase(Locale.ROOT).equals(name)).findFirst().orElse(null);
             if (plugin == null)
@@ -347,9 +346,9 @@ public class UberConfiguration {
             if (file.exists())
                 return;
             YamlConfiguration data = YamlConfiguration.loadConfiguration(file);
-            List<Enchantment> enchantments = temp.stream().filter(a -> VersionUtils.getKey(a).getNamespace().equalsIgnoreCase(name)).toList();
+            List<Enchantment> enchantments = temp.stream().filter(a -> VersionUtils.nameMatches(a, name)).toList();
             for (Enchantment enchant : enchantments) {
-                ConfigurationSection path = data.createSection(VersionUtils.getKey(enchant).getKey());
+                ConfigurationSection path = data.createSection(VersionUtils.key(enchant));
                 path.set("min_level", 1);
                 path.set("max_level", 10);
                 path.set("cost", 1000.0);

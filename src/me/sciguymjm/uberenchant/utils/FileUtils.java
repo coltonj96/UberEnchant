@@ -20,6 +20,14 @@ public class FileUtils {
             UberEnchant.instance().saveResource(path.replaceFirst("/", ""), false);
     }
 
+    public static void toMultiple() {
+        File defaults = getFile("/enchantments/default/");
+        for (File vanilla : defaults.listFiles(tmp -> tmp.getName().endsWith(".yml"))) {
+            File folder = new File(defaults, vanilla.getName().replace(".yml", "/"));
+            createConfig(folder.getPath());
+        }
+    }
+
     public static File getFile(String path) {
         return getFile(UberEnchant.instance(), path);
     }

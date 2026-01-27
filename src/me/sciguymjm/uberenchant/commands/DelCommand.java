@@ -1,5 +1,6 @@
 package me.sciguymjm.uberenchant.commands;
 
+import me.sciguymjm.uberenchant.UberEnchant;
 import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.api.utils.UberRecord;
@@ -9,60 +10,43 @@ import me.sciguymjm.uberenchant.api.utils.persistence.tags.MetaTag;
 import me.sciguymjm.uberenchant.commands.abstraction.UberTabCommand;
 import me.sciguymjm.uberenchant.utils.EffectUtils;
 import me.sciguymjm.uberenchant.utils.Reply;
+import me.sciguymjm.uberenchant.utils.VersionUtils;
 import me.sciguymjm.uberenchant.utils.Versions;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentUtils;
 import me.sciguymjm.uberenchant.utils.plugins.VaultUtils;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * For internal use.
  */
 public class DelCommand extends UberTabCommand {
 
+    public DelCommand() {
+        super("udel");
+    }
+
     @Override
     public boolean onCmd() {
         if (args.length != 0) {
             ItemStack item = player.getInventory().getItemInMainHand();
             switch (args[0].toLowerCase()) {
-                case "enchant" -> {
-                    if (hasPermission("uber.del.enchant"))
-                        enchant(item);
-                    else
-                        response(Reply.PERMISSIONS);
-                }
-                case "effect" -> {
-                    if (hasPermission("uber.del.effect"))
-                        effect();
-                    else
-                        response(Reply.PERMISSIONS);
-                }
-                case "lore" -> {
-                    if (hasPermission("uber.del.lore"))
-                        lore(item);
-                    else
-                        response(Reply.PERMISSIONS);
-                }
-                case "meta" -> {
-                    if (hasPermission("uber.del.meta"))
-                        meta(item);
-                    else
-                        response(Reply.PERMISSIONS);
-                }
-                case "name" -> {
-                    if (hasPermission("uber.del.name"))
-                        name(item);
-                    else
-                        response(Reply.PERMISSIONS);
-                }
+                case "attribute" -> action("attribute", this::attribute, item);
+                case "enchant" -> action("enchant", this::enchant, item);
+                case "effect" -> action("effect", this::effect);
+                case "lore" -> action("lore", this::lore, item);
+                case "meta" -> action("meta", this::meta, item);
+                case "name" -> action("name", this::name, item);
                 /*case "owner" -> {
                     if (hasPermission("uber.del.owner"))
                         owner(item);
@@ -71,9 +55,8 @@ public class DelCommand extends UberTabCommand {
                 }*/
                 default -> EnchantmentUtils.help(player, "udel");
             }
-        } else {
+        } else
             response("&6%1$s", command.getUsage());
-        }
         return true;
     }
 
@@ -81,20 +64,20 @@ public class DelCommand extends UberTabCommand {
     public List<String> onTab() {
         List<String> list = new ArrayList<>();
         if (args.length == 1) {
-            if (hasPermission("uber.del.enchant"))
-                list.add("enchant");
-            if (hasPermission("uber.del.effect"))
-                list.add("effect");
-            if (hasPermission("uber.del.lore"))
-                list.add("lore");
-            if (Versions.isV1_20_4() && hasPermission("uber.del.meta"))
-                list.add("meta");
-            if (hasPermission("uber.del.name"))
-                list.add("name");
+            add(list, "uber.del.attribute", "attribute");
+            add(list, "uber.del.enchant", "enchant");
+            add(list, "uber.del.effect", "effect");
+            add(list, "uber.del.lore", "lore");
+            add(list, "uber.del.meta", "meta", Versions.isV1_20_4());
+            add(list, "uber.del.name", "name");
         }
         ItemStack item = player.getInventory().getItemInMainHand();
-        if (args.length == 2) {
+        if (args.length == 2)
             switch (args[0].toLowerCase()) {
+                case "attribute" -> {
+                    if (!item.getType().equals(Material.AIR) && item.hasItemMeta() && item.getItemMeta().hasAttributeModifiers())
+                        list = item.getItemMeta().getAttributeModifiers().values().stream().map(AttributeModifier::getName).toList();
+                }
                 case "enchant" -> {
                     if (!item.getType().equals(Material.AIR) && !UberUtils.getAllMap(item).isEmpty())
                         list = EnchantmentUtils.find(player, item, args[1]);
@@ -108,11 +91,11 @@ public class DelCommand extends UberTabCommand {
                         list = map.keySet().stream().map(key -> key.getKey().getKey().toLowerCase()).toList();
                 }
             }
-        }
-        if (args.length == 3 && args[0].equalsIgnoreCase("meta")) {
-            list = UberUtils.getTags(item, args[1]).stream()
-                    .map(MetaTag::getName)
-                    .filter(tag -> !tag.equalsIgnoreCase("level") && !tag.equalsIgnoreCase("duration")).toList();
+        if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("meta"))
+                list = UberUtils.getTags(item, args[1]).stream()
+                        .map(MetaTag::getName)
+                        .filter(tag -> !tag.equalsIgnoreCase("level") && !tag.equalsIgnoreCase("duration")).toList();
         }
         return list;
     }
@@ -150,18 +133,69 @@ public class DelCommand extends UberTabCommand {
                     if (EnchantmentUtils.removeEnchantment(enchantment, item)) {
                         VaultUtils.withdraw(player, enchant.getRemovalCost());
                         localized("&a", "actions.enchant.remove.pay_success", enchant.getDisplayName(), enchant.getRemovalCost());
-                    } else {
+                    } else
                         localized("&c", "actions.enchant.remove.no_enchant", enchant.getDisplayName());
-                    }
-                } else {
+                } else
                     localized("&c", "actions.enchant.remove.pay_more", enchant.getRemovalCost() - VaultUtils.getBalance(player));
-                }
-            } else {
+            } else
                 response(Reply.NO_ECONOMY);
-            }
             return;
         }
         localized("&c", "actions.enchant.not_exist");
+    }
+
+    /*
+    /udel atrribute <atrribute> <name>
+     */
+    private void attribute(ItemStack item) {
+        if (item.getType().equals(Material.AIR)) {
+            response(Reply.HOLD_ITEM);
+            return;
+        }
+        if (args.length < 2) {
+            response("&a/udel attribute &c<key>");
+            response(Reply.ARGUMENTS);
+            return;
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
+            return;
+        if (!meta.hasAttributeModifiers()) {
+            localized("&c", "actions.attribute.remove.empty");
+            return;
+        }
+        Attribute attribute;
+        if (Versions.isV1_20_4())
+            attribute = Registry.ATTRIBUTE.get(NamespacedKey.minecraft(args[1].split("/")[0].toLowerCase()));
+        else
+            attribute = Attribute.valueOf(args[1].split("/")[0].toLowerCase());
+        if (attribute == null) {
+            localized("&c", "actions.attribute.not_exist");
+            return;
+        }
+        if (!meta.hasAttributeModifiers() || meta.getAttributeModifiers(attribute) == null) {
+            localized("&c", "actions.attribute.no_attribute");
+            return;
+        }
+        //List<AttributeModifier> attributes = new ArrayList<>(meta.getAttributeModifiers(attribute));
+        Map<String, AttributeModifier> map = meta.getAttributeModifiers(attribute).stream().collect(Collectors.toMap(VersionUtils::key, value -> value));
+        NamespacedKey key = new NamespacedKey(UberEnchant.instance(), args[1].toLowerCase());
+        if (!map.containsKey(key.getKey())) {
+            localized("&c", "actions.attribute.no_attribute");
+            return;
+        }
+        AttributeModifier modifier = map.get(key.getKey());
+        if (meta.removeAttributeModifier(attribute, modifier) && item.setItemMeta(meta))
+            localized("&a", "actions.atrribute.remove.success");
+        else
+            localized("&c", "actions.atrribute.remove.fail");
+        /*Multimap<Attribute, AttributeModifier> attributes = meta.getAttributeModifiers();
+        attributes.keySet().forEach(k -> {
+            response(VersionUtils.key(k) + ":");
+            meta.getAttributeModifiers(k).forEach(value -> {
+                response("    " + value.toString());
+            });
+        });*/
     }
 
     private void meta(ItemStack item) {
@@ -172,7 +206,7 @@ public class DelCommand extends UberTabCommand {
             return;
         }
         if (args.length < 3) {
-            response("&a/udel meta &c<enchantment> <tag>");
+            response(argue("&a/udel meta <enchantment> <tag>"));
             response(Reply.ARGUMENTS);
             return;
         }

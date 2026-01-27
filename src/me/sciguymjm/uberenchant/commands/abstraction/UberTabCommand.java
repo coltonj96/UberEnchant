@@ -1,5 +1,6 @@
 package me.sciguymjm.uberenchant.commands.abstraction;
 
+import me.sciguymjm.uberenchant.UberEnchant;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -10,6 +11,11 @@ import java.util.List;
  * Abstract class for internal use.
  */
 public abstract class UberTabCommand extends UberCommand implements IUberTabComplete {
+
+    public UberTabCommand(String name) {
+        super(name);
+        UberEnchant.instance().getCommand(name).setTabCompleter(this);
+    }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {

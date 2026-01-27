@@ -24,11 +24,9 @@ public class EffectUtils {
     public static String[] listEffects() {
         List<String> list = new ArrayList<>();
         list.add(UberLocale.getC("&6", "utils.effects.list"));
-        for (UberEffects effect : UberEffects.values()) {
-            if (effect.getEffect() != null) {
+        for (UberEffects effect : UberEffects.values())
+            if (effect.getEffect() != null)
                 list.add(String.format("        &6&l%1$s (&c%2$s&6&l)", effect.getName(), effect.getId()));
-            }
-        }
         return list.toArray(String[]::new);
     }
 
@@ -63,17 +61,14 @@ public class EffectUtils {
     public static List<String> matchEffects(String name) {
         List<String> list = new ArrayList<>();
         if (name.isEmpty()) {
-            for (UberEffects value : UberEffects.values()) {
+            for (UberEffects value : UberEffects.values())
                 if (!list.contains(value.getName().toLowerCase()))
                     list.add(value.getName().toLowerCase());
-            }
             return list;
         }
-        for (UberEffects value : UberEffects.values()) {
-            if (String.valueOf(value.getId()).startsWith(name) || value.getName().toLowerCase().startsWith(name.toLowerCase())) {
+        for (UberEffects value : UberEffects.values())
+            if (String.valueOf(value.getId()).startsWith(name) || value.getName().toLowerCase().startsWith(name.toLowerCase()))
                 list.add(value.getName().toLowerCase());
-            }
-        }
         return list;
     }
 
@@ -107,9 +102,8 @@ public class EffectUtils {
         if (player.hasPotionEffect(effect)) {
             player.removePotionEffect(effect);
             ChatUtils.response(player, UberLocale.getC("&a", "utils.effects.remove_success"));
-        } else {
+        } else
             ChatUtils.response(player, UberLocale.getC("&c", "utils.effects.remove_fail"));
-        }
     }
 
     /**

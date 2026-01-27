@@ -10,9 +10,9 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.HashSet;
 import java.util.Set;
 
-public class UberMeta<T> {
+public record UberMeta<T>(MetaTag<T> tag) {
 
-    protected static Set<UberMeta<?>> values = new HashSet<>();
+    private static final Set<UberMeta<?>> values = new HashSet<>();
 
     //public static UberMeta<BoolTagMap> CONDITIONS = ConditionalTag.CONDITIONS.asMeta();
 
@@ -29,8 +29,6 @@ public class UberMeta<T> {
 
     public static UberMeta<Double> CHANCE = DoubleTag.CHANCE.asMeta();
 
-    private final MetaTag<T> tag;
-
     public UberMeta(MetaTag<T> tag) {
         this.tag = tag;
         values.add(this);
@@ -40,15 +38,11 @@ public class UberMeta<T> {
         return new UberMeta<>(tag);
     }
 
-    public MetaTag<T> getTag() {
-        return tag;
-    }
-
-    public String getName()  {
+    public String getName() {
         return tag.getName();
     }
 
-    public PersistentDataType<?,T> getType() {
+    public PersistentDataType<?, T> getType() {
         return tag.getType();
     }
 
@@ -73,6 +67,6 @@ public class UberMeta<T> {
     }
 
     public T get(ItemStack item, UberEnchantment enchantment) {
-        return UberUtils.getMetaTag(item, enchantment,  this);
+        return UberUtils.getMetaTag(item, enchantment, this);
     }
 }

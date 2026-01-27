@@ -15,20 +15,17 @@ import java.util.List;
  */
 public class InsertCommand extends UberCommand {
 
+    public InsertCommand() {
+        super("uinsert");
+    }
+
     @Override
     public boolean onCmd() {
         if (args.length != 0) {
-            if (args[0].equalsIgnoreCase("lore")) {
-                if (hasPermission("uber.insert.lore")) {
-                    lore(player.getInventory().getItemInMainHand());
-                    return true;
-                } else {
-                    response(Reply.PERMISSIONS);
-                }
-            }
-        } else {
+            if (args[0].equalsIgnoreCase("lore"))
+                action("lore", this::lore, player.getInventory().getItemInMainHand());
+        } else
             response("&6%1$s", command.getUsage());
-        }
         return true;
     }
 
@@ -38,7 +35,7 @@ public class InsertCommand extends UberCommand {
             return;
         }
         if (args.length < 3) {
-            response("&a/uinsert lore &c<line#> <text...>");
+            response(argue("&a/uinsert lore <line#> <text...>"));
             response(Reply.ARGUMENTS);
             return;
         }
@@ -50,48 +47,40 @@ public class InsertCommand extends UberCommand {
         }
         List<String> lore = meta.getLore();
         int size = lore.size() - index;
-        int line = -1;
+        int line;
         try {
             line = Integer.parseInt(args[1]);
         } catch (NumberFormatException err) {
             StringBuilder message = new StringBuilder("&a/uinsert lore &c%1$s &a%2$s");
-            if (args.length > 3) {
-                for (int arg = 3; arg < args.length; arg++) {
+            if (args.length > 3)
+                for (int arg = 3; arg < args.length; arg++)
                     message.append(" ").append(args[arg]);
-                }
-            }
             response(message.toString().trim(), args[1], args[2]);
             localized("&c", "actions.lore.insert.line_number");
             return;
         }
         if (line > (size - 1) || line < 0) {
             StringBuilder message = new StringBuilder("&a/uinsert lore &c%1$s &a%2$s");
-            if (args.length > 3) {
-                for (int arg = 3; arg < args.length; arg++) {
+            if (args.length > 3)
+                for (int arg = 3; arg < args.length; arg++)
                     message.append(" ").append(args[arg]);
-                }
-            }
             response(message.toString().trim(), args[1], args[2]);
             localized("&c", "actions.lore.insert.no_line");
             return;
         }
         if (Integer.toString(line).contains(".")) {
             StringBuilder message = new StringBuilder("&a/uinsert lore &c%1$s &a%2$s");
-            if (args.length > 3) {
-                for (int arg = 3; arg < args.length; arg++) {
+            if (args.length > 3)
+                for (int arg = 3; arg < args.length; arg++)
                     message.append(" ").append(args[arg]);
-                }
-            }
             response(message.toString().trim(), args[1], args[2]);
             response(Reply.WHOLE_NUMBER);
             return;
         }
         StringBuilder message = new StringBuilder(args[2]);
-        if (args.length > 3) {
-            for (int arg = 3; arg < args.length; arg++) {
+        if (args.length > 3)
+            for (int arg = 3; arg < args.length; arg++)
                 message.append(" ").append(args[arg]);
-            }
-        }
         String name = ChatUtils.color(message.toString().trim());
         lore.add(index + line, name.replace("%null", ""));
         meta.setLore(lore);

@@ -46,10 +46,9 @@ public enum BoolTag implements MetaTag<Boolean> {
     public static boolean test(ItemStack item, UberEnchantment enchantment, BoolTag... tags) {
         if (tags.length == 0)
             return false;
-        for (BoolTag tag : tags) {
+        for (BoolTag tag : tags)
             if (!tag.test(item, enchantment))
                 return false;
-        }
         return true;
     }
 }

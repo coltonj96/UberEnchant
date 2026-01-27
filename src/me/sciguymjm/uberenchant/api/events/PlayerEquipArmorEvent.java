@@ -9,9 +9,9 @@ import org.bukkit.inventory.ItemStack;
  */
 public class PlayerEquipArmorEvent extends UberEvent {
 
-    private Player player;
-    private ItemStack item;
-    private int slot;
+    private final Player player;
+    private final ItemStack item;
+    private final int slot;
 
     /**
      * Fired when  a player equips armor

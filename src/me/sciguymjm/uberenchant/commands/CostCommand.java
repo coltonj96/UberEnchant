@@ -17,48 +17,42 @@ import java.util.Set;
  */
 public class CostCommand extends UberTabCommand {
 
+    public CostCommand() {
+        super("ucost");
+    }
+
     @Override
     public boolean onCmd() {
-        if (args.length != 0) {
+        if (args.length != 0)
             switch (args[0].toLowerCase()) {
                 case "add" -> {
-                    if (args[1].equalsIgnoreCase("enchant")) {
-                        if (hasPermission("uber.cost.add.enchant"))
-                            addEnchant();
-                        else
-                            response(Reply.PERMISSIONS);
-                    } else {
+                    if (args[1].equalsIgnoreCase("enchant"))
+                        action("add.enchant", this::addEnchant);
+                    else {
                         response("&a/ucost add &cenchant &a<enchantment> <level>");
                         response(Reply.INVALID);
                     }
                 }
                 case "del" -> {
-                    if (args[1].equalsIgnoreCase("enchant")) {
-                        if (hasPermission("uber.cost.del.enchant"))
-                            removeEnchant();
-                        else
-                            response(Reply.PERMISSIONS);
-                    } else {
+                    if (args[1].equalsIgnoreCase("enchant"))
+                        action("del.enchant", this::removeEnchant);
+                    else {
                         response("&a/ucost extract &cenchant &a<enchantment>");
                         response(Reply.INVALID);
                     }
                 }
                 case "extract" -> {
-                    if (args[1].equalsIgnoreCase("enchant")) {
-                        if (hasPermission("uber.cost.extract.enchant"))
-                            extractEnchant();
-                        else
-                            response(Reply.PERMISSIONS);
-                    } else {
+                    if (args[1].equalsIgnoreCase("enchant"))
+                        action("extract.enchant", this::extractEnchant);
+                    else {
                         response("&a/ucost extract &cenchant &a<enchantment> <level>");
                         response(Reply.INVALID);
                     }
                 }
                 default -> EnchantmentUtils.help(player, "ucost");
             }
-        } else {
+        else
             response("&6%1$s", command.getUsage());
-        }
         return true;
     }
 
@@ -67,25 +61,14 @@ public class CostCommand extends UberTabCommand {
         List<String> list = new ArrayList<>();
         switch (args.length) {
             case 1 -> {
-                if (hasPermission("uber.add.enchant"))
-                    list.add("add");
-                if (hasPermission("uber.del.enchant"))
-                    list.add("del");
-                if (hasPermission("uber.extract.enchant"))
-                    list.add("extract");
+                add(list, "uber.add.enchant", "add");
+                add(list, "uber.del.enchant", "del");
+                add(list, "uber.extract.enchant", "extract");
             }
-            case 2 -> {
-                if (hasPermission("uber.add.enchant") || hasPermission("uber.del.enchant") || hasPermission("uber.extract.enchant"))
-                    list.add("enchant");
-            }
+            case 2 -> add(list, List.of("uber.add.enchant", "uber.del.enchant", "uber.extract.enchant"), "add");
             case 3 -> {
-                switch (args[1].toLowerCase()) {
-                    case "enchant":
-                        list = EnchantmentUtils.find(player, args[2]);
-                        break;
-                    case "effect":
-                        break;
-                }
+                if (args[1].equalsIgnoreCase("enchant"))
+                    list = EnchantmentUtils.find(player, args[2]);
             }
         }
         return list;
@@ -93,7 +76,7 @@ public class CostCommand extends UberTabCommand {
 
     private void addEnchant() {
         if (args.length < 4) {
-            response("&a/ucost add enchant &c<enchantment> <level>");
+            response(argue("&a/ucost add enchant <enchantment> <level>"));
             response(Reply.ARGUMENTS);
             return;
         }
@@ -119,9 +102,8 @@ public class CostCommand extends UberTabCommand {
             if (level >= e.getMinLevel() && level <= e.getMaxLevel()) {
                 double cost = e.getLevelCost().containsKey(level) ? e.getLevelCost().get(level) : e.getCost() + (e.getCostMultiplier() * e.getCost() * (level - 1));
                 localized("&a", "actions.cost.add.display", e.getName(), level, cost);
-            } else {
+            } else
                 localized("&c", "actions.enchant.range", e.getMinLevel(), e.getMaxLevel());
-            }
             return;
         }
         response(Reply.NO_ECONOMY);
@@ -129,7 +111,7 @@ public class CostCommand extends UberTabCommand {
 
     private void extractEnchant() {
         if (args.length < 4) {
-            response("&a/ucost extract enchant &c<enchantment> <level>");
+            response(argue("&a/ucost extract enchant <enchantment> <level>"));
             response(Reply.ARGUMENTS);
             return;
         }

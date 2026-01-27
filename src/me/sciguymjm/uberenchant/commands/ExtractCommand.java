@@ -22,17 +22,16 @@ import java.util.Set;
  */
 public class ExtractCommand extends UberTabCommand {
 
+    public ExtractCommand() {
+        super("uextract");
+    }
+
     @Override
     public boolean onCmd() {
-        if (args.length != 0) {
-            ItemStack item = player.getInventory().getItemInMainHand();
-            if (hasPermission("uber.extract.enchant"))
-                enchant(item);
-            else
-                response(Reply.PERMISSIONS);
-        } else {
+        if (args.length != 0)
+            action("enchant", this::enchant, player.getInventory().getItemInMainHand());
+        else
             response("&6%1$s", command.getUsage());
-        }
         return true;
     }
 
@@ -76,9 +75,8 @@ public class ExtractCommand extends UberTabCommand {
                 if (player.getInventory().addItem(book).isEmpty()) {
                     EnchantmentUtils.removeEnchantment(enchantment, item);
                     localized("&a", "actions.enchant.extract.free_success", enchant.getDisplayName());
-                } else {
+                } else
                     localized("&c", "actions.enchant.extract.no_room");
-                }
                 return;
             }
             if (VaultUtils.hasEconomy()) {
@@ -92,16 +90,13 @@ public class ExtractCommand extends UberTabCommand {
                         EnchantmentUtils.removeEnchantment(enchantment, item);
                         EconomyResponse n = VaultUtils.withdraw(player, cost);
                         localized("&a", "actions.enchant.extract.pay_success", enchant.getDisplayName(), n.amount);
-                    } else {
+                    } else
                         localized("&c", "actions.enchant.extract.no_room");
-                    }
                     return;
-                } else {
+                } else
                     localized("&c", "actions.enchant.extract.pay_more", cost - VaultUtils.getBalance(player));
-                }
-            } else {
+            } else
                 response(Reply.NO_ECONOMY);
-            }
             return;
         }
         localized("&c", "actions.enchant.not_exist");
