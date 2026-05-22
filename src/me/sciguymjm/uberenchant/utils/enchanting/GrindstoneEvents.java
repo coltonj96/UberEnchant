@@ -32,6 +32,9 @@ public class GrindstoneEvents implements Listener {
         ItemStack slot2 = inventory.getItem(1);
         ItemStack result = getResult(slot1, slot2, event.getResult());
 
+        if (empty(result))
+            return;
+
         int xp = getExp(slot1, slot2);
 
         if (xp > 0) {

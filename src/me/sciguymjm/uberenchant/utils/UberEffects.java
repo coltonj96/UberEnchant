@@ -26,49 +26,52 @@ public class UberEffects {
      static {
         values = new HashMap<>();
 
-        values.put("SPEED", wrap(PotionEffectType.SPEED, "speed", "effects.speed", 1, 1));
-        values.put("SLOW", wrap(getType("SLOW:0", "SLOWNESS:1.20.4"), "slowness", "effects.slow", 2, -1));
-        values.put("FAST_DIGGING", wrap(getType("FAST_DIGGING:0", "HASTE:1.20.4"), "haste", "effects.fast_digging", 3, 1));
-        values.put("SLOW_DIGGING", wrap(getType("SLOW_DIGGING:0", "MINING_FATIGUE:1.20.4"), "miningfatigue", "effects.slow_digging", 4, -1));
-        values.put("INCREASE_DAMAGE", wrap(getType("INCREASE_DAMAGE:0", "STRENGTH:1.20.4"), "strength", "effects.increase_damage", 5, 1));
-        values.put("HEAL", wrap(getType("HEAL:0", "INSTANT_HEALTH:1.20.4"), "instanthealth", "effects.heal", 6, 1));
-        values.put("HARM", wrap(getType("HARM:0", "INSTANT_DAMAGE:1.20.4"), "instantdamage", "effects.harm", 7, -1));
-        values.put("JUMP", wrap(getType("JUMP:0", "JUMP_BOOST:1.20.4"), "jumpboost", "effects.jump", 8, 1));
-        values.put("CONFUSION", wrap(getType("CONFUSION:0", "NAUSEA:1.20.4"), "nausea", "effects.confusion", 9, -1));
-        values.put("REGENERATION", wrap(PotionEffectType.REGENERATION, "regeneration", "effects.regeneration", 10, 1));
-        values.put("DAMAGE_RESISTANCE", wrap(getType("DAMAGE_RESISTANCE:0", "RESISTANCE:1.20.4"), "resistance", "effects.damage_resistance", 11, 1));
-        values.put("FIRE_RESISTANCE", wrap(PotionEffectType.FIRE_RESISTANCE, "fireresistance", "effects.fire_resistance", 12, 1));
-        values.put("WATER_BREATHING", wrap(PotionEffectType.WATER_BREATHING, "waterbreathing", "effects.water_breathing", 13, 1));
-        values.put("INVISIBILITY", wrap(PotionEffectType.INVISIBILITY, "invisibility", "effects.invisibility", 14, 1));
-        values.put("BLINDNESS", wrap(PotionEffectType.BLINDNESS, "blindness", "effects.blindness", 15, -1));
-        values.put("NIGHT_VISION", wrap(PotionEffectType.NIGHT_VISION, "nightvision", "effects.night_vision", 16, 1));
-        values.put("HUNGER", wrap(PotionEffectType.HUNGER, "hunger", "effects.hunger", 17, -1));
-        values.put("WEAKNESS", wrap(PotionEffectType.WEAKNESS, "weakness", "effects.weakness", 18, -1));
-        values.put("POISON", wrap(PotionEffectType.POISON, "poison", "effects.poison", 19, -1));
-        values.put("WITHER", wrap(PotionEffectType.WITHER, "wither", "effects.wither", 20, -1));
-        values.put("HEALTH_BOOST", wrap(PotionEffectType.HEALTH_BOOST, "healthboost", "effects.health_boost", 21, 1));
-        values.put("ABSORPTION", wrap(PotionEffectType.ABSORPTION, "absorption", "effects.absorption", 22, 1));
-        values.put("SATURATION", wrap(PotionEffectType.SATURATION, "saturation", "effects.saturation", 23, 1));
-        values.put("GLOWING", wrap(PotionEffectType.GLOWING, "glowing", "effects.glowing", 24, 0));
-        values.put("LEVITATION", wrap(PotionEffectType.LEVITATION, "levitation", "effects.levitation", 25, 0));
-        values.put("LUCK", wrap(PotionEffectType.LUCK, "luck", "effects.luck", 26, 1));
-        values.put("UNLUCK", wrap(PotionEffectType.UNLUCK, "badluck", "effects.unluck", 27, -1));
-        values.put("SLOW_FALLING", wrap(PotionEffectType.SLOW_FALLING, "slowfalling", "effects.slow_falling", 28, 1));
-        values.put("CONDUIT_POWER", wrap(PotionEffectType.CONDUIT_POWER, "conduitpower", "effects.conduit_power", 29, 1));
-        values.put("DOLPHINS_GRACE", wrap(PotionEffectType.DOLPHINS_GRACE, "dolphinsgrace", "effects.dolphins_grace", 30, 1));
-        values.put("BAD_OMEN", wrap(PotionEffectType.BAD_OMEN, "badomen", "effects.bad_omen", 31, -1));
-        values.put("HERO_OF_THE_VILLAGE", wrap(PotionEffectType.HERO_OF_THE_VILLAGE, "heroofthevillage", "effects.hero_of_the_village", 32, 1));
+        values.put("SPEED", wrap(PotionEffectType.SPEED, "speed", "speed", 1, 1));
+        values.put("SLOW", wrap(getType("SLOW:0", "SLOWNESS:1.20.4"), "slowness", "slow", 2, -1));
+        values.put("FAST_DIGGING", wrap(getType("FAST_DIGGING:0", "HASTE:1.20.4"), "haste", "fast_digging", 3, 1));
+        values.put("SLOW_DIGGING", wrap(getType("SLOW_DIGGING:0", "MINING_FATIGUE:1.20.4"), "miningfatigue", "slow_digging", 4, -1));
+        values.put("INCREASE_DAMAGE", wrap(getType("INCREASE_DAMAGE:0", "STRENGTH:1.20.4"), "strength", "increase_damage", 5, 1));
+        values.put("HEAL", wrap(getType("HEAL:0", "INSTANT_HEALTH:1.20.4"), "instanthealth", "heal", 6, 1));
+        values.put("HARM", wrap(getType("HARM:0", "INSTANT_DAMAGE:1.20.4"), "instantdamage", "harm", 7, -1));
+        values.put("JUMP", wrap(getType("JUMP:0", "JUMP_BOOST:1.20.4"), "jumpboost", "jump", 8, 1));
+        values.put("CONFUSION", wrap(getType("CONFUSION:0", "NAUSEA:1.20.4"), "nausea", "confusion", 9, -1));
+        values.put("REGENERATION", wrap(PotionEffectType.REGENERATION, "regeneration", "regeneration", 10, 1));
+        values.put("DAMAGE_RESISTANCE", wrap(getType("DAMAGE_RESISTANCE:0", "RESISTANCE:1.20.4"), "resistance", "damage_resistance", 11, 1));
+        values.put("FIRE_RESISTANCE", wrap(PotionEffectType.FIRE_RESISTANCE, "fireresistance", "fire_resistance", 12, 1));
+        values.put("WATER_BREATHING", wrap(PotionEffectType.WATER_BREATHING, "waterbreathing", "water_breathing", 13, 1));
+        values.put("INVISIBILITY", wrap(PotionEffectType.INVISIBILITY, "invisibility", "invisibility", 14, 1));
+        values.put("BLINDNESS", wrap(PotionEffectType.BLINDNESS, "blindness", "blindness", 15, -1));
+        values.put("NIGHT_VISION", wrap(PotionEffectType.NIGHT_VISION, "nightvision", "night_vision", 16, 1));
+        values.put("HUNGER", wrap(PotionEffectType.HUNGER, "hunger", "hunger", 17, -1));
+        values.put("WEAKNESS", wrap(PotionEffectType.WEAKNESS, "weakness", "weakness", 18, -1));
+        values.put("POISON", wrap(PotionEffectType.POISON, "poison", "poison", 19, -1));
+        values.put("WITHER", wrap(PotionEffectType.WITHER, "wither", "wither", 20, -1));
+        values.put("HEALTH_BOOST", wrap(PotionEffectType.HEALTH_BOOST, "healthboost", "health_boost", 21, 1));
+        values.put("ABSORPTION", wrap(PotionEffectType.ABSORPTION, "absorption", "absorption", 22, 1));
+        values.put("SATURATION", wrap(PotionEffectType.SATURATION, "saturation", "saturation", 23, 1));
+        values.put("GLOWING", wrap(PotionEffectType.GLOWING, "glowing", "glowing", 24, 0));
+        values.put("LEVITATION", wrap(PotionEffectType.LEVITATION, "levitation", "levitation", 25, 0));
+        values.put("LUCK", wrap(PotionEffectType.LUCK, "luck", "luck", 26, 1));
+        values.put("UNLUCK", wrap(PotionEffectType.UNLUCK, "badluck", "unluck", 27, -1));
+        values.put("SLOW_FALLING", wrap(PotionEffectType.SLOW_FALLING, "slowfalling", "slow_falling", 28, 1));
+        values.put("CONDUIT_POWER", wrap(PotionEffectType.CONDUIT_POWER, "conduitpower", "conduit_power", 29, 1));
+        values.put("DOLPHINS_GRACE", wrap(PotionEffectType.DOLPHINS_GRACE, "dolphinsgrace", "dolphins_grace", 30, 1));
+        values.put("BAD_OMEN", wrap(PotionEffectType.BAD_OMEN, "badomen", "bad_omen", 31, -1));
+        values.put("HERO_OF_THE_VILLAGE", wrap(PotionEffectType.HERO_OF_THE_VILLAGE, "heroofthevillage", "hero_of_the_village", 32, 1));
 
         if (Versions.v1_19.atLeast())
-            values.put("DARKNESS", wrap(PotionEffectType.DARKNESS, "darkness", "effects.darkness", 33, -1));
+            values.put("DARKNESS", wrap(PotionEffectType.DARKNESS, "darkness", "darkness", 33, -1));
         if (Versions.v1_20_5.atLeast()) {
-            values.put("TRIAL_OMEN", wrap(getType("TRIAL_OMEN"), "trialomen", "effects.trial_omen", 34, 0));
-            values.put("RAID_OMEN", wrap(getType("RAID_OMEN"), "raidomen", "effects.raid_omen", 35, 0));
-            values.put("WIND_CHARGED", wrap(getType("WIND_CHARGED"), "windcharged", "effects.wind_charged", 36, -1));
-            values.put("WEAVING", wrap(getType("WEAVING"), "weaving", "effects.weaving", 37, -1));
-            values.put("OOZING", wrap(getType("OOZING"), "oozing", "effects.oozing", 38, -1));
-            values.put("INFESTED", wrap(getType("INFESTED"), "infested", "effects.infested", 39, -1));
+            values.put("TRIAL_OMEN", wrap(getType("TRIAL_OMEN"), "trialomen", "trial_omen", 34, 0));
+            values.put("RAID_OMEN", wrap(getType("RAID_OMEN"), "raidomen", "raid_omen", 35, 0));
+            values.put("WIND_CHARGED", wrap(getType("WIND_CHARGED"), "windcharged", "wind_charged", 36, -1));
+            values.put("WEAVING", wrap(getType("WEAVING"), "weaving", "weaving", 37, -1));
+            values.put("OOZING", wrap(getType("OOZING"), "oozing", "oozing", 38, -1));
+            values.put("INFESTED", wrap(getType("INFESTED"), "infested", "infested", 39, -1));
         }
+        if (Versions.v1_21_11.atLeast())
+            values.put("BREATH_OF_THE_NAUTILUS", wrap(getType("BREATH_OF_THE_NAUTILUS"), "breathofthenautilus", "breath_of_the_nautilus", 40, 1));
+
     }
 
     private static PotionEffectType getType(String key) {
@@ -94,7 +97,7 @@ public class UberEffects {
     }
 
     private static UberEffectsWrapper wrap(PotionEffectType effect, String name, String display, int id, int value) {
-        return new UberEffectsWrapper(effect, name, UberLocale.get(display), id, value);
+        return new UberEffectsWrapper(effect, name, UberLocale.get("effects." + display), id, value);
     }
 
     /**

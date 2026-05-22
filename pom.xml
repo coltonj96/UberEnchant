@@ -6,7 +6,7 @@
 
     <groupId>me.sciguymjm.uberenchant</groupId>
     <artifactId>UberEnchant</artifactId>
-    <version>8.12.2</version>
+    <version>8.12.6</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -57,7 +57,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.21.10-R0.1-SNAPSHOT</version>
+            <version>26.1.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

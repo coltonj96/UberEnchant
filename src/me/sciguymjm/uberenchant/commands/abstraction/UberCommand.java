@@ -78,7 +78,7 @@ public abstract class UberCommand implements IUberCommand {
             if (i + 1 < msg.length)
                 msg[i + 1] = args[i].toLowerCase();
         if (i + 1 < msg.length)
-            msg[i + 1] = "&c" + msg[i];
+            msg[i + 1] = "&c" + msg[i + 1];
         return String.join(" ", msg);
     }
 

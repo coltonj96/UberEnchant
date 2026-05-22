@@ -4,7 +4,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.conversations.Conversable;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -105,22 +104,51 @@ public class ChatUtils {
      * @return A color-formatted string
      */
     public static String color(String string) {
-        try {
-            Class<?> chatColor;
-            Class.forName("net.md_5.bungee.api.ChatColor");
-            chatColor = Class.forName("net.md_5.bungee.api.ChatColor");
-            Method of = chatColor.getMethod("of", String.class);
-            Pattern p = Pattern.compile("(#[0-9a-fA-F]{6})");
-            Matcher m = p.matcher(string);
-            while (m.find()) {
-                String a = m.group();
-                string = string.replace(a, of.invoke(null, a).toString());
-            }
-            return ChatColor.translateAlternateColorCodes('&', string);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        return codes(hex(string));
+    }
+
+    public static String codes(String string) {
         return ChatColor.translateAlternateColorCodes('&', string);
+    }
+
+    public static String hex(String string) {
+        Pattern p = Pattern.compile("(#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3})");
+        Matcher m = p.matcher(string);
+        String output = string;
+        while (m.find()) {
+            if (m.start() > 1 && string.toLowerCase().startsWith("&x", m.start() - 2)) {
+                output = output.replace(m.group(), codes(m.group()));
+                continue;
+            }
+            String group = m.group();
+            output = output.replaceFirst(m.group(), parse(group));
+        }
+        return output;
+    }
+
+    public static String toHex(String string) {
+        Pattern p = Pattern.compile("(&x(?:&[0-9a-fA-F]){6})");
+        Matcher m = p.matcher(string);
+        String output = string;
+        while (m.find()) {
+            String group = m.group().replace("&x", "#").replace("&", "");
+            char[] chars = group.substring(1).toCharArray();
+            if (chars[0] == chars[1] && chars[2] == chars[3] && chars[4] == chars[5])
+                group = "#" + chars[1] + chars[3] + chars[5];
+            output = output.replaceFirst(m.group(), group);
+        }
+        return output;
+    }
+
+    private static String parse(String string) {
+        StringBuilder builder = new StringBuilder("&x");
+        boolean quick = string.length() - 1 == 3;
+        for (char c : string.substring(1).toCharArray()) {
+            if (quick)
+                builder.append("&").append(c);
+            builder.append("&").append(c);
+        }
+        return builder.toString();
     }
 
     public static void sendMessage(CommandSender sender, String message) {

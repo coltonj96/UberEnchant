@@ -20,7 +20,9 @@ public record UberMeta<T>(MetaTag<T> tag) {
     public static UberMeta<Boolean> ON_HIT = BoolTag.ON_HIT.asMeta();
     public static UberMeta<Boolean> ON_DROP = BoolTag.ON_DROP.asMeta();
     public static UberMeta<Boolean> ON_PICKUP = BoolTag.ON_PICKUP.asMeta();
+    public static UberMeta<Boolean> ON_PROJECTILE = BoolTag.ON_PROJECTILE.asMeta();
     public static UberMeta<Boolean> ON_CONSUME = BoolTag.ON_CONSUME.asMeta();
+    public static UberMeta<Boolean> ON_SHIELD = BoolTag.ON_SHIELD.asMeta();
     public static UberMeta<Boolean> HAS_CHANCE = BoolTag.HAS_CHANCE.asMeta();
     public static UberMeta<Boolean> HIDDEN = BoolTag.HIDDEN.asMeta();
 
@@ -30,8 +32,8 @@ public record UberMeta<T>(MetaTag<T> tag) {
     public static UberMeta<Double> CHANCE = DoubleTag.CHANCE.asMeta();
 
     public UberMeta(MetaTag<T> tag) {
-        this.tag = tag;
         values.add(this);
+        this.tag = tag;
     }
 
     public static <T> UberMeta<T> fromTag(MetaTag<T> tag) {

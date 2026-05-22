@@ -224,6 +224,16 @@ luck_of_the_sea:
     extraction_cost: 1000.0
     use_on_anything: false
     aliases: ["luck"]
+lunge:
+    min_level: 1
+    max_level: 10
+    cost: 1000.0
+    cost_multiplier: 0.02
+    cost_for_level: {}
+    removal_cost: 100.0
+    extraction_cost: 1000.0
+    use_on_anything: false
+    aliases: []
 lure:
     min_level: 1
     max_level: 10

@@ -7,11 +7,13 @@ import me.sciguymjm.uberenchant.api.utils.persistence.UberMeta;
 import me.sciguymjm.uberenchant.api.utils.persistence.tags.IntTag;
 import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
 import me.sciguymjm.uberenchant.utils.ChatUtils;
+import me.sciguymjm.uberenchant.utils.Debugging;
 import me.sciguymjm.uberenchant.utils.FileUtils;
 import me.sciguymjm.uberenchant.utils.plugins.ProtocolLibUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,7 +23,6 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -91,22 +92,39 @@ public class AnvilEvents implements Listener {
     @EventHandler
     public void test(InventoryClickEvent event) {
         Inventory inv = event.getInventory();
-        InventoryView view = event.getView();
-        if (inv.getType().equals(InventoryType.ANVIL) && inv instanceof AnvilInventory)
+        if (inv.getType().equals(InventoryType.ANVIL) && inv instanceof AnvilInventory anvil) {
+            if (event.getSlot() == 2 && anvil.getItem(2) == null)
+                return;
+            ItemStack item = anvil.getItem(0);
+            if (item != null) {
+                ItemMeta meta = item.getItemMeta();
+                String name = ChatUtils.color(meta.getDisplayName());
+                meta.setDisplayName(name);
+                item.setItemMeta(meta);
+            }
             //Bukkit.getServer().getPluginManager().callEvent(new PrepareAnvilEvent(anvil, anvil.getItem(2)));
             sched(() -> {
                 ((Player) event.getWhoClicked()).updateInventory();
             });
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onClose(InventoryCloseEvent event) {
-        if (event.getInventory() instanceof AnvilInventory)
+        if (event.getInventory() instanceof AnvilInventory anvil) {
+            ItemStack item = anvil.getItem(0);
+            if (item != null) {
+                ItemMeta meta = item.getItemMeta();
+                String name = ChatUtils.color(meta.getDisplayName());
+                meta.setDisplayName(name);
+                item.setItemMeta(meta);
+            }
             sched(() -> {
                 Player player = (Player) event.getView().getPlayer();
                 if (!player.getGameMode().equals(GameMode.CREATIVE))
                     ProtocolLibUtils.setBypass(player, false);
             });
+        }
     }
 
     @EventHandler
@@ -124,6 +142,7 @@ public class AnvilEvents implements Listener {
     }
 
     private void calculate(PrepareAnvilEvent event) {
+        //Player player = (Player) event.getView().getPlayer();
         Map<EffectEnchantment, Integer> durations = new HashMap<>();
 
         UberAnvil anvil = new UberAnvil(event);
@@ -132,9 +151,9 @@ public class AnvilEvents implements Listener {
             anvil.setMaximumRepairCost(1000);
 
             sched(() -> {
-                Player player = (Player) event.getView().getPlayer();
-                if (!player.getGameMode().equals(GameMode.CREATIVE))
-                    ProtocolLibUtils.setBypass(player, true);
+                Player p = (Player) event.getView().getPlayer();
+                if (!p.getGameMode().equals(GameMode.CREATIVE))
+                    ProtocolLibUtils.setBypass(p, true);
             });
         }
 
@@ -144,6 +163,10 @@ public class AnvilEvents implements Listener {
         int i = 0;
 
         if (item != null) {
+            ItemMeta testMeta = item.getItemMeta();
+            String test = testMeta.getDisplayName().replace('§', '&');
+            testMeta.setDisplayName(ChatUtils.toHex(test));
+            item.setItemMeta(testMeta);
             ItemStack itemstack1 = item.clone();
             ItemStack itemstack2 = anvil.getItem(1);
             Map<Enchantment, Integer> map;
@@ -236,7 +259,11 @@ public class AnvilEvents implements Listener {
                                 flag2 = true;
                             else {
                                 flag1 = true;
-                                int max = UberConfiguration.getByEnchant(enchantment).getMaxLevel();
+                                int max;
+                                if (UberConfiguration.getByEnchant(enchantment) != null)
+                                    max = UberConfiguration.getByEnchant(enchantment).getMaxLevel();
+                                else
+                                    max = enchantment.getMaxLevel();
                                 if (i2 > max)
                                     i2 = max;
 
@@ -280,15 +307,26 @@ public class AnvilEvents implements Listener {
             ItemMeta meta = itemstack1.getItemMeta();
             boolean rename = false;
             ItemStack itemcopy;
-            if (anvil.getRenameText() != null && !anvil.getRenameText().equals(meta.getDisplayName())) {
-                String name = anvil.getRenameText();
-                if (colors)
-                    name = ChatUtils.color(name);
-                meta.setDisplayName(name);
-                itemstack1.setItemMeta(meta);
-                i++;
-                rename = true;
-            }
+            String name = meta.getDisplayName();
+            boolean max = !(name.length() <= 50);
+            String text = anvil.getRenameText();
+            if (text != null) {
+                boolean change = max ? !(name.startsWith(anvil.getRenameText())) : !anvil.getRenameText().equals(meta.getDisplayName());
+                if (!change && max && text.length() < 50)
+                    change = true;
+                if (change) {
+                    name = anvil.getRenameText();
+                    if (colors)
+                        name = ChatUtils.color(name);
+                    i++;
+                    rename = true;
+                } else
+                    name = ChatUtils.color(meta.getDisplayName());
+            } else
+                name = ChatUtils.color(meta.getDisplayName());
+
+            meta.setDisplayName(name);
+            itemstack1.setItemMeta(meta);
 
             itemcopy = itemstack1.clone();
 
@@ -387,6 +425,7 @@ public class AnvilEvents implements Listener {
                     "WOODEN_PICKAXE",
                     "WOODEN_SHOVEL",
                     "WOODEN_SWORD",
+                    "WOODEN_SPEAR",
                     "SHIELD" -> {
                 switch (m2) {
                     case "ACACIA_PLANKS",
@@ -417,7 +456,8 @@ public class AnvilEvents implements Listener {
                     "STONE_HOE",
                     "STONE_PICKAXE",
                     "STONE_SHOVEL",
-                    "STONE_SWORD" -> {
+                    "STONE_SWORD",
+                    "STONE_SPEAR" -> {
                 switch (m2) {
                     case "COBBLED_DEEPSLATE",
                             "COBBLESTONE",
@@ -441,7 +481,8 @@ public class AnvilEvents implements Listener {
                     "IRON_LEGGINGS",
                     "IRON_PICKAXE",
                     "IRON_SWORD",
-                    "IRON_SHOVEL" -> {
+                    "IRON_SHOVEL",
+                    "IRON_SPEAR" -> {
                 return m2.equals("IRON_INGOT");
             }
             case "GOLDEN_BOOTS",
@@ -452,7 +493,8 @@ public class AnvilEvents implements Listener {
                     "GOLDEN_HOE",
                     "GOLDEN_PICKAXE",
                     "GOLDEN_SHOVEL",
-                    "GOLDEN_SWORD" -> {
+                    "GOLDEN_SWORD",
+                    "GOLDEN_SPEAR" -> {
                 return m2.equals("GOLD_INGOT");
             }
             case "DIAMOND_BOOTS",
@@ -463,7 +505,8 @@ public class AnvilEvents implements Listener {
                     "DIAMOND_HOE",
                     "DIAMOND_PICKAXE",
                     "DIAMOND_SHOVEL",
-                    "DIAMOND_SWORD" -> {
+                    "DIAMOND_SWORD",
+                    "DIAMOND_SPEAR" -> {
                 return m2.equals("DIAMOND");
             }
             case "NETHERITE_BOOTS",
@@ -474,7 +517,8 @@ public class AnvilEvents implements Listener {
                     "NETHERITE_HOE",
                     "NETHERITE_PICKAXE",
                     "NETHERITE_SHOVEL",
-                    "NETHERITE_SWORD" -> {
+                    "NETHERITE_SWORD",
+                    "NETHERITE_SPEAR" -> {
                 return m2.equals("NETHERITE_INGOT");
             }
             case "TURTLE_HELMET" -> {

@@ -8,6 +8,8 @@ import java.util.Arrays;
 
 public enum BoolTag implements MetaTag<Boolean> {
     //ON_EQUIP,
+    ON_PROJECTILE,
+    ON_SHIELD,
     ON_HELD,
     ON_HIT,
     ON_DROP,

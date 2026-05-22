@@ -1,6 +1,7 @@
 package me.sciguymjm.uberenchant.utils.enchanting;
 
 import me.sciguymjm.uberenchant.api.utils.random.UberRandom;
+import me.sciguymjm.uberenchant.api.utils.random.WeightedChance;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
@@ -74,7 +75,9 @@ public class CustomOffer {
                 list = getEnchantmentList(i);
 
                 if (list != null && !list.vanilla().isEmpty()) {
-                    EnchantmentTableUtils.WeightedEnchantment enchant = list.vanilla().get(random.nextInt(list.vanilla().size()));
+                    WeightedChance<EnchantmentTableUtils.WeightedEnchantment> chance = new WeightedChance<>(list.vanilla());
+                    EnchantmentTableUtils.WeightedEnchantment enchant = chance.select(random);
+                    //EnchantmentTableUtils.WeightedEnchantment enchant = list.vanilla().get(random.nextInt(list.vanilla().size()));
                     enchants[i] = enchant.getEnchantment();
                     levels[i] = enchant.getLevel();
                 }

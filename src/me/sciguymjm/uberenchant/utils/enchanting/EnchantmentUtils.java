@@ -438,7 +438,8 @@ public class EnchantmentUtils {
                 "hidden <true | false>",
                 "lore <line#> <string...>",
                 "meta <enchantment> <tag> <value>",
-                "name <string...>"
+                "name <string...>",
+                "unbreakable <true | false>"
         );
         add(map, "uinsert", "lore <line#> <string...>");
         add(map, "uclear", "enchant | effect | lore");
@@ -576,7 +577,8 @@ public class EnchantmentUtils {
                  "unbreaking",
                  "loyalty",
                  "quick_charge",
-                 "density" -> {
+                 "density",
+                 "lunge"-> {
                 return 5.0;
             }
             case "blast_protection",

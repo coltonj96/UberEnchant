@@ -238,6 +238,7 @@ permissions:
       uber.set.lore: true
       uber.set.meta: true
       uber.set.name: true
+      uber.set.unbreakable: true
   uber.set.attribute:
     description: Access to '/uset attribute'
     default: false
@@ -255,6 +256,9 @@ permissions:
     default: false
   uber.set.name:
     description: Access to '/uset name'
+    default: false
+  uber.set.unbreakable:
+    description: Access to '/uset unbreakable'
     default: false
   uber.enchant.all:
     description: N/A

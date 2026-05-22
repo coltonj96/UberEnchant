@@ -1,5 +1,6 @@
 package me.sciguymjm.uberenchant.enchantments.abstraction;
 
+import me.sciguymjm.uberenchant.UberEnchant;
 import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.api.utils.persistence.tags.*;
 import me.sciguymjm.uberenchant.api.utils.persistence.UberMeta;
@@ -10,10 +11,13 @@ import me.sciguymjm.uberenchant.enchantments.effects.armor.*;
 import me.sciguymjm.uberenchant.enchantments.effects.armor.boots.JumpEnchantment;
 import me.sciguymjm.uberenchant.enchantments.effects.armor.boots.SlowFallingEnchantment;
 import me.sciguymjm.uberenchant.enchantments.effects.armor.boots.SpeedEnchantment;
+import me.sciguymjm.uberenchant.enchantments.effects.armor.helmet.BreathOfTheNautilusEnchantment;
 import me.sciguymjm.uberenchant.enchantments.effects.armor.helmet.HeroOfTheVillageEnchantment;
 import me.sciguymjm.uberenchant.enchantments.effects.armor.helmet.NightVisionEnchantment;
 import me.sciguymjm.uberenchant.enchantments.effects.armor.helmet.WaterBreathingEnchantment;
 import me.sciguymjm.uberenchant.enchantments.tasks.HeldEffectTask;
+import me.sciguymjm.uberenchant.enchantments.tasks.ShieldEffectTask;
+import me.sciguymjm.uberenchant.utils.Debugging;
 import me.sciguymjm.uberenchant.utils.UberEffects;
 import me.sciguymjm.uberenchant.utils.Versions;
 import me.sciguymjm.uberenchant.utils.plugins.TownyUtils;
@@ -23,16 +27,20 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -222,6 +230,8 @@ public abstract class EffectEnchantment extends UberEnchantment {
             new OozingEnchantment();
             new InfestedEnchantment();
         }
+        if (Versions.v1_21_11.atLeast())
+            new BreathOfTheNautilusEnchantment();
         effects.forEach(e -> e.register());
     }
 
@@ -229,7 +239,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
         if (damager instanceof Player player && damaged instanceof LivingEntity entity) {
             ItemStack item = player.getInventory().getItemInMainHand();
             if (item.getType() != Material.AIR && containsEnchantment(item)) {
-                if (TownyUtils.denyDamage(player, entity) | WorldGuardUtils.denyDamage(player, entity))
+                if (TownyUtils.denyDamage(player, entity) || WorldGuardUtils.denyDamage(player, entity))
                     return;
                 /*if (WorldGuardUtils.isLoaded()) {
                     if (entity instanceof Player && WorldGuardUtils.denyPvp(player, entity.getLocation()))
@@ -298,7 +308,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
             return;
         if (conditions(item))
             return;
-        if (BoolTag.ON_CONSUME.test(item, this))
+        if (testBoolTag(item, BoolTag.ON_CONSUME))
             apply(item, player);
     }
 
@@ -355,7 +365,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
             return;
         if (conditions(item))
             return;
-        if (BoolTag.ON_HELD.test(item, this))
+        if (testBoolTag(item, BoolTag.ON_HELD))
             addTask(new HeldEffectTask(event.getPlayer(), this, (p, i, e) ->
                     i.getType().equals(Material.AIR) ||
                     !e.containsEnchantment(i) ||
@@ -368,9 +378,9 @@ public abstract class EffectEnchantment extends UberEnchantment {
             return;
         if (event.getDamager() instanceof Player player && event.getEntity() instanceof LivingEntity entity) {
             ItemStack item = player.getInventory().getItemInMainHand();
-            if (item.getType() == Material.AIR || !containsEnchantment(item) || !BoolTag.ON_HIT.test(item, this))
+            if (item.getType() == Material.AIR || !containsEnchantment(item) || !testBoolTag(item, BoolTag.ON_HIT))
                 return;
-            if (TownyUtils.denyDamage(player, entity) | WorldGuardUtils.denyDamage(player, entity))
+            if (TownyUtils.denyDamage(player, entity) || WorldGuardUtils.denyDamage(player, entity))
                 return;
             /*if (WorldGuardUtils.isLoaded()) {
                 if (entity instanceof Player && WorldGuardUtils.denyPvp(player, entity.getLocation()))
@@ -382,7 +392,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
             }*/
             if (conditions(item))
                 return;
-            if (!BoolTag.HAS_CHANCE.test(item, this)) {
+            if (!testBoolTag(item, BoolTag.HAS_CHANCE)) {
                 apply(item, entity);
                 return;
             }
@@ -393,6 +403,51 @@ public abstract class EffectEnchantment extends UberEnchantment {
             ).select();
             if (outcome)
                 apply(item, entity);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void OnBow(EntityShootBowEvent event) {
+        if (event.getEntity() instanceof Player player) {
+            ItemStack item = event.getBow();
+            if (item == null || item.getType() == Material.AIR || !containsEnchantment(item) || !testBoolTag(item, BoolTag.ON_PROJECTILE))
+                return;
+            if (!testBoolTag(item, BoolTag.HAS_CHANCE)) {
+                apply(item, player);
+                return;
+            }
+            double chance = DoubleTag.CHANCE.get(item, this, (double) getLevel(item) / getMaxLevel());
+            boolean outcome = WeightedChance.fromArray(
+                    new WeightedEntry<>(true, chance),
+                    new WeightedEntry<>(false, 1 - chance)
+            ).select();
+            if (outcome)
+                apply(item, player);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void OnShield(PlayerInteractEvent event) {
+        if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            ItemStack item = event.getItem();
+            if (item == null || item.getType() == Material.AIR || !containsEnchantment(item) || !testBoolTag(item, BoolTag.ON_SHIELD))
+                return;
+            ShieldEffectTask task = new ShieldEffectTask(event.getPlayer(), this, (p, i, e) ->
+                    i.getType().equals(Material.AIR) ||
+                            !e.containsEnchantment(i) ||
+                            !BoolTag.ON_SHIELD.test(i, e) ||
+                            !((Player) p).isBlocking());
+            new BukkitRunnable() {
+
+                final Player player = event.getPlayer();
+
+                @Override
+                public void run() {
+                    if (!player.isBlocking())
+                        cancel();
+                    addTask(task);
+                }
+            }.runTaskLater(UberEnchant.instance(), 6);
         }
     }
 }

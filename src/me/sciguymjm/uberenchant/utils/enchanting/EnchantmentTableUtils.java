@@ -8,6 +8,7 @@ import me.sciguymjm.uberenchant.api.utils.random.WeightedChance;
 import me.sciguymjm.uberenchant.api.utils.random.WeightedEntry;
 import me.sciguymjm.uberenchant.utils.FileUtils;
 import me.sciguymjm.uberenchant.utils.VersionUtils;
+import me.sciguymjm.uberenchant.utils.Versions;
 import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
@@ -118,7 +119,8 @@ public class EnchantmentTableUtils {
                  "copper_hoe",
                  "copper_pickaxe",
                  "copper_shovel",
-                 "copper_sword" -> 13;
+                 "copper_sword",
+                 "copper_spear"-> 13;
             case "armadillo_scute",
                  "diamond_axe",
                  "diamond_boots",
@@ -128,7 +130,8 @@ public class EnchantmentTableUtils {
                  "diamond_leggings",
                  "diamond_pickaxe",
                  "diamond_shovel",
-                 "diamond_sword" -> 10;
+                 "diamond_sword",
+                 "diamond_spear"-> 10;
             case "golden_boots",
                  "golden_chestplate",
                  "golden_helmet",
@@ -137,7 +140,8 @@ public class EnchantmentTableUtils {
                  "golden_hoe",
                  "golden_pickaxe",
                  "golden_shovel",
-                 "golden_sword" -> 22;
+                 "golden_sword",
+                 "golden_spear"-> 22;
             case "iron_boots",
                  "iron_chestplate",
                  "iron_helmet",
@@ -147,12 +151,14 @@ public class EnchantmentTableUtils {
                  "iron_hoe",
                  "iron_pickaxe",
                  "iron_shovel",
-                 "iron_sword" -> 14;
+                 "iron_sword",
+                 "iron_spear"-> 14;
             case "stone_axe",
                  "stone_hoe",
                  "stone_pickaxe",
                  "stone_shovel",
-                 "stone_sword" -> 5;
+                 "stone_sword",
+                 "stone_spear"-> 5;
             case "leather_boots",
                  "leather_chestplate",
                  "leather_helmet",
@@ -167,13 +173,34 @@ public class EnchantmentTableUtils {
                  "netherite_pickaxe",
                  "netherite_shovel",
                  "netherite_sword",
+                 "netherite_spear",
                  "wooden_axe",
                  "wooden_hoe",
                  "wooden_pickaxe",
                  "wooden_shovel",
-                 "wooden_sword" -> 15;
-            default -> 0;
+                 "wooden_sword",
+                 "wooden_spear" -> 15;
+            default -> checkMaterial(item);
         };
+    }
+
+    private static int checkMaterial(ItemStack item) {
+        Material material = item.getType();
+        if (Tag.ITEMS_WOODEN_TOOL_MATERIALS.isTagged(material) || Tag.ITEMS_NETHERITE_TOOL_MATERIALS.isTagged(material))
+            return 15;
+        if (Tag.ITEMS_STONE_TOOL_MATERIALS.isTagged(material))
+            return 5;
+        if (Tag.ITEMS_COPPER_TOOL_MATERIALS.isTagged(material))
+            return 13;
+        if (Tag.ITEMS_IRON_TOOL_MATERIALS.isTagged(material))
+            return 14;
+        if (Tag.ITEMS_DIAMOND_TOOL_MATERIALS.isTagged(material))
+            return 10;
+        if (Tag.ITEMS_GOLD_TOOL_MATERIALS.isTagged(material))
+            return 22;
+        if (Versions.v1_21_11.atLeast() && item.hasItemMeta() && item.getItemMeta().hasEnchantable())
+            return item.getItemMeta().getEnchantable();
+        return 0;
     }
 
     /**
@@ -403,7 +430,8 @@ public class EnchantmentTableUtils {
                      "unbreaking",
                      "loyalty",
                      "quick_charge",
-                     "density" -> 5.0;
+                     "density",
+                     "lunge"-> 5.0;
                 case "blast_protection",
                      "respiration",
                      "aqua_affinity",
@@ -459,7 +487,8 @@ public class EnchantmentTableUtils {
             case "blast_protection",
                  "smite",
                  "bane_of_arthropods",
-                 "unbreaking" -> cost.calc(5, 8);
+                 "unbreaking",
+                 "lunge"-> cost.calc(5, 8);
             case "projectile_protection" -> cost.calc(3, 6);
             case "respiration",
                  "depth_strider",
@@ -545,7 +574,8 @@ public class EnchantmentTableUtils {
             case "power" -> cost.calc(16, 10);
             case "sharpness" -> cost.calc(21, 11);
             case "smite",
-                 "bane_of_arthropods" -> cost.calc(25, 8);
+                 "bane_of_arthropods",
+                 "lunge"-> cost.calc(25, 8);
             case "impaling" -> cost.calc(21, 8);
             case "punch" -> cost.calc(37, 20);
             default -> customMax(i, e, cost);

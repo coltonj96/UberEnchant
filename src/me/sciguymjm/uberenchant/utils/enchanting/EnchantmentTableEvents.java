@@ -80,7 +80,7 @@ public class EnchantmentTableEvents implements Listener {
             CustomOffer e = players.get(event.getEnchanter().getUniqueId());
             e.setSlot(event.whichButton());
             players.get(id).setHasEnchanted(true);
-            EnchantmentTableUtils.CustomList list = e.getList();
+            EnchantmentTableUtils.CustomList list = e.getEnchantmentList(e.getSlot());
             List<EnchantmentTableUtils.WeightedEnchantment> vList = list.vanilla();
             List<EnchantmentTableUtils.WeightedEnchantment> cList = list.custom();
             Map<UberEnchantment, Integer> cMap = new HashMap<>();
@@ -104,7 +104,6 @@ public class EnchantmentTableEvents implements Listener {
                 books.put(id, cMap);
             else {
                 UberUtils.addEnchantments(cMap, event.getItem());
-                Random r = new Random();
                 cMap.forEach((k, v) -> {
                     WeightedChance<Integer> chance = new WeightedChance<>();
                     for (int n = 0; n < v; n++)

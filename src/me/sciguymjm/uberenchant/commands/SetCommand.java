@@ -22,6 +22,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.EquipmentSlotGroup;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
@@ -49,6 +50,7 @@ public class SetCommand extends UberTabCommand {
                 case "meta" -> action("meta", this::meta, item);
                 case "name" -> action("name", this::name, item);
                 case "hidden" -> action("hidden", this::hidden, item);
+                case "unbreakable" -> action("unbreakable", this::unbreakable, item);
                 /*case "owner" -> {
                     if (hasPermission("uber.set.owner"))
                         owner(item);
@@ -74,6 +76,7 @@ public class SetCommand extends UberTabCommand {
                 add(list, "uber.set.meta", "meta", Versions.isV1_20_4());
                 add(list, "uber.set.name", "name");
                 add(list, "uber.set.hidden", "hidden");
+                add(list, "uber.set.unbreakable", "unbreakable");
                 /*if (hasPermission("uber.set.owner"))
                     list.add("owner");*/
             }
@@ -84,6 +87,7 @@ public class SetCommand extends UberTabCommand {
                             list = item.getItemMeta().getAttributeModifiers().values().stream().map(AttributeModifier::getName).toList();
                     }
                     case "hidden" -> add(list, "uber.set.hidden", "true", "false");
+                    case "unbreakable" -> add(list, "uber.set.unbreakable", "true", "false");
                     case "effect" -> list = EffectUtils.matchEffects(args[1]);
                     case "meta" -> {
                         if (!Versions.isV1_20_4())
@@ -490,12 +494,42 @@ public class SetCommand extends UberTabCommand {
             return;
         }
         switch (args[1].toLowerCase()) {
-            case "false" -> response(EnchantmentUtils.setHideEnchants(item, false));
-            case "true" -> response(EnchantmentUtils.setHideEnchants(item, true));
+            case "false", "f", "0" -> response(EnchantmentUtils.setHideEnchants(item, false));
+            case "true", "t", "1" -> response(EnchantmentUtils.setHideEnchants(item, true));
             default -> {
                 response("&a/uset hidden &c%1$s", args[1]);
                 response(Reply.INVALID);
             }
         }
+    }
+
+    private void unbreakable(ItemStack item) {
+        if (item.getType().equals(Material.AIR)) {
+            response(Reply.HOLD_ITEM);
+            return;
+        }
+        if (args.length < 2) {
+            response("&a/uset unbreakable &c<true | false>");
+            response(Reply.ARGUMENTS);
+            return;
+        }
+        switch (args[1].toLowerCase()) {
+            case "false", "f", "0" -> response(setUnbreakable(item, false));
+            case "true", "t", "1" -> response(setUnbreakable(item, true));
+            default -> {
+                response("&a/uset unbreakable &c%1$s", args[1]);
+                response(Reply.INVALID);
+            }
+        }
+    }
+
+    private static String setUnbreakable(ItemStack item, boolean value) {
+        ItemMeta meta = item.getItemMeta();
+        boolean old = meta.isUnbreakable();
+        if (old == value)
+            return UberLocale.getCF("&c", "utils.unbreakable.set.no_change", old);
+        meta.setUnbreakable(value);
+        item.setItemMeta(meta);
+        return UberLocale.getCF("&a", "utils.unbreakable.set.success", value);
     }
 }
