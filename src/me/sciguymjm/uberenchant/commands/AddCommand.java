@@ -284,7 +284,7 @@ public class AddCommand extends UberTabCommand {
                 }
             }
             if (enchant instanceof EffectEnchantment effect && tag == BoolTag.ON_HELD && !UberUtils.containsMeta(item, enchant, BoolTag.ON_HELD) && value)
-                UberRunnable.addTask(new HeldEffectTask(player, effect, (p, i, e) ->
+                UberRunnable.addTask(player.getUniqueId() + "_HELD", new HeldEffectTask(player, effect, (p, i, e) ->
                         i.getType().equals(Material.AIR) ||
                                 !e.containsEnchantment(i) ||
                                 !BoolTag.ON_HELD.test(i, e)));

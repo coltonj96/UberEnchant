@@ -7,6 +7,7 @@ import me.sciguymjm.uberenchant.api.utils.persistence.tags.MetaTag;
 import me.sciguymjm.uberenchant.api.utils.persistence.UberMeta;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -340,8 +341,8 @@ public abstract class UberEnchantment extends Enchantment implements Listener/*,
      *
      * @param task The task to add
      */
-    protected void addTask(UberTask task) {
-        UberRunnable.addTask(task);
+    protected void addTask(Entity entity, String id, UberTask task) {
+        UberRunnable.addTask(entity.getUniqueId() + "_" + id + "_" + getKey(), task);
     }
 
     protected <T> T getTag(ItemStack item, UberMeta<T> tag) {

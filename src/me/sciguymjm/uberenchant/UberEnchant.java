@@ -5,17 +5,16 @@ import me.sciguymjm.uberenchant.api.utils.ArmorEquippedListener;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
 import me.sciguymjm.uberenchant.api.utils.UberRunnable;
 import me.sciguymjm.uberenchant.api.utils.persistence.tags.*;
-import me.sciguymjm.uberenchant.commands.*;
 import me.sciguymjm.uberenchant.commands.abstraction.UberCommand;
 import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
+import me.sciguymjm.uberenchant.metrics.BStatsMetrics;
+import me.sciguymjm.uberenchant.metrics.FastStatsMetrics;
 import me.sciguymjm.uberenchant.utils.*;
 import me.sciguymjm.uberenchant.utils.enchanting.AnvilEvents;
 import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentTableEvents;
 import me.sciguymjm.uberenchant.utils.enchanting.GrindstoneEvents;
 import me.sciguymjm.uberenchant.utils.enchanting.VillagerEvents;
 import me.sciguymjm.uberenchant.utils.plugins.PluginUtils;
-import org.bstats.bukkit.Metrics;
-import org.bstats.charts.MultiLineChart;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -37,11 +36,16 @@ import java.util.logging.Level;
  */
 public class UberEnchant extends JavaPlugin {
 
+    private UberRunnable runnable;
+
     private static UberEnchant plugin;
 
     public void onEnable() {
-        //Debugging.enable();
         plugin = this;
+
+        Debugging.get(this);
+
+        //debug.enable();
 
         initResources();
         update();
@@ -50,21 +54,12 @@ public class UberEnchant extends JavaPlugin {
         if (Versions.isV1_20_4())
             EffectEnchantment.init();
 
-        Metrics metrics = new Metrics(this, 1952);
-        metrics.addCustomChart(new MultiLineChart("players_and_servers", () -> {
-            Map<String, Integer> valueMap = new HashMap<>();
-            valueMap.put("servers", 1);
-            valueMap.put("players", Bukkit.getOnlinePlayers().size());
-            return valueMap;
-        }));
-
         UberCommand.init();
 
         final boolean enchants = FileUtils.get("/mechanics/enchantment_table.yml", "enabled", false, Boolean.class);
         final boolean anvil = FileUtils.get("/mechanics/anvil.yml", "enabled", false, Boolean.class);
         final boolean villagers = FileUtils.get("/mechanics/villager.yml", "enabled", false, Boolean.class);
         final boolean grindstone = FileUtils.get("/mechanics/grindstone.yml", "enabled", false, Boolean.class);
-
 
         if (enchants)
             registerEvents(new EnchantmentTableEvents());
@@ -123,7 +118,9 @@ public class UberEnchant extends JavaPlugin {
             }
         });
 
-        UberRunnable.getInstance();
+        runnable = UberRunnable.getInstance();
+
+        startMetrics();
 
         /* new BukkitRunnable() {
             @Override
@@ -160,6 +157,8 @@ public class UberEnchant extends JavaPlugin {
 
     public void onDisable() {
         //unloadEnchantments();
+        runnable.stop();
+        stopMetrics();
     }
 
     private void initResources() {
@@ -178,6 +177,16 @@ public class UberEnchant extends JavaPlugin {
         //UberLocale.updateEnchantments();
         UberLocale.load(FileUtils.getFile("/locale/" + getConfig().getString("locale") + ".properties"));
         //UberLocale.add("enchantments", FileUtils.getFile("/locale/enchantments.properties"));
+    }
+
+    private void startMetrics() {
+        FastStatsMetrics.getInstance();
+        BStatsMetrics.getInstance();
+    }
+
+    private void stopMetrics() {
+        BStatsMetrics.stop();
+        FastStatsMetrics.stop();
     }
 
     private void initTags() {

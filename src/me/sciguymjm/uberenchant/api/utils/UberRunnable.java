@@ -1,16 +1,17 @@
 package me.sciguymjm.uberenchant.api.utils;
 
 import me.sciguymjm.uberenchant.UberEnchant;
+import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class UberRunnable extends BukkitRunnable {
 
     private static UberRunnable instance;
 
-    private static final List<UberTask> actions = new ArrayList<>();
+    private static final Map<String, UberTask> actions = new HashMap<>();
 
     private UberRunnable() {
         start();
@@ -22,29 +23,29 @@ public class UberRunnable extends BukkitRunnable {
         return instance;
     }
 
-    public synchronized static void addTask(UberTask task) {
-        actions.add(task);
+    public synchronized static void addTask(String key, UberTask task) {
+        actions.put(key, task);
     }
 
-    public synchronized boolean isRunning() {
-        return instance != null && !isCancelled();
+    private synchronized void check() {
+        actions.entrySet().removeIf(action -> !action.getValue().update());
     }
 
-    public synchronized void start() {
-        if (!isRunning())
-            runTaskTimer(UberEnchant.instance(), 0, 0L);
+    public void start() {
+        runTaskTimerAsynchronously(UberEnchant.instance(), 0, 0L);
     }
 
-    public synchronized void stop() {
-        if (isRunning())
-            cancel();
+    public void stop() {
+        Bukkit.getScheduler().cancelTasks(UberEnchant.instance());
     }
 
     @Override
     public void run() {
-        synchronized (this) {
-            if (!actions.isEmpty())
-                actions.removeIf(action -> !action.update());
-        }
+        if (!actions.isEmpty())
+            new BukkitRunnable() {
+                public void run() {
+                    check();
+                }
+            }.runTask(UberEnchant.instance());
     }
 }

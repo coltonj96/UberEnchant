@@ -17,7 +17,6 @@ import me.sciguymjm.uberenchant.enchantments.effects.armor.helmet.NightVisionEnc
 import me.sciguymjm.uberenchant.enchantments.effects.armor.helmet.WaterBreathingEnchantment;
 import me.sciguymjm.uberenchant.enchantments.tasks.HeldEffectTask;
 import me.sciguymjm.uberenchant.enchantments.tasks.ShieldEffectTask;
-import me.sciguymjm.uberenchant.utils.Debugging;
 import me.sciguymjm.uberenchant.utils.UberEffects;
 import me.sciguymjm.uberenchant.utils.Versions;
 import me.sciguymjm.uberenchant.utils.plugins.TownyUtils;
@@ -27,7 +26,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
@@ -325,7 +323,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
         if (testBoolTag(item, BoolTag.ON_PICKUP))
             apply(item, entity);
         if (testBoolTag(item, BoolTag.ON_HELD))
-            addTask(new HeldEffectTask(entity, this, (p, i, e) ->  i.getType().equals(Material.AIR)|| !e.containsEnchantment(i)));
+            addTask(entity, "HELD", new HeldEffectTask(entity, this, (p, i, e) ->  i.getType().equals(Material.AIR) || !e.containsEnchantment(i)));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -366,7 +364,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
         if (conditions(item))
             return;
         if (testBoolTag(item, BoolTag.ON_HELD))
-            addTask(new HeldEffectTask(event.getPlayer(), this, (p, i, e) ->
+            addTask(event.getPlayer(), "HELD", new HeldEffectTask(event.getPlayer(), this, (p, i, e) ->
                     i.getType().equals(Material.AIR) ||
                     !e.containsEnchantment(i) ||
                     !BoolTag.ON_HELD.test(i, e)));
@@ -445,7 +443,7 @@ public abstract class EffectEnchantment extends UberEnchantment {
                 public void run() {
                     if (!player.isBlocking())
                         cancel();
-                    addTask(task);
+                    addTask(player, "SHIELD", task);
                 }
             }.runTaskLater(UberEnchant.instance(), 6);
         }

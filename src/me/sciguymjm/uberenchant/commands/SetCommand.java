@@ -22,7 +22,6 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.EquipmentSlotGroup;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
@@ -225,7 +224,7 @@ public class SetCommand extends UberTabCommand {
         });*/
     }
 
-    private class Modifier {
+    private static class Modifier {
 
         private AttributeModifier.Operation operation;
         private double amount;
@@ -309,7 +308,7 @@ public class SetCommand extends UberTabCommand {
                 }
             }
             if (enchant instanceof EffectEnchantment effect && tag == BoolTag.ON_HELD && !BoolTag.ON_HELD.test(item, effect) && value)
-                UberRunnable.addTask(new HeldEffectTask(player, effect, (p, i, e) ->
+                UberRunnable.addTask(player.getUniqueId().toString() + "_HELD", new HeldEffectTask(player, effect, (p, i, e) ->
                         i.getType().equals(Material.AIR) ||
                                 !e.containsEnchantment(i) ||
                                 !BoolTag.ON_HELD.test(i, e)));

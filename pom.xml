@@ -6,7 +6,7 @@
 
     <groupId>me.sciguymjm.uberenchant</groupId>
     <artifactId>UberEnchant</artifactId>
-    <version>8.12.6</version>
+    <version>8.12.7</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -45,6 +45,11 @@
             <id>glaremasters repo</id>
             <url>https://repo.glaremasters.me/repository/towny/</url>
         </repository>
+        <repository>
+            <id>faststats-releases</id>
+            <name>FastStats</name>
+            <url>https://repo.faststats.dev/releases</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -69,7 +74,7 @@
         <dependency>
             <groupId>org.bstats</groupId>
             <artifactId>bstats-bukkit</artifactId>
-            <version>3.0.2</version>
+            <version>3.2.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -97,6 +102,11 @@
             <scope>system</scope>
             <systemPath>${user.home}/Desktop/Test Server/plugins/SimpleGuiApi.jar</systemPath>
         </dependency>-->
+        <dependency>
+            <groupId>dev.faststats.metrics</groupId>
+            <artifactId>bukkit</artifactId>
+            <version>0.24.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -133,18 +143,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.3</version>
-                <configuration>
+                <version>3.5.0</version>
+                <!--<configuration>
                     <relocations>
                         <relocation>
                             <pattern>org.bstats</pattern>
-                            <shadedPattern>me.sciguymjm.uberenchant.shaded.bstats</shadedPattern>
+                            <shadedPattern>me.sciguymjm.uberenchant.libs.bstats</shadedPattern>
                         </relocation>
                     </relocations>
-                    <!--<minimizeJar>true</minimizeJar>-->
-                </configuration>
+                    <!-<minimizeJar>true</minimizeJar>->
+                </configuration>-->
                 <executions>
-                    <execution>
+                    <!--<execution>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
@@ -158,6 +168,24 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                        </configuration>
+                    </execution>-->
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>dev.faststats</pattern>
+                                    <shadedPattern>me.sciguymjm.uberenchant.libs.faststats</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>me.sciguymjm.uberenchant.libs.bstats</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>

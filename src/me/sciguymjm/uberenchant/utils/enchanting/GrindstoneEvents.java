@@ -79,10 +79,10 @@ public class GrindstoneEvents implements Listener {
                 ItemStack current = view.getItem(slot);
                 if (empty(cursor) && !empty(current))
                     return;
+                view.setCursor(current);
                 new BukkitRunnable() {
                     public void run() {
                         view.setItem(slot, cursor);
-                        view.setCursor(current);
                     }
                 }.runTask(UberEnchant.instance());
                 return;

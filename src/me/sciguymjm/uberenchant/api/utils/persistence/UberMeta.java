@@ -7,12 +7,14 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public record UberMeta<T>(MetaTag<T> tag) {
 
-    private static final Set<UberMeta<?>> values = new HashSet<>();
+    private static final Map<MetaTag<?>, UberMeta<?>> values = new HashMap<>();
 
     //public static UberMeta<BoolTagMap> CONDITIONS = ConditionalTag.CONDITIONS.asMeta();
 
@@ -31,9 +33,8 @@ public record UberMeta<T>(MetaTag<T> tag) {
 
     public static UberMeta<Double> CHANCE = DoubleTag.CHANCE.asMeta();
 
-    public UberMeta(MetaTag<T> tag) {
-        values.add(this);
-        this.tag = tag;
+    public UberMeta {
+        values.put(tag, this);
     }
 
     public static <T> UberMeta<T> fromTag(MetaTag<T> tag) {
@@ -53,19 +54,19 @@ public record UberMeta<T>(MetaTag<T> tag) {
     }
 
     public static UberMeta<?> getByName(String name) {
-        return values.stream().filter(meta -> meta.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
+        return values.values().stream().filter(meta -> meta.getName().equalsIgnoreCase(name)).findFirst().orElse(null);
     }
 
     public static UberMeta<?> getByKey(NamespacedKey key) {
-        return values.stream().filter(meta -> meta.tag.getKey().equals(key)).findFirst().orElse(null);
+        return values.values().stream().filter(meta -> meta.tag.getKey().equals(key)).findFirst().orElse(null);
     }
 
     public static boolean contains(String name) {
-        return values.stream().anyMatch(meta -> meta.getName().equalsIgnoreCase(name));
+        return values.values().stream().anyMatch(meta -> meta.getName().equalsIgnoreCase(name));
     }
 
     public static Set<UberMeta<?>> values() {
-        return values;
+        return new HashSet<>(values.values());
     }
 
     public T get(ItemStack item, UberEnchantment enchantment) {

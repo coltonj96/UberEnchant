@@ -29,26 +29,6 @@ public abstract class ArmorEffectEnchantment extends EffectEnchantment {
         return EnchantmentTarget.ARMOR.includes(itemStack);
     }
 
-    @Override
-    public boolean isTreasure() {
-        return false;
-    }
-
-    @Override
-    public boolean isCursed() {
-        return false;
-    }
-
-    @Override
-    public boolean conflictsWith(Enchantment enchantment) {
-        return false;
-    }
-
-    @Override
-    public String getTranslationKey() {
-        return "";
-    }
-
     @EventHandler
     public void onEquip(UberArmorEquippedEvent event) {
         if (event.isCancelled())
@@ -65,7 +45,7 @@ public abstract class ArmorEffectEnchantment extends EffectEnchantment {
             ArmorEffectTask task = new ArmorEffectTask(event.getPlayer(), this, event.getType(), condition);
             if (BoolTag.HAS_CHANCE.test(item, this))
                 task = new ArmorEffectChanceTask(event.getPlayer(), this, event.getType(), condition);
-            addTask(task);
+            addTask(event.getPlayer(), event.getType().name(), task);
         //}
     }
 }
