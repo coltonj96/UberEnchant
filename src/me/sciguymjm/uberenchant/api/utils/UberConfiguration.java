@@ -171,9 +171,9 @@ public class UberConfiguration {
     public static void loadFromEnchantmentsFolder() {
         File folder = new File(UberEnchant.instance().getDataFolder() + "/enchantments/");
 
-        for (File path : folder.listFiles())
+        for (File path : Objects.requireNonNull(folder.listFiles()))
             if (path.isDirectory())
-                for (File file : path.listFiles(f -> f.getName().endsWith(".yml")))
+                for (File file : Objects.requireNonNull(path.listFiles(f -> f.getName().endsWith(".yml"))))
                     if (!files.contains(file))
                         loadFromFile(file);
             else
@@ -184,9 +184,9 @@ public class UberConfiguration {
     public static void updateConfigs() {
         File folder = new File(UberEnchant.instance().getDataFolder() + "/enchantments/");
 
-        for (File path : folder.listFiles())
+        for (File path : Objects.requireNonNull(folder.listFiles()))
             if (path.isDirectory())
-                for (File file : path.listFiles(f -> f.getName().endsWith(".yml")))
+                for (File file : Objects.requireNonNull(path.listFiles(f -> f.getName().endsWith(".yml"))))
                     if (!files.contains(file))
                         loadFromFile(file);
                     else

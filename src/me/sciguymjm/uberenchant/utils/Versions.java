@@ -27,4 +27,8 @@ public enum Versions {
     public static boolean isV1_20_4() {
         return Versions.v1_20_4.atLeast();
     }
+
+    public static boolean isPaper() {
+        return Versions.isPaper();
+    }
 }

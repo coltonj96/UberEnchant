@@ -87,6 +87,7 @@ public class UberEnchant extends JavaPlugin {
                         long def = UberConfiguration.getRecords(a -> a.getEnchant() instanceof EffectEnchantment && a.getKey() != null && a.getKey().getNamespace().equalsIgnoreCase(getName())).size();
                         long vanilla = UberConfiguration.getRecords(a -> a.getKey() != null && a.getKey().getNamespace().equalsIgnoreCase(NamespacedKey.MINECRAFT)).size();
                         List<String> strings = new ArrayList<>(List.of(new String[]{
+                                "&6Version: &a" + getDescription().getVersion(),
                                 UberLocale.getCF("&6", "console.enchantment_table_status", toggle(enchants)),
                                 UberLocale.getCF("&6", "console.anvil_status", toggle(anvil)),
                                 UberLocale.getCF("&6", "console.villager_status", toggle(villagers)),
@@ -100,6 +101,7 @@ public class UberEnchant extends JavaPlugin {
                             strings.add(UberLocale.getCF("&6", "console.integrated_loaded", "&a" + enchantments, "&a" + name));
                         });
                         strings.add(UberLocale.getCF("&6", "console.total_enchantments", "&a" + UberConfiguration.getRecords().stream().filter(value -> value.getEnchant() != null).count()));
+
                         int length = strings.stream().max(Comparator.comparing(String::length)).get().length();
                         /*String[] UE = {
                                 "UU  UU BBBBB  EEEEE RRRRR  EEEEE NN    NN  CCCCC HH  HH  AAAA  NN    NN TTTTTT",
@@ -111,6 +113,7 @@ public class UberEnchant extends JavaPlugin {
                         log(Level.INFO, "\n" + String.join("\n", UE));
                         Arrays.stream(UE).forEach(s -> log(Level.INFO, s));*/
                         log(Level.INFO, "&8" + "=".repeat(length+4));
+                        //log(Level.INFO, "&8||  &5" + version + " ".repeat(length - version.length()+2) + "&8||");
                         strings.forEach(string -> log(Level.INFO, "&8||  &5" + string + " ".repeat(length - string.length()+2) + "&8||"));
                         log(Level.INFO, "&8" + "=".repeat(length+4));
                     }

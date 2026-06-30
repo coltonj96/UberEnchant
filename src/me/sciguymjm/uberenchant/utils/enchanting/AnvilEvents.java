@@ -15,6 +15,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -30,6 +31,7 @@ import org.bukkit.inventory.meta.Repairable;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -119,8 +121,11 @@ public class AnvilEvents implements Listener {
                 meta.setDisplayName(name);
                 item.setItemMeta(meta);
             }
+            List<HumanEntity> viewers = event.getInventory().getViewers();
+            if (viewers.isEmpty())
+                return;
+            Player player = (Player) viewers.get(0);
             sched(() -> {
-                Player player = (Player) event.getView().getPlayer();
                 if (!player.getGameMode().equals(GameMode.CREATIVE))
                     ProtocolLibUtils.setBypass(player, false);
             });
@@ -151,7 +156,7 @@ public class AnvilEvents implements Listener {
             anvil.setMaximumRepairCost(1000);
 
             sched(() -> {
-                Player p = (Player) event.getView().getPlayer();
+                Player p = anvil.getPlayer();
                 if (!p.getGameMode().equals(GameMode.CREATIVE))
                     ProtocolLibUtils.setBypass(p, true);
             });
@@ -246,7 +251,7 @@ public class AnvilEvents implements Listener {
 
                             boolean flag3 = EnchantmentUtils.canEnchant(enchantment, item);
 
-                            if (event.getViewers().get(0).getGameMode().equals(GameMode.CREATIVE) || item.getType().equals(Material.ENCHANTED_BOOK))
+                            if (anvil.getPlayer().getGameMode().equals(GameMode.CREATIVE) || item.getType().equals(Material.ENCHANTED_BOOK))
                                 flag3 = true;
 
                             for (Enchantment enchantment1 : map.keySet())

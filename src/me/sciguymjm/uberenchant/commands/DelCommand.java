@@ -186,9 +186,9 @@ public class DelCommand extends UberTabCommand {
         }
         AttributeModifier modifier = map.get(key.getKey());
         if (meta.removeAttributeModifier(attribute, modifier) && item.setItemMeta(meta))
-            localized("&a", "actions.atrribute.remove.success");
+            localized("&a", "actions.attribute.remove.success");
         else
-            localized("&c", "actions.atrribute.remove.fail");
+            localized("&c", "actions.attribute.remove.fail");
         /*Multimap<Attribute, AttributeModifier> attributes = meta.getAttributeModifiers();
         attributes.keySet().forEach(k -> {
             response(VersionUtils.key(k) + ":");

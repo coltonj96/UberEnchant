@@ -55,11 +55,10 @@ public class GrindstoneEvents implements Listener {
     public void onClick(InventoryClickEvent event) {
         if (event.getClickedInventory() == null)
             return;
-        if (!event.getView().getTopInventory().getType().equals(InventoryType.GRINDSTONE))
+        if (!event.getInventory().getType().equals(InventoryType.GRINDSTONE))
             return;
 
-        InventoryView view = event.getView();
-        GrindstoneInventory inventory = (GrindstoneInventory) view.getTopInventory();
+        GrindstoneInventory inventory = (GrindstoneInventory) event.getInventory();
 
         if (event.getClickedInventory().getType().equals(InventoryType.GRINDSTONE)) {
             if (event.getSlot() == 2 && empty(event.getCursor())) {
@@ -69,20 +68,20 @@ public class GrindstoneEvents implements Listener {
                 int xp = getExp(slot1, slot2);
 
                 if (xp > 0)
-                    ((Player) view.getPlayer()).giveExp(xp);
+                    ((Player) event.getWhoClicked()).giveExp(xp);
 
                 return;
             }
             if (event.getSlot() != 2 && !event.isShiftClick()) {
                 int slot = event.getSlot();
                 ItemStack cursor = event.getCursor();
-                ItemStack current = view.getItem(slot);
+                ItemStack current = inventory.getItem(slot);
                 if (empty(cursor) && !empty(current))
                     return;
-                view.setCursor(current);
+                event.setCursor(current);
                 new BukkitRunnable() {
                     public void run() {
-                        view.setItem(slot, cursor);
+                        inventory.setItem(slot, cursor);
                     }
                 }.runTask(UberEnchant.instance());
                 return;

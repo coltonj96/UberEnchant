@@ -46,7 +46,7 @@ public class UberAnvil {
 
     public ItemStack getItem(int slot) {
         if (v1_21)
-            return event.getView().getTopInventory().getItem(slot);
+            return event.getView().getItem(slot);
         else
             return event.getInventory().getItem(slot);
     }
@@ -55,7 +55,7 @@ public class UberAnvil {
         if (v1_21)
             return event.getView().getRepairCost();
         else
-            return call(event.getInventory(), int.class, "getRenameText", new Class[0]);
+            return call(event.getInventory(), Integer.class, "getRepairCost", new Class[0]);
     }
 
     public void setRepairCost(int cost) {
@@ -76,6 +76,6 @@ public class UberAnvil {
         if (v1_21)
             return (Player) event.getView().getPlayer();
         else
-            return (Player) event.getInventory().getHolder();
+            return (Player) event.getInventory().getViewers().get(0);
     }
 }

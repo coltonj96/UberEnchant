@@ -6,7 +6,7 @@
 
     <groupId>me.sciguymjm.uberenchant</groupId>
     <artifactId>UberEnchant</artifactId>
-    <version>8.12.7</version>
+    <version>8.12.9</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -62,7 +62,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>26.1.1-R0.1-SNAPSHOT</version>
+            <version>26.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -105,7 +105,7 @@
         <dependency>
             <groupId>dev.faststats.metrics</groupId>
             <artifactId>bukkit</artifactId>
-            <version>0.24.0</version>
+            <version>0.27.0</version>
         </dependency>
     </dependencies>
 
@@ -154,22 +154,6 @@
                     <!-<minimizeJar>true</minimizeJar>->
                 </configuration>-->
                 <executions>
-                    <!--<execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <filters>
-                                <filter>
-                                    <artifact>org.bstats:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.MF</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>-->
                     <execution>
                         <phase>package</phase>
                         <goals>
@@ -186,6 +170,7 @@
                                     <shadedPattern>me.sciguymjm.uberenchant.libs.bstats</shadedPattern>
                                 </relocation>
                             </relocations>
+                            <!--<minimizeJar>true</minimizeJar>-->
                         </configuration>
                     </execution>
                 </executions>

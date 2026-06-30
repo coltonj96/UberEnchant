@@ -111,7 +111,7 @@ public class ArmorEquippedListener implements Listener {
 
     private void fireEvents(Player player, PlayerInventory inventory) {
         final ItemStack[] a = inventory.getArmorContents();
-        new BukkitRunnable() {
+            new BukkitRunnable() {
             @Override
             public void run() {
                 final ItemStack[] b = inventory.getArmorContents();

@@ -120,7 +120,7 @@ public class EnchantmentTableUtils {
                  "copper_pickaxe",
                  "copper_shovel",
                  "copper_sword",
-                 "copper_spear"-> 13;
+                 "copper_spear" -> 13;
             case "armadillo_scute",
                  "diamond_axe",
                  "diamond_boots",
@@ -186,20 +186,24 @@ public class EnchantmentTableUtils {
 
     private static int checkMaterial(ItemStack item) {
         Material material = item.getType();
-        if (Tag.ITEMS_WOODEN_TOOL_MATERIALS.isTagged(material) || Tag.ITEMS_NETHERITE_TOOL_MATERIALS.isTagged(material))
-            return 15;
-        if (Tag.ITEMS_STONE_TOOL_MATERIALS.isTagged(material))
-            return 5;
-        if (Tag.ITEMS_COPPER_TOOL_MATERIALS.isTagged(material))
-            return 13;
-        if (Tag.ITEMS_IRON_TOOL_MATERIALS.isTagged(material))
-            return 14;
-        if (Tag.ITEMS_DIAMOND_TOOL_MATERIALS.isTagged(material))
-            return 10;
-        if (Tag.ITEMS_GOLD_TOOL_MATERIALS.isTagged(material))
-            return 22;
-        if (Versions.v1_21_11.atLeast() && item.hasItemMeta() && item.getItemMeta().hasEnchantable())
-            return item.getItemMeta().getEnchantable();
+        if (material.isAir())
+            return 0;
+        if (Versions.v1_21_4.atLeast()) {
+            if (Tag.ITEMS_WOODEN_TOOL_MATERIALS.isTagged(material) || Tag.ITEMS_NETHERITE_TOOL_MATERIALS.isTagged(material))
+                return 15;
+            if (Tag.ITEMS_STONE_TOOL_MATERIALS.isTagged(material))
+                return 5;
+            if (Tag.ITEMS_COPPER_TOOL_MATERIALS.isTagged(material))
+                return 13;
+            if (Tag.ITEMS_IRON_TOOL_MATERIALS.isTagged(material))
+                return 14;
+            if (Tag.ITEMS_DIAMOND_TOOL_MATERIALS.isTagged(material))
+                return 10;
+            if (Tag.ITEMS_GOLD_TOOL_MATERIALS.isTagged(material))
+                return 22;
+            if (Versions.v1_21_11.atLeast() && item.hasItemMeta() && item.getItemMeta().hasEnchantable())
+                return item.getItemMeta().getEnchantable();
+        }
         return 0;
     }
 
