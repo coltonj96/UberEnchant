@@ -6,6 +6,7 @@ import me.sciguymjm.uberenchant.api.utils.UberUtils;
 import me.sciguymjm.uberenchant.api.utils.persistence.UberMeta;
 import me.sciguymjm.uberenchant.api.utils.random.WeightedChance;
 import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
+import me.sciguymjm.uberenchant.utils.Debugging;
 import me.sciguymjm.uberenchant.utils.FileUtils;
 import me.sciguymjm.uberenchant.utils.VersionUtils;
 import org.bukkit.Bukkit;
@@ -20,6 +21,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Utility class for internal use.
@@ -28,7 +30,7 @@ public class EnchantmentTableEvents implements Listener {
 
     private final Map<UUID, CustomOffer> players = new HashMap<>();
     private final Map<UUID, Map<UberEnchantment, Integer>> books = new HashMap<>();
-    public static List<String> disabled;
+    public static Set<String> disabled;
 
     private static boolean reroll;
 
@@ -37,14 +39,15 @@ public class EnchantmentTableEvents implements Listener {
     }
 
     public static void reload() {
-        disabled = FileUtils.loadConfig("/mechanics/enchantment_table.yml").getStringList("disabled_enchantments");
+        List<String> list = FileUtils.loadConfig("/mechanics/enchantment_table.yml").getStringList("disabled_enchantments");
         if (FileUtils.updateAndGet("/mechanics/enchantment_table.yml", "disable_effect_enchantments", true, Boolean.class))
-            disabled.addAll(UberEnchantment.getRegisteredEnchantments().stream().map(e -> e.getKey().getKey()).toList());
+            list.addAll(UberEnchantment.getRegisteredEnchantments().stream().map(e -> e.getKey().getKey()).toList());
+        disabled = list.stream().map(String::toLowerCase).collect(Collectors.toSet());
         reroll = FileUtils.updateAndGet("/mechanics/enchantment_table.yml", "remove_to_reroll", false, Boolean.class);
     }
 
     public static boolean isDisabled(Enchantment enchant) {
-        return disabled.contains(VersionUtils.getKey(enchant).getKey());
+        return disabled.contains(VersionUtils.getKey(enchant).getKey().toLowerCase());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

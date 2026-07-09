@@ -167,7 +167,7 @@ public class AnvilEvents implements Listener {
         anvil.setRepairCost(1);
         int i = 0;
 
-        if (item != null) {
+        if (item != null && item.hasItemMeta()) {
             ItemMeta testMeta = item.getItemMeta();
             String test = testMeta.getDisplayName().replace('§', '&');
             testMeta.setDisplayName(ChatUtils.toHex(test));
@@ -179,7 +179,11 @@ public class AnvilEvents implements Listener {
                 map = new HashMap<>(UberUtils.getAllStoredMap(itemstack1));
             else
                 map = new HashMap<>(UberUtils.getAllMap(itemstack1));
-            int j = ((Repairable) item.getItemMeta()).getRepairCost() + (itemstack2 == null ? 0 : ((Repairable) itemstack2.getItemMeta()).getRepairCost());
+            int j = 0;
+            if (item.getItemMeta() instanceof Repairable repair)
+                j = repair.getRepairCost();
+            if (itemstack2 != null && itemstack2.hasItemMeta() && itemstack2.getItemMeta() instanceof Repairable repair)
+                 j += repair.getRepairCost();
 
             anvil.setRepairCost(0);
 

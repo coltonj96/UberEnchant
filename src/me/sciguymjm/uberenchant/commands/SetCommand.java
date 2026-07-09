@@ -212,9 +212,9 @@ public class SetCommand extends UberTabCommand {
         modifier = new AttributeModifier(new NamespacedKey(UberEnchant.instance(), format), mod.amount, mod.operation, mod.group);
 
         if (meta.addAttributeModifier(attribute, modifier) && item.setItemMeta(meta))
-            localized("&a", "actions.atrribute.set.success");
+            localized("&a", "actions.attribute.set.success");
         else
-            localized("&c", "actions.atrribute.set.fail");
+            localized("&c", "actions.attribute.set.fail");
         /*Multimap<Attribute, AttributeModifier> attributes = meta.getAttributeModifiers();
         attributes.keySet().forEach(k -> {
             response(VersionUtils.key(k) + ":");

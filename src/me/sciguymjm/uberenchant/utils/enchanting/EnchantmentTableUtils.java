@@ -193,7 +193,7 @@ public class EnchantmentTableUtils {
                 return 15;
             if (Tag.ITEMS_STONE_TOOL_MATERIALS.isTagged(material))
                 return 5;
-            if (Tag.ITEMS_COPPER_TOOL_MATERIALS.isTagged(material))
+            if (Versions.v1_21_9.atLeast() && Tag.ITEMS_COPPER_TOOL_MATERIALS.isTagged(material))
                 return 13;
             if (Tag.ITEMS_IRON_TOOL_MATERIALS.isTagged(material))
                 return 14;

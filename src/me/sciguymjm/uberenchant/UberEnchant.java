@@ -45,8 +45,6 @@ public class UberEnchant extends JavaPlugin {
 
         Debugging.get(this);
 
-        //debug.enable();
-
         initResources();
         update();
         PluginUtils.initAll();
