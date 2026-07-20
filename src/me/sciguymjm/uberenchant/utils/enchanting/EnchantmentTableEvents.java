@@ -32,13 +32,21 @@ public class EnchantmentTableEvents implements Listener {
     private final Map<UUID, Map<UberEnchantment, Integer>> books = new HashMap<>();
     public static Set<String> disabled;
 
+    private static boolean initialized = false;
     private static boolean reroll;
 
     public EnchantmentTableEvents() {
-        reload();
+        initialized = true;
+        init();
     }
 
-    public static void reload() {
+    public static boolean isInitialized() {
+        return initialized;
+    }
+
+    public static void init() {
+        if (!initialized)
+            return;
         List<String> list = FileUtils.loadConfig("/mechanics/enchantment_table.yml").getStringList("disabled_enchantments");
         if (FileUtils.updateAndGet("/mechanics/enchantment_table.yml", "disable_effect_enchantments", true, Boolean.class))
             list.addAll(UberEnchantment.getRegisteredEnchantments().stream().map(e -> e.getKey().getKey()).toList());
@@ -47,7 +55,7 @@ public class EnchantmentTableEvents implements Listener {
     }
 
     public static boolean isDisabled(Enchantment enchant) {
-        return disabled.contains(VersionUtils.getKey(enchant).getKey().toLowerCase());
+        return initialized && disabled.contains(VersionUtils.getKey(enchant).getKey().toLowerCase());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

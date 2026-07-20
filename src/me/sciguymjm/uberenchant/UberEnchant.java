@@ -10,10 +10,7 @@ import me.sciguymjm.uberenchant.enchantments.abstraction.EffectEnchantment;
 import me.sciguymjm.uberenchant.metrics.BStatsMetrics;
 import me.sciguymjm.uberenchant.metrics.FastStatsMetrics;
 import me.sciguymjm.uberenchant.utils.*;
-import me.sciguymjm.uberenchant.utils.enchanting.AnvilEvents;
-import me.sciguymjm.uberenchant.utils.enchanting.EnchantmentTableEvents;
-import me.sciguymjm.uberenchant.utils.enchanting.GrindstoneEvents;
-import me.sciguymjm.uberenchant.utils.enchanting.VillagerEvents;
+import me.sciguymjm.uberenchant.utils.enchanting.*;
 import me.sciguymjm.uberenchant.utils.plugins.PluginUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -46,6 +43,7 @@ public class UberEnchant extends JavaPlugin {
         Debugging.get(this);
 
         initResources();
+        EnchantmentTableUtils.init();
         update();
         PluginUtils.initAll();
 

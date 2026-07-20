@@ -28,9 +28,9 @@ public class ReloadCommand extends UberCommand implements CommandExecutor {
                     view.close();
             });
             UberConfiguration.reloadAll();
-            EnchantmentTableEvents.reload();
-            EnchantmentTableUtils.reload();
-            AnvilEvents.reload();
+            EnchantmentTableEvents.init();
+            EnchantmentTableUtils.init();
+            AnvilEvents.init();
         });
         return true;
     }

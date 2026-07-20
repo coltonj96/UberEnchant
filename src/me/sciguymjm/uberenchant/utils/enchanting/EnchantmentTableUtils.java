@@ -2,6 +2,7 @@ package me.sciguymjm.uberenchant.utils.enchanting;
 
 import me.sciguymjm.uberenchant.api.UberEnchantment;
 import me.sciguymjm.uberenchant.api.utils.UberConfiguration;
+import me.sciguymjm.uberenchant.api.utils.UberRecord;
 import me.sciguymjm.uberenchant.api.utils.random.UberRandom;
 import me.sciguymjm.uberenchant.api.utils.random.Weighted;
 import me.sciguymjm.uberenchant.api.utils.random.WeightedChance;
@@ -18,6 +19,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * Utility class for internal use.
@@ -32,11 +34,7 @@ public class EnchantmentTableUtils {
 
     private static Map<Enchantment, OtherData> other;
 
-    static {
-        reload();
-    }
-
-    public static void reload() {
+    public static void init() {
         seed = new HashMap<>();
         floor_bonus = FileUtils.get("/mechanics/enchantment_table.yml", "floor_bonus", false, Boolean.class);
         bonus_map = new HashMap<>();
@@ -366,9 +364,12 @@ public class EnchantmentTableUtils {
 
         CustomList list = new CustomList(new ArrayList<>(), new ArrayList<>());
 
-        UberConfiguration.getRecords().stream().filter(r ->
+        Stream<UberRecord> records = UberConfiguration.getRecords().stream();
+        if (EnchantmentTableEvents.isInitialized())
+            records = UberConfiguration.getRecords().stream().filter(r ->
                 !EnchantmentTableEvents.isDisabled(r.getEnchant())
-        ).forEach(record -> {
+        );
+        records.forEach(record -> {
             Enchantment enchantment = record.getEnchant();
             if ((!EnchantmentUtils.isTreasure(enchantment) || flag) && (EnchantmentUtils.canEnchant(enchantment, item) || isBook || record.getCanUseOnAnything())) {
                 for (int j = record.getMaxLevel(); j >= record.getMinLevel(); --j) {

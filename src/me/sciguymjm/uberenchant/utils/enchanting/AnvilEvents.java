@@ -44,11 +44,16 @@ public class AnvilEvents implements Listener {
     private static boolean has_limit;
     private static int limit;
 
-    static {
-        reload();
+    private static boolean initialized = false;
+
+    public AnvilEvents() {
+        initialized = true;
+        init();
     }
 
-    public static void reload() {
+    public static void init() {
+        if (!initialized)
+            return;
         colors = FileUtils.updateAndGet("/mechanics/anvil.yml", "colors_enabled", false, Boolean.class);
         ignore = FileUtils.updateAndGet("/mechanics/anvil.yml", "ignore_too_expensive", false, Boolean.class);
         has_limit = FileUtils.updateAndGet("/mechanics/anvil.yml", "enable_level_cost_limit", false, Boolean.class);
@@ -64,6 +69,8 @@ public class AnvilEvents implements Listener {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             Damageable dMeta = ((Damageable) meta);
+            if (dMeta.hasMaxDamage() && damage > dMeta.getMaxDamage())
+                damage = dMeta.getMaxDamage();
             dMeta.setDamage(damage);
             item.setItemMeta(dMeta);
         }
